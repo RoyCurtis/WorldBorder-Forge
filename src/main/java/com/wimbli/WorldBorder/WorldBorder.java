@@ -1,5 +1,6 @@
 package com.wimbli.WorldBorder;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
@@ -7,6 +8,7 @@ import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +29,8 @@ public class WorldBorder
 
     public static volatile MinecraftServer server = null;
 	public static volatile WorldBorder plugin = null;
-	public static volatile WBCommand wbCommand = null;
+    public static volatile WBCommand wbCommand = null;
+    public static volatile WBListener wbListener = null;
 	private BlockPlaceListener blockPlaceListener = null;
 	private MobSpawnListener mobSpawnListener = null;
 
@@ -45,8 +48,10 @@ public class WorldBorder
 	{
 		if (plugin == null)
 			plugin = this;
-		if (wbCommand == null)
-			wbCommand = new WBCommand();
+        if (wbCommand == null)
+            wbCommand = new WBCommand();
+        if (wbListener == null)
+            wbListener = new WBListener();
         if (server == null)
             server = MinecraftServer.getServer();
 
@@ -54,10 +59,11 @@ public class WorldBorder
 		Config.load(this, false);
 
 		// our one real command, though it does also have aliases "wb" and "worldborder"
-		getCommand("wborder").setExecutor(wbCommand);
+        event.registerServerCommand(wbCommand);
 
 		// keep an eye on teleports, to redirect them to a spot inside the border if necessary
-		getServer().getPluginManager().registerEvents(new WBListener(), this);
+        FMLCommonHandler.instance().bus().register(wbListener);
+        MinecraftForge.EVENT_BUS.register(wbListener);
 		
 		if (Config.preventBlockPlace()) 
 			enableBlockPlaceListener(true);
@@ -65,19 +71,16 @@ public class WorldBorder
 		if (Config.preventMobSpawn())
 			enableMobSpawnListener(true);
 
-		// integrate with DynMap if it's available
-		DynMapFeatures.setup();
-
-		// Well I for one find this info useful, so...
-		Location spawn = getServer().getWorlds().get(0).getSpawnLocation();
-		Config.log("For reference, the main world's spawn location is at X: " + Config.coord.format(spawn.getX()) + " Y: " + Config.coord.format(spawn.getY()) + " Z: " + Config.coord.format(spawn.getZ()));
-	}
+		// integrate with DynMap if it becomes available
+		DynMapFeatures.registerListener();
+    }
 
     @Mod.EventHandler
     @SideOnly(Side.SERVER)
     public void serverStop(FMLServerStoppingEvent event)
 	{
 		DynMapFeatures.removeAllBorders();
+        DynMapFeatures.unregisterListener();
 		Config.StopBorderTimer();
 		Config.StoreFillTask();
 		Config.StopFillTask();
@@ -89,19 +92,10 @@ public class WorldBorder
 		return Config.Border(worldName);
 	}
 
-	/**
-	 * @deprecated  Replaced by {@link #getWorldBorder(String worldName)};
-	 * this method name starts with an uppercase letter, which it shouldn't
-	 */
-	public BorderData GetWorldBorder(String worldName)
-	{
-		return getWorldBorder(worldName);
-	}
-
 	public void enableBlockPlaceListener(boolean enable)
 	{
-		if (enable) 
-			getServer().getPluginManager().registerEvents(this.blockPlaceListener = new BlockPlaceListener(), this);
+		if (enable)
+            MinecraftForge.EVENT_BUS.register(this.blockPlaceListener = new BlockPlaceListener());
 		else if (blockPlaceListener != null)
 			blockPlaceListener.unregister();
 	}
@@ -109,7 +103,7 @@ public class WorldBorder
 	public void enableMobSpawnListener(boolean enable)
 	{
 		if (enable)
-			getServer().getPluginManager().registerEvents(this.mobSpawnListener = new MobSpawnListener(), this);
+            MinecraftForge.EVENT_BUS.register(this.mobSpawnListener = new MobSpawnListener());
 		else if (mobSpawnListener != null)
 			mobSpawnListener.unregister();
 	}

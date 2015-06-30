@@ -5,6 +5,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 
 /**
  * Static class for utility functions (syntactic sugar) to help transition from Bukkit
@@ -12,6 +14,11 @@ import net.minecraft.util.StatCollector;
  */
 public class Util
 {
+    public static String worldName(World world)
+    {
+        return world.provider.getSaveFolder();
+    }
+
     /**
      * Attempts to a translate a given string/key using the local language, and then
      * using the fallback language.

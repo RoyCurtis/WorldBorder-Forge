@@ -5,11 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.World;
-
-import org.dynmap.DynmapAPI;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.world.World;
+import org.dynmap.DynmapCommonAPI;
+import org.dynmap.DynmapCommonAPIListener;
 import org.dynmap.markers.AreaMarker;
 import org.dynmap.markers.CircleMarker;
 import org.dynmap.markers.MarkerAPI;
@@ -18,12 +17,22 @@ import org.dynmap.markers.MarkerSet;
 
 public class DynMapFeatures
 {
-	private static DynmapAPI api;
+	private static DynmapCommonAPI api;
 	private static MarkerAPI markApi;
 	private static MarkerSet markSet;
 	private static int lineWeight = 3;
 	private static double lineOpacity = 1.0;
 	private static int lineColor = 0xFF0000;
+
+    private static DynmapCommonAPIListener listener = new DynmapCommonAPIListener()
+    {
+        @Override
+        public void apiEnabled(DynmapCommonAPI dynmapCommonAPI)
+        {
+            DynMapFeatures.api = dynmapCommonAPI;
+            setup();
+        }
+    };
 
 	// Whether re-rendering functionality is available
 	public static boolean renderEnabled()
@@ -37,32 +46,19 @@ public class DynMapFeatures
 		return markApi != null;
 	}
 
+    public static void registerListener()
+    {
+        DynmapCommonAPIListener.register(listener);
+    }
+
+    public static void unregisterListener()
+    {
+        DynmapCommonAPIListener.unregister(listener);
+    }
+
 	public static void setup()
 	{
-		Plugin test = Bukkit.getServer().getPluginManager().getPlugin("dynmap");
-		if (test == null || !test.isEnabled()) return;
-
-		api = (DynmapAPI)test;
-
-		// make sure DynMap version is new enough to include circular markers
-		try
-		{
-			Class.forName("org.dynmap.markers.CircleMarker");
-
-			// for version 0.35 of DynMap, CircleMarkers had just been introduced and were bugged (center position always 0,0)
-			if (api.getDynmapVersion().startsWith("0.35-"))
-				throw new ClassNotFoundException();
-		}
-		catch (ClassNotFoundException ex)
-		{
-			Config.logConfig("DynMap is available, but border display is currently disabled: you need DynMap v0.36 or newer.");
-			return;
-		}
-		catch (NullPointerException ex)
-		{
-			Config.logConfig("DynMap is present, but an NPE (type 1) was encountered while trying to integrate. Border display disabled.");
-			return;
-		}
+        // RoyCurtis: Old dynmap version check removed; 0.35 is obsolete by now
 
 		try
 		{
@@ -87,27 +83,25 @@ public class DynMapFeatures
 	 * Sadly, not currently working. Might not even be possible to make it work.
 	 */
 
-	public static void renderRegion(String worldName, CoordXZ coord)
+	public static void renderRegion(World world, CoordXZ coord)
 	{
 		if (!renderEnabled()) return;
 
-		World world = Bukkit.getWorld(worldName);
-		int y = (world != null) ? world.getMaxHeight() : 255;
+		int y = (world != null) ? world.getHeight() : 255;
 		int x = CoordXZ.regionToBlock(coord.x);
 		int z = CoordXZ.regionToBlock(coord.z);
-		api.triggerRenderOfVolume(worldName, x, 0, z, x+511, y, z+511);
+		api.triggerRenderOfVolume(Util.worldName(world), x, 0, z, x + 511, y, z + 511);
 	}
 
-	public static void renderChunks(String worldName, List<CoordXZ> coords)
+	public static void renderChunks(World world, List<CoordXZ> coords)
 	{
 		if (!renderEnabled()) return;
 
-		World world = Bukkit.getWorld(worldName);
-		int y = (world != null) ? world.getMaxHeight() : 255;
+		int y = (world != null) ? world.getHeight() : 255;
 
 		for (CoordXZ coord : coords)
 		{
-			renderChunk(worldName, coord, y);
+			renderChunk(Util.worldName(world), coord, y);
 		}
 	}
 
