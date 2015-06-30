@@ -1,23 +1,54 @@
 package com.wimbli.WorldBorder;
 
-import org.bukkit.Location;
-import org.bukkit.plugin.java.JavaPlugin;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.server.MinecraftServer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
-public class WorldBorder extends JavaPlugin
+@Mod(
+    modid   = WorldBorder.MODID,
+    name    = WorldBorder.MODID,
+    version = WorldBorder.VERSION,
+
+    acceptableRemoteVersions = "*",
+    acceptableSaveVersions   = ""
+)
+public class WorldBorder
 {
+    public static final String VERSION = "1.8.4";
+    public static final String MODID   = "WorldBorder";
+    public static final Logger LOGGER  = LogManager.getFormatterLogger(MODID);
+
+    public static volatile MinecraftServer server = null;
 	public static volatile WorldBorder plugin = null;
 	public static volatile WBCommand wbCommand = null;
 	private BlockPlaceListener blockPlaceListener = null;
 	private MobSpawnListener mobSpawnListener = null;
 
-	@Override
-	public void onEnable()
+    @Mod.EventHandler
+    @SideOnly(Side.CLIENT)
+    public void clientPreInit(FMLPreInitializationEvent event)
+    {
+        LOGGER.error("This mod is intended only for use on servers.");
+        LOGGER.error("Please consider removing this mod from your installation.");
+    }
+
+    @Mod.EventHandler
+    @SideOnly(Side.SERVER)
+    public void serverStart(FMLServerStartingEvent event)
 	{
 		if (plugin == null)
 			plugin = this;
 		if (wbCommand == null)
 			wbCommand = new WBCommand();
+        if (server == null)
+            server = MinecraftServer.getServer();
 
 		// Load (or create new) config file
 		Config.load(this, false);
@@ -42,8 +73,9 @@ public class WorldBorder extends JavaPlugin
 		Config.log("For reference, the main world's spawn location is at X: " + Config.coord.format(spawn.getX()) + " Y: " + Config.coord.format(spawn.getY()) + " Z: " + Config.coord.format(spawn.getZ()));
 	}
 
-	@Override
-	public void onDisable()
+    @Mod.EventHandler
+    @SideOnly(Side.SERVER)
+    public void serverStop(FMLServerStoppingEvent event)
 	{
 		DynMapFeatures.removeAllBorders();
 		Config.StopBorderTimer();

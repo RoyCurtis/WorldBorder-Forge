@@ -1,23 +1,20 @@
 package com.wimbli.WorldBorder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommand;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 
 import com.wimbli.WorldBorder.cmd.*;
 
 
-public class WBCommand implements CommandExecutor
+public class WBCommand implements ICommand
 {
+    static final String NAME    = "wborder";
+    static final List   ALIASES = Arrays.asList("wb", "worldborder");
+
 	// map of all sub-commands with the command name (string) for quick reference
 	public Map<String, WBCmd> subCommands = new LinkedHashMap<String, WBCmd>();
 	// ref. list of the commands which can have a world name in front of the command itself (ex. /wb _world_ radius 100)
@@ -71,10 +68,12 @@ public class WBCommand implements CommandExecutor
 			subCommandsWithWorldNames.add(cmd.name);
 	}
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] split)
+	@Override
+	public void processCommand(ICommandSender sender, String[] split)
 	{
-		Player player = (sender instanceof Player) ? (Player)sender : null;
+		EntityPlayerMP player = sender instanceof EntityPlayerMP
+			? (EntityPlayerMP) sender
+			: null;
 
 		// if world name is passed inside quotation marks, handle that, and get List<String> instead of String[]
 		List<String> params = concatenateQuotedWorldName(split);
@@ -106,7 +105,7 @@ public class WBCommand implements CommandExecutor
 			}
 			catch(NumberFormatException ignored)
 			{
-				sender.sendMessage(WBCmd.C_ERR + "Command not recognized. Showing command list.");
+                Util.chat(sender, WBCmd.C_ERR + "Command not recognized. Showing command list.");
 			}
 			cmdName = "commands";
 			params.add(0, Integer.toString(page));
@@ -114,33 +113,27 @@ public class WBCommand implements CommandExecutor
 
 		WBCmd subCommand = subCommands.get(cmdName);
 
-		// check permission
-		if (!Config.HasPermission(player, subCommand.permission))
-			return true;
-
 		// if command requires world name when run by console, make sure that's in place
 		if (player == null && subCommand.hasWorldNameInput && subCommand.consoleRequiresWorldName && worldName == null)
 		{
-			sender.sendMessage(WBCmd.C_ERR + "This command requires a world to be specified if run by the console.");
+			Util.chat(sender, WBCmd.C_ERR + "This command requires a world to be specified if run by the console.");
 			subCommand.sendCmdHelp(sender);
-			return true;
+			return;
 		}
 
 		// make sure valid number of parameters has been provided
 		if (params.size() < subCommand.minParams || params.size() > subCommand.maxParams)
 		{
 			if (subCommand.maxParams == 0)
-				sender.sendMessage(WBCmd.C_ERR + "This command does not accept any parameters.");
+                Util.chat(sender, WBCmd.C_ERR + "This command does not accept any parameters.");
 			else
-				sender.sendMessage(WBCmd.C_ERR + "You have not provided a valid number of parameters.");
+				Util.chat(sender, WBCmd.C_ERR + "You have not provided a valid number of parameters.");
 			subCommand.sendCmdHelp(sender);
-			return true;
+			return;
 		}
 
 		// execute command
 		subCommand.execute(sender, player, params, worldName);
-
-		return true;
 	}
 
 
@@ -205,9 +198,56 @@ public class WBCommand implements CommandExecutor
 	public Set<String> getCommandNames()
 	{
 		// using TreeSet to sort alphabetically
-		Set<String> commands = new TreeSet(subCommands.keySet());
+		Set<String> commands = new TreeSet<String>(subCommands.keySet());
 		// removing default "commands" command as it's not normally shown or run like other commands
 		commands.remove("commands");
 		return commands;
 	}
+
+    // Begin Forge implementation
+
+	@Override
+	public String getCommandName()
+	{
+		return NAME;
+	}
+
+	@Override
+	public String getCommandUsage(ICommandSender sender)
+	{
+		return "/wborder help [n]";
+	}
+
+	@Override
+	public List getCommandAliases()
+	{
+		return ALIASES;
+	}
+
+	@Override
+	public boolean canCommandSenderUseCommand(ICommandSender sender)
+	{
+		return true;
+	}
+
+	@Override
+	public List addTabCompletionOptions(ICommandSender sender, String[] args)
+	{
+		return args.length > 0
+            ? Collections.emptyList()
+            : new ArrayList<String>( getCommandNames() );
+	}
+
+	@Override
+	public boolean isUsernameIndex(String[] sender, int idx)
+	{
+		return true;
+	}
+
+    @Override
+    public int compareTo(Object o)
+    {
+        ICommand command = (ICommand) o;
+        return command.getCommandName().compareTo( getCommandName() );
+    }
 }
