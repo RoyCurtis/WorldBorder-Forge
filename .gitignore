@@ -1,4 +1,14 @@
-target/
-
-.idea/
+/.nb-gradle/
+/.idea/
+/build/
+/classes/
+/eclipse/
+/javadocs/
+/output/
+/.classpath
+/.gradle
+/.nb-gradle-properties
+/.project
 *.iml
+*-javadoc/
+debug/

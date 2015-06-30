@@ -1,0 +1,92 @@
+buildscript
+{
+    // Repositories and plugins used by this buildscript. For internal Gradle use only.
+    repositories
+    {
+        mavenCentral()
+        maven
+        {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven
+        {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
+    dependencies
+    {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+    }
+}
+
+// Applies the custom Gradle plugin Forge uses, for Forge-specific tasks
+apply plugin: 'forge'
+
+version = "1.8.4"
+group   = "com.wimbli.WorldBorder"
+
+minecraft
+{
+    version = "1.7.10-10.13.4.1448-1.7.10"
+    runDir  = "debug"
+}
+
+jar
+{
+    // Sets the output directory of the mod's jar file
+    destinationDir = file 'output'
+}
+
+compileJava
+{
+    // Enforces use of Java 1.7 language level
+    sourceCompatibility = "1.7"
+    targetCompatibility = "1.7"
+}
+
+idea
+{
+    module
+    {
+        // Fixes issues with debugging in IntelliJ
+        inheritOutputDirs = true
+    }
+}
+
+repositories
+{
+    maven
+    {
+        name = "mikeprimm"
+        url  = "http://repo.mikeprimm.com/"
+    }
+}
+
+dependencies
+{
+    compile 'org.dynmap:DynmapCoreAPI:2.0'
+}
+
+processResources
+{
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs)
+	{
+        include 'mcmod.info'
+                
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs)
+	{
+        exclude 'mcmod.info'
+    }
+}
