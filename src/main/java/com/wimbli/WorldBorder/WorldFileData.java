@@ -1,5 +1,11 @@
 package com.wimbli.WorldBorder;
 
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldSavedData;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,38 +13,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bukkit.entity.Player;
-import org.bukkit.World;
-
 // image output stuff, for debugging method at bottom of this file
 import java.awt.*;
 import java.awt.image.*;
 import javax.imageio.*;
 
 
-// by the way, this region file handler was created based on the divulged region file format: http://mojang.com/2011/02/16/minecraft-save-file-format-in-beta-1-3/
+// by the way, this region file handler was created based on the divulged region file format:
+// http://mojang.com/2011/02/16/minecraft-save-file-format-in-beta-1-3/
 
 public class WorldFileData
 {
 	private transient World world;
 	private transient File regionFolder = null;
 	private transient File[] regionFiles = null;
-	private transient Player notifyPlayer = null;
+	private transient EntityPlayerMP notifyPlayer = null;
 	private transient Map<CoordXZ, List<Boolean>> regionChunkExistence = Collections.synchronizedMap(new HashMap<CoordXZ, List<Boolean>>());
 
 	// Use this static method to create a new instance of this class. If null is returned, there was a problem so any process relying on this should be cancelled.
-	public static WorldFileData create(World world, Player notifyPlayer)
+	public static WorldFileData create(World world, EntityPlayerMP notifyPlayer)
 	{
 		WorldFileData newData = new WorldFileData(world, notifyPlayer);
 
-		newData.regionFolder = new File(newData.world.getWorldFolder(), "region");
+		newData.regionFolder = new File(newData.world.provider.getSaveFolder(), "region");
 		if (!newData.regionFolder.exists() || !newData.regionFolder.isDirectory())
 		{
 			// check for region folder inside a DIM* folder (DIM-1 for nether, DIM1 for end, DIMwhatever for custom world types)
-			File[] possibleDimFolders = newData.world.getWorldFolder().listFiles(new DimFolderFileFilter());
+            File worldFolder = newData.world.getSaveHandler().getWorldDirectory();
+			File[] possibleDimFolders = worldFolder.listFiles(new DimFolderFileFilter());
 			for (File possibleDimFolder : possibleDimFolders)
 			{
-				File possible = new File(newData.world.getWorldFolder(), possibleDimFolder.getName() + File.separator + "region");
+				File possible = new File(worldFolder, possibleDimFolder.getName() + File.separator + "region");
 				if (possible.exists() && possible.isDirectory())
 				{
 					newData.regionFolder = possible;
@@ -47,7 +52,7 @@ public class WorldFileData
 			}
 			if (!newData.regionFolder.exists() || !newData.regionFolder.isDirectory())
 			{
-				newData.sendMessage("Could not validate folder for world's region files. Looked in "+newData.world.getWorldFolder().getPath()+" for valid DIM* folder with a region folder in it.");
+				newData.sendMessage("Could not validate folder for world's region files. Looked in "+worldFolder.getPath()+" for valid DIM* folder with a region folder in it.");
 				return null;
 			}
 		}
@@ -68,7 +73,7 @@ public class WorldFileData
 	}
 
 	// the constructor is private; use create() method above to create an instance of this class.
-	private WorldFileData(World world, Player notifyPlayer)
+	private WorldFileData(World world, EntityPlayerMP notifyPlayer)
 	{
 		this.world = world;
 		this.notifyPlayer = notifyPlayer;
@@ -127,7 +132,7 @@ public class WorldFileData
 		CoordXZ region = new CoordXZ(CoordXZ.chunkToRegion(x), CoordXZ.chunkToRegion(z));
 		List<Boolean> regionChunks = this.getRegionData(region);
 //		Bukkit.getLogger().info("x: "+x+"  z: "+z+"  offset: "+coordToRegionOffset(x, z));
-		return regionChunks.get(coordToRegionOffset(x, z)).booleanValue();
+		return regionChunks.get(coordToRegionOffset(x, z));
 	}
 
 	// Find out if the chunk at the given coordinates has been fully generated.
@@ -220,8 +225,8 @@ public class WorldFileData
 	private void sendMessage(String text)
 	{
 		Config.log("[WorldData] " + text);
-		if (notifyPlayer != null && notifyPlayer.isOnline())
-			notifyPlayer.sendMessage("[WorldData] " + text);
+		if (notifyPlayer != null)
+            Util.chat(notifyPlayer, "[WorldData] " + text);
 	}
 
 	// file filter used for region files
@@ -272,7 +277,7 @@ public class WorldFileData
 		{
 			for (int z = 0; z < 32; z++)
 			{
-				if (data.get(current).booleanValue())
+				if (data.get(current))
 					g2.fillRect(x,z, x+1, z+1);
 				current++;
 			}

@@ -90,7 +90,7 @@ public class DynMapFeatures
 		int y = (world != null) ? world.getHeight() : 255;
 		int x = CoordXZ.regionToBlock(coord.x);
 		int z = CoordXZ.regionToBlock(coord.z);
-		api.triggerRenderOfVolume(Util.worldName(world), x, 0, z, x + 511, y, z + 511);
+		api.triggerRenderOfVolume(Util.getWorldName(world), x, 0, z, x + 511, y, z + 511);
 	}
 
 	public static void renderChunks(World world, List<CoordXZ> coords)
@@ -101,7 +101,7 @@ public class DynMapFeatures
 
 		for (CoordXZ coord : coords)
 		{
-			renderChunk(Util.worldName(world), coord, y);
+			renderChunk(Util.getWorldName(world), coord, y);
 		}
 	}
 

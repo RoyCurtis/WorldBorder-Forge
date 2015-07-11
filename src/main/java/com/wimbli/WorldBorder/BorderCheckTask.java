@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 
+import net.minecraft.entity.player.EntityPlayerMP;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
@@ -17,6 +18,7 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.World;
+import com.wimbli.WorldBorder.forge.Location;
 
 
 public class BorderCheckTask implements Runnable
@@ -28,9 +30,9 @@ public class BorderCheckTask implements Runnable
 		if (Config.KnockBack() == 0.0)
 			return;
 
-		Collection<Player> players = ImmutableList.copyOf(Bukkit.getServer().getOnlinePlayers());
+		ImmutableList players = ImmutableList.copyOf(WorldBorder.server.getConfigurationManager().playerEntityList);
 
-		for (Player player : players)
+		for (EntityPlayerMP player : players)
 		{
 			checkPlayer(player, null, false, true);
 		}
@@ -40,7 +42,7 @@ public class BorderCheckTask implements Runnable
 	private static Set<String> handlingPlayers = Collections.synchronizedSet(new LinkedHashSet<String>());
 
 	// set targetLoc only if not current player location; set returnLocationOnly to true to have new Location returned if they need to be moved to one, instead of directly handling it
-	public static Location checkPlayer(Player player, Location targetLoc, boolean returnLocationOnly, boolean notify)
+	public static Location checkPlayer(EntityPlayerMP player, Location targetLoc, boolean returnLocationOnly, boolean notify)
 	{
 		if (player == null || !player.isOnline()) return null;
 
@@ -166,7 +168,7 @@ public class BorderCheckTask implements Runnable
 		return newLoc;
 	}
 
-	private static void setPassengerDelayed(final Entity vehicle, final Player player, final String playerName, long delay)
+	private static void setPassengerDelayed(final Entity vehicle, final EntityPlayerMP player, final String playerName, long delay)
 	{
 		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(WorldBorder.plugin, new Runnable()
 		{

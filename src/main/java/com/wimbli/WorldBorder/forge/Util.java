@@ -5,8 +5,11 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
+import net.minecraft.world.MinecraftException;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 
 /**
  * Static class for utility functions (syntactic sugar) to help transition from Bukkit
@@ -14,9 +17,23 @@ import net.minecraft.world.WorldServer;
  */
 public class Util
 {
-    public static String worldName(World world)
+    public static String getWorldName(World world)
     {
         return world.provider.getSaveFolder();
+    }
+
+    /**
+     * Case-sensitive search in global DimensionManager for a world of a given name
+     * @param name Name of world to find
+     * @return World if found, else null
+     */
+    public static WorldServer getWorld(String name)
+    {
+        for ( WorldServer world : DimensionManager.getWorlds() )
+            if ( world.provider.getSaveFolder().equals(name) )
+                return world;
+
+        return null;
     }
 
     /**
@@ -52,7 +69,7 @@ public class Util
      */
     public static void chat(ICommandSender sender, String msg, Object... parts)
     {
-        sender.addChatMessage( prepareText(msg, parts) );
+        sender.addChatMessage(prepareText(msg, parts));
     }
 
     private static IChatComponent prepareText(String msg, Object... parts)
@@ -61,5 +78,20 @@ public class Util
         String formatted  = String.format(translated, parts);
 
         return new ChatComponentText(formatted);
+    }
+
+    public static void saveWorld(WorldServer world)
+    {
+        try
+        {
+            Boolean saveFlag  = world.levelSaving;
+            world.levelSaving = false;
+            world.saveAllChunks(true, null);
+            world.levelSaving = saveFlag;
+        }
+        catch (MinecraftException e)
+        {
+            e.printStackTrace();
+        }
     }
 }
