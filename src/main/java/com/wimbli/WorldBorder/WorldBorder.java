@@ -117,7 +117,7 @@ public class WorldBorder
 		if (enable)
             MinecraftForge.EVENT_BUS.register(this.blockPlaceListener = new BlockPlaceListener());
 		else if (blockPlaceListener != null)
-			blockPlaceListener.unregister();
+			MinecraftForge.EVENT_BUS.unregister(this.blockPlaceListener);
 	}
 
 	public void enableMobSpawnListener(boolean enable)
@@ -125,6 +125,6 @@ public class WorldBorder
 		if (enable)
             MinecraftForge.EVENT_BUS.register(this.mobSpawnListener = new MobSpawnListener());
 		else if (mobSpawnListener != null)
-			mobSpawnListener.unregister();
+            MinecraftForge.EVENT_BUS.unregister(this.mobSpawnListener);
 	}
 }

@@ -1,35 +1,25 @@
 package com.wimbli.WorldBorder;
 
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
+import com.wimbli.WorldBorder.forge.Util;
+import cpw.mods.fml.common.eventhandler.Event;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.world.World;
+import net.minecraftforge.event.world.BlockEvent;
 
-
-public class BlockPlaceListener implements Listener 
+public class BlockPlaceListener
 {
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onBlockPlace(BlockPlaceEvent event)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void onBlockPlace(BlockEvent.PlaceEvent event)
 	{
-		Location loc = event.getBlockPlaced().getLocation();
-		if (loc == null) return;
-	
-		World world = loc.getWorld();
+		World world = event.world;
 		if (world == null) return;
-		BorderData border = Config.Border(world.getName());
+		BorderData border = Config.Border( Util.getWorldName(world) );
 		if (border == null) return;
 		
-		if (!border.insideBorder(loc.getX(), loc.getZ(), Config.ShapeRound())) 
+		if (!border.insideBorder(event.x, event.z, Config.ShapeRound()))
 		{
-			event.setCancelled(true);
+			event.setResult(Event.Result.DENY);
 		}
-	}
-
-	public void unregister() 
-	{
-		HandlerList.unregisterAll(this);
 	}
 }

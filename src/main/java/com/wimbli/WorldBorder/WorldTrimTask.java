@@ -352,7 +352,7 @@ public class WorldTrimTask implements Runnable
 
 		readyToGo = false;
 		if (taskID != -1)
-			server.getScheduler().cancelTask(taskID);
+			WorldBorder.scheduler.cancelTask(taskID);
 		server = null;
 	}
 

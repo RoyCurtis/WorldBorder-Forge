@@ -339,7 +339,7 @@ public class WorldFillTask implements Runnable
 
 		readyToGo = false;
 		if (taskID != -1)
-			server.getScheduler().cancelTask(taskID);
+			WorldBorder.scheduler.cancelTask(taskID);
 		server = null;
 
 		// go ahead and unload any chunks we still have loaded
