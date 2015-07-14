@@ -1,5 +1,6 @@
 package com.wimbli.WorldBorder.forge;
 
+import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
@@ -7,7 +8,6 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.MinecraftException;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 
@@ -34,6 +34,16 @@ public class Util
                 return world;
 
         return null;
+    }
+
+    /**
+     * Gets the ID of the block type of the given block position
+     */
+    public static int getBlockID(World world, int x, int y, int z)
+    {
+        Block block = world.getBlock(x, y, z);
+
+        return Block.getIdFromBlock(block);
     }
 
     /**

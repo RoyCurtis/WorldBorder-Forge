@@ -1,5 +1,8 @@
 package com.wimbli.WorldBorder;
 
+import com.wimbli.WorldBorder.forge.Location;
+import net.minecraft.world.WorldServer;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,14 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
-
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.ChatColor;
-import org.bukkit.Effect;
-import org.bukkit.entity.Player;
-import org.bukkit.Location;
-import org.bukkit.World;
 
 
 public class Config
@@ -250,16 +245,18 @@ public class Config
 
 	public static void showWhooshEffect(Location loc)
 	{
-		if (!whooshEffect())
-			return;
-
-		World world = loc.getWorld();
-		world.playEffect(loc, Effect.ENDER_SIGNAL, 0);
-		world.playEffect(loc, Effect.ENDER_SIGNAL, 0);
-		world.playEffect(loc, Effect.SMOKE, 4);
-		world.playEffect(loc, Effect.SMOKE, 4);
-		world.playEffect(loc, Effect.SMOKE, 4);
-		world.playEffect(loc, Effect.GHAST_SHOOT, 0);
+        // Forge: NO-OP
+        // Will figure out how to implement another time
+//		if (!whooshEffect())
+//			return;
+//
+//		WorldServer world = loc.world;
+//		world.playEffect(loc, Effect.ENDER_SIGNAL, 0);
+//		world.playEffect(loc, Effect.ENDER_SIGNAL, 0);
+//		world.playEffect(loc, Effect.SMOKE, 4);
+//		world.playEffect(loc, Effect.SMOKE, 4);
+//		world.playEffect(loc, Effect.SMOKE, 4);
+//		world.playEffect(loc, Effect.GHAST_SHOOT, 0);
 	}
 	
 	public static void setPreventBlockPlace(boolean enable)

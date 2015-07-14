@@ -1,25 +1,25 @@
 package com.wimbli.WorldBorder;
 
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.WorldServer;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.entity.Player;
-import org.bukkit.Server;
-import org.bukkit.World;
-
-
 public class WorldTrimTask implements Runnable
 {
 	// general task-related reference data
-	private transient Server server = null;
-	private transient World world = null;
+	private transient MinecraftServer server = null;
+	private transient WorldServer world = null;
 	private transient WorldFileData worldData = null;
 	private transient BorderData border = null;
 	private transient boolean readyToGo = false;
 	private transient boolean paused = false;
 	private transient int taskID = -1;
-	private transient Player notifyPlayer = null;
+	private transient EntityPlayerMP notifyPlayer = null;
 	private transient int chunksPerRun = 1;
 	
 	// values for what chunk in the current region we're at
@@ -39,13 +39,13 @@ public class WorldTrimTask implements Runnable
 	private transient int reportTrimmedChunks = 0;
 
 
-	public WorldTrimTask(Server theServer, Player player, String worldName, int trimDistance, int chunksPerRun)
+	public WorldTrimTask(MinecraftServer theServer, EntityPlayerMP player, String worldName, int trimDistance, int chunksPerRun)
 	{
 		this.server = theServer;
 		this.notifyPlayer = player;
 		this.chunksPerRun = chunksPerRun;
 
-		this.world = server.getWorld(worldName);
+		this.world = Util.getWorld(worldName);
 		if (this.world == null)
 		{
 			if (worldName.isEmpty())
@@ -262,8 +262,8 @@ public class WorldTrimTask implements Runnable
 	{
 		for (CoordXZ unload : trimChunks)
 		{
-			if (world.isChunkLoaded(unload.x, unload.z))
-				world.unloadChunk(unload.x, unload.z, false, false);
+			if (world.theChunkProviderServer.chunkExists(unload.x, unload.z))
+				world.theChunkProviderServer.unloadChunksIfNotNearSpawn(unload.x, unload.z);
 		}
 		counter += trimChunks.size();
 	}
@@ -391,6 +391,6 @@ public class WorldTrimTask implements Runnable
 	{
 		Config.log("[Trim] " + text);
 		if (notifyPlayer != null)
-			notifyPlayer.sendMessage("[Trim] " + text);
+			Util.chat(notifyPlayer, "[Trim] " + text);
 	}
 }

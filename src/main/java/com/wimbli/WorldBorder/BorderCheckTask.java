@@ -1,24 +1,20 @@
 package com.wimbli.WorldBorder;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.item.EntityBoat;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Boat;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
-import org.bukkit.Location;
-import org.bukkit.util.Vector;
-import org.bukkit.World;
 import com.wimbli.WorldBorder.forge.Location;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.WorldServer;
 
 
 public class BorderCheckTask implements Runnable
@@ -30,10 +26,9 @@ public class BorderCheckTask implements Runnable
 		if (Config.KnockBack() == 0.0)
 			return;
 
-		ImmutableList players = ImmutableList.copyOf(WorldBorder.server.getConfigurationManager().playerEntityList);
-
-		for (EntityPlayerMP player : players)
+		for (Object o : WorldBorder.server.getConfigurationManager().playerEntityList)
 		{
+			EntityPlayerMP player = (EntityPlayerMP) o;
 			checkPlayer(player, null, false, true);
 		}
 	}
@@ -44,25 +39,24 @@ public class BorderCheckTask implements Runnable
 	// set targetLoc only if not current player location; set returnLocationOnly to true to have new Location returned if they need to be moved to one, instead of directly handling it
 	public static Location checkPlayer(EntityPlayerMP player, Location targetLoc, boolean returnLocationOnly, boolean notify)
 	{
-		if (player == null || !player.isOnline()) return null;
+		if (player == null) return null;
 
-		Location loc = (targetLoc == null) ? player.getLocation().clone() : targetLoc;
-		if (loc == null) return null;
+		Location loc = (targetLoc == null) ? new Location(player) : targetLoc;
 
-		World world = loc.getWorld();
+		WorldServer world = loc.world;
 		if (world == null) return null;
-		BorderData border = Config.Border(world.getName());
+		BorderData border = Config.Border( Util.getWorldName(world) );
 		if (border == null) return null;
 
-		if (border.insideBorder(loc.getX(), loc.getZ(), Config.ShapeRound()))
+		if (border.insideBorder(loc.posX, loc.posZ, Config.ShapeRound()))
 			return null;
 
 		// if player is in bypass list (from bypass command), allow them beyond border; also ignore players currently being handled already
-		if (Config.isPlayerBypassing(player.getUniqueId()) || handlingPlayers.contains(player.getName().toLowerCase()))
+		if (Config.isPlayerBypassing(player.getUniqueID()) || handlingPlayers.contains(player.getDisplayName().toLowerCase()))
 			return null;
 
 		// tag this player as being handled so we can't get stuck in a loop due to Bukkit currently sometimes repeatedly providing incorrect location through teleport event
-		handlingPlayers.add(player.getName().toLowerCase());
+		handlingPlayers.add(player.getDisplayName().toLowerCase());
 
 		Location newLoc = newLocation(player, loc, border, notify);
 		boolean handlingVehicle = false;
@@ -74,31 +68,32 @@ public class BorderCheckTask implements Runnable
 		 * after players are ejected we can wait a few ticks (long enough for their client to receive new entity location)
 		 * and then set them as passenger of the vehicle again
 		 */
-		if (player.isInsideVehicle())
+		if (player.isRiding())
 		{
-			Entity ride = player.getVehicle();
-			player.leaveVehicle();
+			Entity ride = player.ridingEntity;
+			player.mountEntity(null);
 			if (ride != null)
 			{	// vehicles need to be offset vertically and have velocity stopped
-				double vertOffset = (ride instanceof LivingEntity) ? 0 : ride.getLocation().getY() - loc.getY();
-				Location rideLoc = newLoc.clone();
-				rideLoc.setY(newLoc.getY() + vertOffset);
+				double vertOffset = (ride instanceof EntityLiving) ? 0 : ride.posY - loc.posY;
+				Location rideLoc = new Location(newLoc);
+				rideLoc.posY = newLoc.posY + vertOffset;
 				if (Config.Debug())
 					Config.logWarn("Player was riding a \"" + ride.toString() + "\".");
-				if (ride instanceof Boat)
+				if (ride instanceof EntityBoat)
 				{	// boats currently glitch on client when teleported, so crappy workaround is to remove it and spawn a new one
-					ride.remove();
-					ride = world.spawnEntity(rideLoc, EntityType.BOAT);
+					ride.setDead();
+					ride = new EntityBoat(world, rideLoc.posX, rideLoc.posY, rideLoc.posZ);
+                    world.spawnEntityInWorld(ride);
 				}
 				else
 				{
-					ride.setVelocity(new Vector(0, 0, 0));
-					ride.teleport(rideLoc, TeleportCause.PLUGIN);
+					ride.setVelocity(0, 0, 0);
+                    ride.setPositionAndRotation(rideLoc.posX, rideLoc.posY, rideLoc.posZ, rideLoc.pitch, rideLoc.yaw);
 				}
 
 				if (Config.RemountTicks() > 0)
 				{
-					setPassengerDelayed(ride, player, player.getName(), Config.RemountTicks());
+					setPassengerDelayed(ride, player, player.getDisplayName(), Config.RemountTicks());
 					handlingVehicle = true;
 				}
 			}
@@ -106,14 +101,14 @@ public class BorderCheckTask implements Runnable
 
 		// check if player has something (a pet, maybe?) riding them; only possible through odd plugins.
 		// it can prevent all teleportation of the player completely, so it's very much not good and needs handling
-		if (player.getPassenger() != null)
+		if (player.riddenByEntity != null)
 		{
-			Entity rider = player.getPassenger();
-			player.eject();
-			rider.teleport(newLoc, TeleportCause.PLUGIN);
-			player.sendMessage("Your passenger has been ejected.");
+			Entity rider = player.riddenByEntity;
+			rider.mountEntity(null);
+            rider.setPositionAndRotation(newLoc.posX, newLoc.posY, newLoc.posZ, newLoc.pitch, newLoc.yaw);
+            Util.chat(player, "Your passenger has been ejected.");
 			if (Config.Debug())
-				Config.logWarn("Player had a passenger riding on them: " + rider.getType());
+				Config.logWarn("Player had a passenger riding on them: " + rider.getCommandSenderName());
 		}
 
 
@@ -121,30 +116,36 @@ public class BorderCheckTask implements Runnable
 		Config.showWhooshEffect(loc);
 
 		if (!returnLocationOnly)
-			player.teleport(newLoc, TeleportCause.PLUGIN);
+            player.setPositionAndRotation(newLoc.posX, newLoc.posY, newLoc.posZ, newLoc.pitch, newLoc.yaw);
 
 		if (!handlingVehicle)
-			handlingPlayers.remove(player.getName().toLowerCase());
+			handlingPlayers.remove(player.getDisplayName().toLowerCase());
 
 		if (returnLocationOnly)
 			return newLoc;
 
 		return null;
 	}
-	public static Location checkPlayer(Player player, Location targetLoc, boolean returnLocationOnly)
+	public static Location checkPlayer(EntityPlayerMP player, Location targetLoc, boolean returnLocationOnly)
 	{
 		return checkPlayer(player, targetLoc, returnLocationOnly, true);
 	}
 
-	private static Location newLocation(Player player, Location loc, BorderData border, boolean notify)
+	private static Location newLocation(EntityPlayerMP player, Location loc, BorderData border, boolean notify)
 	{
 		if (Config.Debug())
 		{
-			Config.logWarn((notify ? "Border crossing" : "Check was run") + " in \"" + loc.getWorld().getName() + "\". Border " + border.toString());
-			Config.logWarn("Player position X: " + Config.coord.format(loc.getX()) + " Y: " + Config.coord.format(loc.getY()) + " Z: " + Config.coord.format(loc.getZ()));
+			Config.logWarn(
+                (notify ? "Border crossing" : "Check was run")
+                + " in \"" + Util.getWorldName(loc.world)
+                + "\". Border " + border.toString());
+			Config.logWarn(
+                "Player position X: " + Config.coord.format(loc.posX)
+                + " Y: " + Config.coord.format(loc.posY)
+                + " Z: " + Config.coord.format(loc.posZ));
 		}
 
-		Location newLoc = border.correctedPosition(loc, Config.ShapeRound(), player.isFlying());
+		Location newLoc = border.correctedPosition(loc, Config.ShapeRound(), player.capabilities.isFlying);
 
 		// it's remotely possible (such as in the Nether) a suitable location isn't available, in which case...
 		if (newLoc == null)
@@ -153,17 +154,21 @@ public class BorderCheckTask implements Runnable
 				Config.logWarn("Target new location unviable, using spawn or killing player.");
 			if (Config.getIfPlayerKill())
 			{
-				player.setHealth(0.0D);
+				player.setHealth(0.0F);
 				return null;
 			}
-			newLoc = player.getWorld().getSpawnLocation();
+			newLoc = new Location( (WorldServer) player.worldObj );
 		}
 
 		if (Config.Debug())
-			Config.logWarn("New position in world \"" + newLoc.getWorld().getName() + "\" at X: " + Config.coord.format(newLoc.getX()) + " Y: " + Config.coord.format(newLoc.getY()) + " Z: " + Config.coord.format(newLoc.getZ()));
+			Config.logWarn(
+                "New position in world \"" + Util.getWorldName( newLoc.world )
+                + "\" at X: " + Config.coord.format(newLoc.posX)
+                + " Y: " + Config.coord.format(newLoc.posY)
+                + " Z: " + Config.coord.format(newLoc.posZ));
 
 		if (notify)
-			player.sendMessage(Config.Message());
+			Util.chat(player, Config.Message());
 
 		return newLoc;
 	}
@@ -179,7 +184,7 @@ public class BorderCheckTask implements Runnable
 				if (vehicle == null || player == null)
 					return;
 
-				vehicle.setPassenger(player);
+                player.mountEntity(vehicle);
 			}
 		}, delay);
 	}

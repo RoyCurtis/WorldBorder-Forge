@@ -1,11 +1,13 @@
 package com.wimbli.WorldBorder;
 
+import com.wimbli.WorldBorder.forge.Location;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.world.WorldSavedData;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.Chunk;
+
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
 
 
 public class BorderData
@@ -197,7 +199,7 @@ public class BorderData
 	}
 	public boolean insideBorder(Location loc)
 	{
-		return insideBorder(loc.getX(), loc.getZ(), Config.ShapeRound());
+		return insideBorder(loc.posX, loc.posZ, Config.ShapeRound());
 	}
 	public boolean insideBorder(CoordXZ coord, boolean round)
 	{
@@ -212,11 +214,11 @@ public class BorderData
 	{
 		// if this border has a shape override set, use it
 		if (shapeRound != null)
-			round = shapeRound.booleanValue();
+			round = shapeRound;
 
-		double xLoc = loc.getX();
-		double zLoc = loc.getZ();
-		double yLoc = loc.getY();
+		double xLoc = loc.posX;
+		double yLoc = loc.posY;
+		double zLoc = loc.posZ;
 
 		// square border
 		if (!round)
@@ -267,19 +269,21 @@ public class BorderData
 			}
 		}
 
-		int ixLoc = Location.locToBlock(xLoc);
-		int izLoc = Location.locToBlock(zLoc);
+		int ixLoc  = Location.locToBlock(xLoc);
+		int izLoc  = Location.locToBlock(zLoc);
+		int icxLoc = CoordXZ.blockToChunk(ixLoc);
+		int icZLoc = CoordXZ.blockToChunk(izLoc);
 
 		// Make sure the chunk we're checking in is actually loaded
-		Chunk tChunk = loc.getWorld().getChunkAt(CoordXZ.blockToChunk(ixLoc), CoordXZ.blockToChunk(izLoc));
-		if (!tChunk.isLoaded())
-			tChunk.load();
+		Chunk tChunk = loc.world.getChunkFromBlockCoords(ixLoc, izLoc);
+		if (!tChunk.isChunkLoaded)
+			loc.world.theChunkProviderServer.loadChunk(icxLoc, icZLoc);
 
-		yLoc = getSafeY(loc.getWorld(), ixLoc, Location.locToBlock(yLoc), izLoc, flying);
+		yLoc = getSafeY(loc.world, ixLoc, Location.locToBlock(yLoc), izLoc, flying);
 		if (yLoc == -1)
 			return null;
 
-		return new Location(loc.getWorld(), Math.floor(xLoc) + 0.5, yLoc, Math.floor(zLoc) + 0.5, loc.getYaw(), loc.getPitch());
+		return new Location(loc.world, Math.floor(xLoc) + 0.5, yLoc, Math.floor(zLoc) + 0.5, loc.yaw, loc.pitch);
 	}
 	public Location correctedPosition(Location loc, boolean round)
 	{
@@ -301,14 +305,14 @@ public class BorderData
 	));
 
 	// check if a particular spot consists of 2 breathable blocks over something relatively solid
-	private boolean isSafeSpot(World world, int X, int Y, int Z, boolean flying)
+	private boolean isSafeSpot(WorldServer world, int X, int Y, int Z, boolean flying)
 	{
-		boolean safe = safeOpenBlocks.contains((Integer)world.getBlockTypeIdAt(X, Y, Z))		// target block open and safe
-					&& safeOpenBlocks.contains((Integer)world.getBlockTypeIdAt(X, Y + 1, Z));	// above target block open and safe
+		boolean safe = safeOpenBlocks.contains( Util.getBlockID(world, X, Y, Z) )		// target block open and safe
+					&& safeOpenBlocks.contains( Util.getBlockID(world, X, Y + 1, Z) );	// above target block open and safe
 		if (!safe || flying)
 			return safe;
 
-		Integer below = (Integer)world.getBlockTypeIdAt(X, Y - 1, Z);
+		int below = Util.getBlockID(world, X, Y - 1, Z);
 		return (safe
 			 && (!safeOpenBlocks.contains(below) || below == 8 || below == 9)	// below target block not open/breathable (so presumably solid), or is water
 			 && !painfulBlocks.contains(below)									// below target block not painful
@@ -318,10 +322,9 @@ public class BorderData
 	private static final int limBot = 1;
 
 	// find closest safe Y position from the starting position
-	private double getSafeY(World world, int X, int Y, int Z, boolean flying)
+	private double getSafeY(WorldServer world, int X, int Y, int Z, boolean flying)
 	{
-		// artificial height limit of 127 added for Nether worlds since CraftBukkit still incorrectly returns 255 for their max height, leading to players sent to the "roof" of the Nether
-		final int limTop = (world.getEnvironment() == World.Environment.NETHER) ? 125 : world.getMaxHeight() - 2;
+		final int limTop = world.getHeight() - 2;
 		// Expanding Y search method adapted from Acru's code in the Nether plugin
 
 		for(int y1 = Y, y2 = Y; (y1 > limBot) || (y2 < limTop); y1--, y2++){
