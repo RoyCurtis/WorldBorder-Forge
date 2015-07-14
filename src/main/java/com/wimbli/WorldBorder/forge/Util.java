@@ -55,8 +55,8 @@ public class Util
     public static String translate(String msg)
     {
         return StatCollector.canTranslate(msg)
-                ? StatCollector.translateToLocal(msg)
-                : StatCollector.translateToFallback(msg);
+            ? StatCollector.translateToLocal(msg)
+            : StatCollector.translateToFallback(msg);
     }
 
     /**
@@ -68,7 +68,7 @@ public class Util
     public static void broadcast(MinecraftServer server, String msg, Object... parts)
     {
         server.getConfigurationManager()
-                .sendChatMsg( prepareText(msg, parts) );
+            .sendChatMsg( prepareText(msg, parts) );
     }
 
     /**

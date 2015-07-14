@@ -1,5 +1,6 @@
 package com.wimbli.WorldBorder;
 
+import com.wimbli.WorldBorder.forge.Scheduler;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -11,6 +12,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
 
 
 @Mod(
@@ -28,11 +31,13 @@ public class WorldBorder
     public static final Logger LOGGER  = LogManager.getFormatterLogger(MODID);
 
     public static volatile MinecraftServer server = null;
-	public static volatile WorldBorder plugin = null;
+    public static volatile Scheduler scheduler = null;
+    public static volatile WorldBorder plugin = null;
     public static volatile WBCommand wbCommand = null;
     public static volatile WBListener wbListener = null;
 	private BlockPlaceListener blockPlaceListener = null;
 	private MobSpawnListener mobSpawnListener = null;
+    private File configDir;
 
     @Mod.EventHandler
     @SideOnly(Side.CLIENT)
@@ -44,22 +49,37 @@ public class WorldBorder
 
     @Mod.EventHandler
     @SideOnly(Side.SERVER)
+    public void serverPreInit(FMLPreInitializationEvent event)
+    {
+        configDir = event.getModConfigurationDirectory();
+
+        if ( !configDir.exists() && configDir.mkdirs() )
+            LOGGER.info("Created config directory for the first time");
+    }
+
+    @Mod.EventHandler
+    @SideOnly(Side.SERVER)
     public void serverStart(FMLServerStartingEvent event)
 	{
+        if (server == null)
+            server = MinecraftServer.getServer();
+        if (scheduler == null)
+            scheduler = new Scheduler();
 		if (plugin == null)
 			plugin = this;
         if (wbCommand == null)
             wbCommand = new WBCommand();
         if (wbListener == null)
             wbListener = new WBListener();
-        if (server == null)
-            server = MinecraftServer.getServer();
 
-		// Load (or create new) config file
-		Config.load(this, false);
+		// Load (or create new) config files
+		Config.load(this, configDir, false);
 
 		// our one real command, though it does also have aliases "wb" and "worldborder"
         event.registerServerCommand(wbCommand);
+
+        // register scheduler as tick handler
+        FMLCommonHandler.instance().bus().register(scheduler);
 
 		// keep an eye on teleports, to redirect them to a spot inside the border if necessary
         FMLCommonHandler.instance().bus().register(wbListener);
