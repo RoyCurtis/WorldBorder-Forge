@@ -1,12 +1,12 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.world.WorldServer;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-import org.bukkit.World;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdSetcorners extends WBCmd
@@ -25,17 +25,17 @@ public class CmdSetcorners extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		if (worldName == null)
 		{
-			worldName = player.getWorld().getName();
+			worldName = Util.getWorldName(player.worldObj);
 		}
 		else
 		{
-			World worldTest = sender.getServer().getWorld(worldName);
+			WorldServer worldTest = Util.getWorld(worldName);
 			if (worldTest == null)
-				sender.sendMessage("The world you specified (\"" + worldName + "\") could not be found on the server, but data for it will be stored anyway.");
+				Util.chat(sender, "The world you specified (\"" + worldName + "\") could not be found on the server, but data for it will be stored anyway.");
 		}
 
 		try
@@ -53,6 +53,6 @@ public class CmdSetcorners extends WBCmd
 		}
 
 		if(player != null)
-			sender.sendMessage("Border has been set. " + Config.BorderDescription(worldName));
+			Util.chat(sender, "Border has been set. " + Config.BorderDescription(worldName));
 	}
 }

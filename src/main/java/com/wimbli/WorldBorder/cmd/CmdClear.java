@@ -1,11 +1,12 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdClear extends WBCmd
@@ -25,7 +26,7 @@ public class CmdClear extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		// handle "clear all" command separately
 		if (params.size() == 1 &&  params.get(0).equalsIgnoreCase("all"))
@@ -39,7 +40,7 @@ public class CmdClear extends WBCmd
 			Config.removeAllBorders();
 
 			if (player != null)
-				sender.sendMessage("All borders have been cleared for all worlds.");
+				Util.chat(sender, "All borders have been cleared for all worlds.");
 			return;
 		}
 
@@ -50,7 +51,7 @@ public class CmdClear extends WBCmd
 				sendErrorAndHelp(sender, "You must specify a world name from console if not using \"clear all\".");
 				return;
 			}
-			worldName = player.getWorld().getName();
+			worldName = Util.getWorldName(player.worldObj);
 		}
 
 		BorderData border = Config.Border(worldName);
@@ -63,6 +64,6 @@ public class CmdClear extends WBCmd
 		Config.removeBorder(worldName);
 
 		if (player != null)
-			sender.sendMessage("Border cleared for world \"" + worldName + "\".");
+			Util.chat(sender, "Border cleared for world \"" + worldName + "\".");
 	}
 }

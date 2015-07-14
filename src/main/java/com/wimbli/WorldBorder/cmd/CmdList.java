@@ -3,6 +3,7 @@ package com.wimbli.WorldBorder.cmd;
 import java.util.List;
 import java.util.Set;
 
+import com.wimbli.WorldBorder.forge.Util;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
@@ -22,21 +23,21 @@ public class CmdList extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
-		sender.sendMessage("Default border shape for all worlds is \"" + Config.ShapeName() + "\".");
+		Util.chat(sender, "Default border shape for all worlds is \"" + Config.ShapeName() + "\".");
 
 		Set<String> list = Config.BorderDescriptions();
 
 		if (list.isEmpty())
 		{
-			sender.sendMessage("There are no borders currently set.");
+			Util.chat(sender, "There are no borders currently set.");
 			return;
 		}
 
 		for(String borderDesc : list)
 		{
-			sender.sendMessage(borderDesc);
+			Util.chat(sender, borderDesc);
 		}
 	}
 }

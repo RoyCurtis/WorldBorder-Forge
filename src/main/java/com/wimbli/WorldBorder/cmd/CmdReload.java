@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdReload extends WBCmd
@@ -21,14 +21,14 @@ public class CmdReload extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		if (player != null)
-			Config.log("Reloading config file at the command of player \"" + player.getName() + "\".");
+			Config.log("Reloading config file at the command of player \"" + player.getDisplayName() + "\".");
 
-		Config.load(WorldBorder.plugin, true);
+		Config.load(true);
 
 		if (player != null)
-			sender.sendMessage("WorldBorder configuration reloaded.");
+			Util.chat(sender, "WorldBorder configuration reloaded.");
 	}
 }

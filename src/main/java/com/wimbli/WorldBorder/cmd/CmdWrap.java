@@ -1,11 +1,12 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdWrap extends WBCmd
@@ -23,7 +24,7 @@ public class CmdWrap extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		if (player == null && params.size() == 1)
 		{
@@ -42,7 +43,7 @@ public class CmdWrap extends WBCmd
 		// no world specified, just wrap on/off
 		else
 		{
-			worldName = player.getWorld().getName();
+			worldName = Util.getWorldName(player.worldObj);
 			wrap = strAsBool(params.get(0));
 		}
 
@@ -56,6 +57,6 @@ public class CmdWrap extends WBCmd
 		border.setWrapping(wrap);
 		Config.setBorder(worldName, border, false);
 
-		sender.sendMessage("Border for world \"" + worldName + "\" is now set to " + (wrap ? "" : "not ") + "wrap around.");
+		Util.chat(sender, "Border for world \"" + worldName + "\" is now set to " + (wrap ? "" : "not ") + "wrap around.");
 	}
 }

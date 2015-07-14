@@ -1,11 +1,12 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.bukkit.ChatColor;
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
 
 
 public abstract class WBCmd
@@ -32,12 +33,12 @@ public abstract class WBCmd
 	/*
 	 * The guts of the command run in here; needs to be overriden in the subclassed commands
 	 */
-	public abstract void execute(CommandSender sender, Player player, List<String> params, String worldName);
+	public abstract void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName);
 
 	/*
 	 * This is an optional override, used to provide some extra command status info, like the currently set value
 	 */
-	public void cmdStatus(CommandSender sender) {}
+	public void cmdStatus(ICommandSender sender) {}
 
 
 	/*
@@ -45,12 +46,12 @@ public abstract class WBCmd
 	 */
 
 	// color values for strings
-	public final static String C_CMD  = ChatColor.AQUA.toString();			// main commands
-	public final static String C_DESC = ChatColor.WHITE.toString();			// command descriptions
-	public final static String C_ERR  = ChatColor.RED.toString();			// errors / notices
-	public final static String C_HEAD = ChatColor.YELLOW.toString();		// command listing header
-	public final static String C_OPT  = ChatColor.DARK_GREEN.toString();	// optional values
-	public final static String C_REQ  = ChatColor.GREEN.toString();			// required values
+	public final static String C_CMD  = ChatFormatting.AQUA.toString();			// main commands
+	public final static String C_DESC = ChatFormatting.WHITE.toString();		// command descriptions
+	public final static String C_ERR  = ChatFormatting.RED.toString();			// errors / notices
+	public final static String C_HEAD = ChatFormatting.YELLOW.toString();		// command listing header
+	public final static String C_OPT  = ChatFormatting.DARK_GREEN.toString();	// optional values
+	public final static String C_REQ  = ChatFormatting.GREEN.toString();		// required values
 
 	// colorized root command, for console and for player
 	public final static String CMD_C = C_CMD + "wb ";
@@ -92,15 +93,15 @@ public abstract class WBCmd
 	}
 
 	// return root command formatted for player or console, based on sender
-	public String cmd(CommandSender sender)
+	public String cmd(ICommandSender sender)
 	{
-		return (sender instanceof Player) ? CMD_P : CMD_C;
+		return (sender instanceof EntityPlayerMP) ? CMD_P : CMD_C;
 	}
 
 	// formatted and colorized text, intended for marking command name
 	public String commandEmphasized(String text)
 	{
-		return C_CMD + ChatColor.UNDERLINE + text + ChatColor.RESET + " ";
+		return C_CMD + ChatFormatting.UNDERLINE + text + ChatFormatting.RESET + " ";
 	}
 
 	// returns green "enabled" or red "disabled" text
@@ -120,21 +121,21 @@ public abstract class WBCmd
 	}
 
 	// send command example message(s) and other helpful info
-	public void sendCmdHelp(CommandSender sender)
+	public void sendCmdHelp(ICommandSender sender)
 	{
-		for (String example : ((sender instanceof Player) ? cmdExamplePlayer : cmdExampleConsole))
+		for (String example : ((sender instanceof EntityPlayerMP) ? cmdExamplePlayer : cmdExampleConsole))
 		{
-			sender.sendMessage(example);
+			Util.chat(sender, example);
 		}
 		cmdStatus(sender);
 		if (helpText != null && !helpText.isEmpty())
-			sender.sendMessage(C_DESC + helpText);
+			Util.chat(sender, C_DESC + helpText);
 	}
 
 	// send error message followed by command example message(s)
-	public void sendErrorAndHelp(CommandSender sender, String error)
+	public void sendErrorAndHelp(ICommandSender sender, String error)
 	{
-		sender.sendMessage(C_ERR + error);
+		Util.chat(sender, C_ERR + error);
 		sendCmdHelp(sender);
 	}
 

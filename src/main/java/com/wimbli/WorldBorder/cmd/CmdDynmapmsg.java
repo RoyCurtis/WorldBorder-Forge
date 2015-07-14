@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdDynmapmsg extends WBCmd
@@ -22,13 +22,13 @@ public class CmdDynmapmsg extends WBCmd
 	}
 
 	@Override
-	public void cmdStatus(CommandSender sender)
+	public void cmdStatus(ICommandSender sender)
 	{
-		sender.sendMessage(C_HEAD + "DynMap border label is set to: " + C_ERR + Config.DynmapMessage());
+		Util.chat(sender, C_HEAD + "DynMap border label is set to: " + C_ERR + Config.DynmapMessage());
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		StringBuilder message = new StringBuilder();
 		boolean first = true;

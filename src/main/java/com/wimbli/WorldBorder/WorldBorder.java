@@ -33,11 +33,11 @@ public class WorldBorder
     public static volatile MinecraftServer server = null;
     public static volatile Scheduler scheduler = null;
     public static volatile WorldBorder plugin = null;
+    public static volatile File configDir = null;
     public static volatile WBCommand wbCommand = null;
     public static volatile WBListener wbListener = null;
 	private BlockPlaceListener blockPlaceListener = null;
 	private MobSpawnListener mobSpawnListener = null;
-    private File configDir;
 
     @Mod.EventHandler
     @SideOnly(Side.CLIENT)
@@ -73,7 +73,7 @@ public class WorldBorder
             wbListener = new WBListener();
 
 		// Load (or create new) config files
-		Config.load(this, configDir, false);
+		Config.load(false);
 
 		// our one real command, though it does also have aliases "wb" and "worldborder"
         event.registerServerCommand(wbCommand);

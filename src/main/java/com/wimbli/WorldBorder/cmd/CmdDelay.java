@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdDelay extends WBCmd
@@ -21,14 +21,14 @@ public class CmdDelay extends WBCmd
 	}
 
 	@Override
-	public void cmdStatus(CommandSender sender)
+	public void cmdStatus(ICommandSender sender)
 	{
 		int delay = Config.TimerTicks();
-		sender.sendMessage(C_HEAD + "Timer delay is set to " + delay + " tick(s). That is roughly " + (delay * 50) + "ms.");
+		Util.chat(sender, C_HEAD + "Timer delay is set to " + delay + " tick(s). That is roughly " + (delay * 50) + "ms.");
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		int delay = 0;
 		try

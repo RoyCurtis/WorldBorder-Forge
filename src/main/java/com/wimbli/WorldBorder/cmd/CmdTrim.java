@@ -1,12 +1,16 @@
 package com.wimbli.WorldBorder.cmd;
 
-import java.util.List;
-
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.CoordXZ;
+import com.wimbli.WorldBorder.WorldBorder;
+import com.wimbli.WorldBorder.WorldTrimTask;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
-import org.bukkit.entity.Player;
 
-import com.wimbli.WorldBorder.*;
+import java.util.List;
 
 
 public class CmdTrim extends WBCmd
@@ -26,7 +30,7 @@ public class CmdTrim extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		boolean confirm = false;
 		// check for "cancel", "pause", or "confirm"
@@ -38,7 +42,7 @@ public class CmdTrim extends WBCmd
 			{
 				if (!makeSureTrimIsRunning(sender))
 					return;
-				sender.sendMessage(C_HEAD + "Cancelling the world map trimming task.");
+				Util.chat(sender, C_HEAD + "Cancelling the world map trimming task.");
 				trimDefaults();
 				Config.StopTrimTask();
 				return;
@@ -48,7 +52,7 @@ public class CmdTrim extends WBCmd
 				if (!makeSureTrimIsRunning(sender))
 					return;
 				Config.trimTask.pause();
-				sender.sendMessage(C_HEAD + "The world map trimming task is now " + (Config.trimTask.isPaused() ? "" : "un") + "paused.");
+				Util.chat(sender, C_HEAD + "The world map trimming task is now " + (Config.trimTask.isPaused() ? "" : "un") + "paused.");
 				return;
 			}
 
@@ -59,7 +63,7 @@ public class CmdTrim extends WBCmd
 		if (worldName == null && !confirm)
 		{
 			if (player != null)
-				worldName = player.getWorld().getName();
+				worldName = Util.getWorldName(player.worldObj);
 			else
 			{
 				sendErrorAndHelp(sender, "You must specify a world!");
@@ -73,8 +77,8 @@ public class CmdTrim extends WBCmd
 		// make sure Trim isn't already running
 		if (Config.trimTask != null && Config.trimTask.valid())
 		{
-			sender.sendMessage(C_ERR + "The world map trimming task is already running.");
-			sender.sendMessage(C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
+			Util.chat(sender, C_ERR + "The world map trimming task is already running.");
+			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
 			return;
 		}
 
@@ -112,7 +116,7 @@ public class CmdTrim extends WBCmd
 			}
 
 			if (player != null)
-				Config.log("Trimming world beyond border at the command of player \"" + player.getName() + "\".");
+				Config.log("Trimming world beyond border at the command of player \"" + player.getDisplayName() + "\".");
 
 			int ticks = 1, repeats = 1;
 			if (trimFrequency > 20)
@@ -120,15 +124,15 @@ public class CmdTrim extends WBCmd
 			else
 				ticks = 20 / trimFrequency;
 
-			Config.trimTask = new WorldTrimTask(Bukkit.getServer(), player, trimWorld, trimPadding, repeats);
+			Config.trimTask = new WorldTrimTask(WorldBorder.server, player, trimWorld, trimPadding, repeats);
 			if (Config.trimTask.valid())
 			{
-				int task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(WorldBorder.plugin, Config.trimTask, ticks, ticks);
+				int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(WorldBorder.plugin, Config.trimTask, ticks, ticks);
 				Config.trimTask.setTaskID(task);
-				sender.sendMessage("WorldBorder map trimming task for world \"" + trimWorld + "\" started.");
+				Util.chat(sender, "WorldBorder map trimming task for world \"" + trimWorld + "\" started.");
 			}
 			else
-				sender.sendMessage(C_ERR + "The world map trimming task failed to start.");
+				Util.chat(sender, C_ERR + "The world map trimming task failed to start.");
 
 			trimDefaults();
 		}
@@ -140,10 +144,10 @@ public class CmdTrim extends WBCmd
 				return;
 			}
 
-			sender.sendMessage(C_HEAD + "World trimming task is ready for world \"" + trimWorld + "\", attempting to process up to " + trimFrequency + " chunks per second (default 20). The map will be trimmed past " + trimPadding + " blocks beyond the border (default " + defaultPadding + ").");
-			sender.sendMessage(C_HEAD + "This process can take a very long time depending on the world's overall size. Also, depending on the chunk processing rate, players may experience lag for the duration.");
-			sender.sendMessage(C_DESC + "You should now use " + cmd + "confirm" + C_DESC + " to start the process.");
-			sender.sendMessage(C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
+			Util.chat(sender, C_HEAD + "World trimming task is ready for world \"" + trimWorld + "\", attempting to process up to " + trimFrequency + " chunks per second (default 20). The map will be trimmed past " + trimPadding + " blocks beyond the border (default " + defaultPadding + ").");
+			Util.chat(sender, C_HEAD + "This process can take a very long time depending on the world's overall size. Also, depending on the chunk processing rate, players may experience lag for the duration.");
+			Util.chat(sender, C_DESC + "You should now use " + cmd + "confirm" + C_DESC + " to start the process.");
+			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
 		}
 	}
 	
@@ -165,7 +169,7 @@ public class CmdTrim extends WBCmd
 		trimPadding = defaultPadding;
 	}
 
-	private boolean makeSureTrimIsRunning(CommandSender sender)
+	private boolean makeSureTrimIsRunning(ICommandSender sender)
 	{
 		if (Config.trimTask != null && Config.trimTask.valid())
 			return true;

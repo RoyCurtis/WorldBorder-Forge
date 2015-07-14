@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdShape extends WBCmd
@@ -24,13 +24,13 @@ public class CmdShape extends WBCmd
 	}
 
 	@Override
-	public void cmdStatus(CommandSender sender)
+	public void cmdStatus(ICommandSender sender)
 	{
-		sender.sendMessage(C_HEAD + "The default border shape for all worlds is currently set to \"" + Config.ShapeName() + "\".");
+		Util.chat(sender, C_HEAD + "The default border shape for all worlds is currently set to \"" + Config.ShapeName() + "\".");
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		String shape = params.get(0).toLowerCase();
 		if (shape.equals("rectangular") || shape.equals("square"))

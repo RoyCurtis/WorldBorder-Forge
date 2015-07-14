@@ -1,11 +1,12 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdWshape extends WBCmd
@@ -25,7 +26,7 @@ public class CmdWshape extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		if (player == null && params.size() == 1)
 		{
@@ -44,7 +45,7 @@ public class CmdWshape extends WBCmd
 		// no world specified, just shape
 		else
 		{
-			worldName = player.getWorld().getName();
+			worldName = Util.getWorldName(player.worldObj);
 			shapeName = params.get(0).toLowerCase();
 		}
 
@@ -64,6 +65,6 @@ public class CmdWshape extends WBCmd
 		border.setShape(shape);
 		Config.setBorder(worldName, border, false);
 
-		sender.sendMessage("Border shape for world \"" + worldName + "\" is now set to \"" + Config.ShapeName(shape) + "\".");
+		Util.chat(sender, "Border shape for world \"" + worldName + "\" is now set to \"" + Config.ShapeName(shape) + "\".");
 	}
 }

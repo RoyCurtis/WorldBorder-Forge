@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdDenypearl extends WBCmd
@@ -22,20 +22,24 @@ public class CmdDenypearl extends WBCmd
 	}
 
 	@Override
-	public void cmdStatus(CommandSender sender)
+	public void cmdStatus(ICommandSender sender)
 	{
-		sender.sendMessage(C_HEAD + "Direct cancellation of ender pearls thrown past the border is " +
-						   enabledColored(Config.getDenyEnderpearl()) + C_HEAD + ".");
+		Util.chat(sender, C_HEAD + "Direct cancellation of ender pearls thrown past the border is " +
+				enabledColored(Config.getDenyEnderpearl()) + C_HEAD + ".");
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		Config.setDenyEnderpearl(strAsBool(params.get(0)));
 
 		if (player != null)
 		{
-			Config.log((Config.getDenyEnderpearl() ? "Enabled" : "Disabled") + " direct cancellation of ender pearls thrown past the border at the command of player \"" + player.getName() + "\".");
+			Config.log(
+				(Config.getDenyEnderpearl() ? "Enabled" : "Disabled")
+                + " direct cancellation of ender pearls thrown past the border at the command of player \""
+                + player.getDisplayName() + "\"."
+            );
 			cmdStatus(sender);
 		}
 	}

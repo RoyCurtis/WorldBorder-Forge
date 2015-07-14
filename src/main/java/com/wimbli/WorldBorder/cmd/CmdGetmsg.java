@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdGetmsg extends WBCmd
@@ -20,11 +20,11 @@ public class CmdGetmsg extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
-		sender.sendMessage("Border message is currently set to:");
-		sender.sendMessage(Config.MessageRaw());
-		sender.sendMessage("Formatted border message:");
-		sender.sendMessage(Config.Message());
+		Util.chat(sender, "Border message is currently set to:");
+		Util.chat(sender, Config.MessageRaw());
+		Util.chat(sender, "Formatted border message:");
+		Util.chat(sender, Config.Message());
 	}
 }

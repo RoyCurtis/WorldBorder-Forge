@@ -547,13 +547,13 @@ public class Config
 
 	private static final int currentCfgVersion = 11;
 
-	public static void load(WorldBorder master, File configDir, boolean logIt)
+	public static void load(boolean logIt)
 	{	// load config from file
-		plugin = master;
 		wbLog = WorldBorder.LOGGER;
 
         if (cfgMain == null)
-            cfgMain = new Configuration( new File(configDir, "main.cfg") );
+            cfgMain = new Configuration( new File(WorldBorder.configDir, "main.cfg") );
+        else cfgMain.load();
 
 		int cfgVersion = cfgMain.getInt("cfg-version", currentCfgVersion);
 
@@ -594,7 +594,8 @@ public class Config
 			updateMessage(msg);
 
         if (cfgBorders == null)
-            cfgBorders = new Configuration( new File(configDir, "borders.cfg") );
+            cfgBorders = new Configuration( new File(WorldBorder.configDir, "borders.cfg") );
+        else cfgBorders.load();
 
         Set<String> worldNames = cfgBorders.getCategoryNames();
 

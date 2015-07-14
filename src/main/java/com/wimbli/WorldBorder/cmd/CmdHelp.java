@@ -1,12 +1,12 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.WorldBorder;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
 import java.util.Set;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdHelp extends WBCmd
@@ -22,16 +22,16 @@ public class CmdHelp extends WBCmd
 	}
 
 	@Override
-	public void cmdStatus(CommandSender sender)
+	public void cmdStatus(ICommandSender sender)
 	{
 		String commands = WorldBorder.wbCommand.getCommandNames().toString().replace(", ", C_DESC + ", " + C_CMD);
-		sender.sendMessage(C_HEAD + "Commands: " + C_CMD + commands.substring(1, commands.length() - 1));
-		sender.sendMessage("Example, for info on \"set\" command: " + cmd(sender) + nameEmphasized() + C_CMD + "set");
-		sender.sendMessage(C_HEAD + "For a full command example list, simply run the root " + cmd(sender) + C_HEAD + "command by itself with nothing specified.");
+		Util.chat(sender, C_HEAD + "Commands: " + C_CMD + commands.substring(1, commands.length() - 1));
+		Util.chat(sender, "Example, for info on \"set\" command: " + cmd(sender) + nameEmphasized() + C_CMD + "set");
+		Util.chat(sender, C_HEAD + "For a full command example list, simply run the root " + cmd(sender) + C_HEAD + "command by itself with nothing specified.");
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		if (params.isEmpty())
 		{

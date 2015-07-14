@@ -1,12 +1,16 @@
 package com.wimbli.WorldBorder.cmd;
 
-import java.util.List;
-
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.CoordXZ;
+import com.wimbli.WorldBorder.WorldBorder;
+import com.wimbli.WorldBorder.WorldFillTask;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
-import org.bukkit.entity.Player;
 
-import com.wimbli.WorldBorder.*;
+import java.util.List;
 
 
 public class CmdFill extends WBCmd
@@ -27,7 +31,7 @@ public class CmdFill extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		boolean confirm = false;
 		// check for "cancel", "pause", or "confirm"
@@ -39,7 +43,7 @@ public class CmdFill extends WBCmd
 			{
 				if (!makeSureFillIsRunning(sender))
 					return;
-				sender.sendMessage(C_HEAD + "Cancelling the world map generation task.");
+				Util.chat(sender, C_HEAD + "Cancelling the world map generation task.");
 				fillDefaults();
 				Config.StopFillTask();
 				return;
@@ -49,7 +53,7 @@ public class CmdFill extends WBCmd
 				if (!makeSureFillIsRunning(sender))
 					return;
 				Config.fillTask.pause();
-				sender.sendMessage(C_HEAD + "The world map generation task is now " + (Config.fillTask.isPaused() ? "" : "un") + "paused.");
+				Util.chat(sender, C_HEAD + "The world map generation task is now " + (Config.fillTask.isPaused() ? "" : "un") + "paused.");
 				return;
 			}
 
@@ -60,7 +64,7 @@ public class CmdFill extends WBCmd
 		if (worldName == null && !confirm)
 		{
 			if (player != null)
-				worldName = player.getWorld().getName();
+				worldName = Util.getWorldName(player.worldObj);
 			else
 			{
 				sendErrorAndHelp(sender, "You must specify a world!");
@@ -74,8 +78,8 @@ public class CmdFill extends WBCmd
 		// make sure Fill isn't already running
 		if (Config.fillTask != null && Config.fillTask.valid())
 		{
-			sender.sendMessage(C_ERR + "The world map generation task is already running.");
-			sender.sendMessage(C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
+			Util.chat(sender, C_ERR + "The world map generation task is already running.");
+			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
 			return;
 		}
 
@@ -117,7 +121,7 @@ public class CmdFill extends WBCmd
 			}
 
 			if (player != null)
-				Config.log("Filling out world to border at the command of player \"" + player.getName() + "\".");
+				Config.log("Filling out world to border at the command of player \"" + player.getDisplayName() + "\".");
 
 			int ticks = 1, repeats = 1;
 			if (fillFrequency > 20)
@@ -126,15 +130,15 @@ public class CmdFill extends WBCmd
 				ticks = 20 / fillFrequency;
 
 /*	*/		Config.log("world: " + fillWorld + "  padding: " + fillPadding + "  repeats: " + repeats + "  ticks: " + ticks);			
-			Config.fillTask = new WorldFillTask(Bukkit.getServer(), player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
+			Config.fillTask = new WorldFillTask(WorldBorder.server, player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
 			if (Config.fillTask.valid())
 			{
-				int task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(WorldBorder.plugin, Config.fillTask, ticks, ticks);
+				int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(WorldBorder.plugin, Config.fillTask, ticks, ticks);
 				Config.fillTask.setTaskID(task);
-				sender.sendMessage("WorldBorder map generation task for world \"" + fillWorld + "\" started.");
+				Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
 			}
 			else
-				sender.sendMessage(C_ERR + "The world map generation task failed to start.");
+				Util.chat(sender, C_ERR + "The world map generation task failed to start.");
 
 			fillDefaults();
 		}
@@ -146,10 +150,10 @@ public class CmdFill extends WBCmd
 				return;
 			}
 
-			sender.sendMessage(C_HEAD + "World generation task is ready for world \"" + fillWorld + "\", attempting to process up to " + fillFrequency + " chunks per second (default 20). The map will be padded out " + fillPadding + " blocks beyond the border (default " + defaultPadding + "). Parts of the world which are already fully generated will be " + (fillForceLoad ? "loaded anyway." : "skipped."));
-			sender.sendMessage(C_HEAD + "This process can take a very long time depending on the world's border size. Also, depending on the chunk processing rate, players will likely experience severe lag for the duration.");
-			sender.sendMessage(C_DESC + "You should now use " + cmd + "confirm" + C_DESC + " to start the process.");
-			sender.sendMessage(C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
+			Util.chat(sender, C_HEAD + "World generation task is ready for world \"" + fillWorld + "\", attempting to process up to " + fillFrequency + " chunks per second (default 20). The map will be padded out " + fillPadding + " blocks beyond the border (default " + defaultPadding + "). Parts of the world which are already fully generated will be " + (fillForceLoad ? "loaded anyway." : "skipped."));
+			Util.chat(sender, C_HEAD + "This process can take a very long time depending on the world's border size. Also, depending on the chunk processing rate, players will likely experience severe lag for the duration.");
+			Util.chat(sender, C_DESC + "You should now use " + cmd + "confirm" + C_DESC + " to start the process.");
+			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
 		}
 	}
 	
@@ -173,7 +177,7 @@ public class CmdFill extends WBCmd
 		fillForceLoad = false;
 	}
 
-	private boolean makeSureFillIsRunning(CommandSender sender)
+	private boolean makeSureFillIsRunning(ICommandSender sender)
 	{
 		if (Config.fillTask != null && Config.fillTask.valid())
 			return true;

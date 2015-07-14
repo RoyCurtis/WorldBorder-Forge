@@ -1,14 +1,14 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.WorldBorder;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.world.WorldServer;
+
 import java.util.List;
-
-import org.bukkit.Bukkit;
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-import org.bukkit.Location;
-import org.bukkit.World;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdSet extends WBCmd
@@ -31,7 +31,7 @@ public class CmdSet extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		// passsing a single parameter (radiusX) is only acceptable from player
 		if ((params.size() == 1) && player == null)
@@ -39,6 +39,8 @@ public class CmdSet extends WBCmd
 			sendErrorAndHelp(sender, "You have not provided a sufficient number of parameters.");
 			return;
 		}
+
+		WorldServer world = null;
 
 		// "set" command from player or console, world specified
 		if (worldName != null)
@@ -49,7 +51,7 @@ public class CmdSet extends WBCmd
 				return;
 			}
 
-			World world = sender.getServer().getWorld(worldName);
+			world = Util.getWorld(worldName);
 			if (world == null)
 			{
 				if (params.get(params.size() - 1).equalsIgnoreCase("spawn"))
@@ -57,7 +59,7 @@ public class CmdSet extends WBCmd
 					sendErrorAndHelp(sender, "The world you specified (\"" + worldName + "\") could not be found on the server, so the spawn point cannot be determined.");
 					return;
 				}
-				sender.sendMessage("The world you specified (\"" + worldName + "\") could not be found on the server, but data for it will be stored anyway.");
+				Util.chat(sender, "The world you specified (\"" + worldName + "\") could not be found on the server, but data for it will be stored anyway.");
 			}
 		}
 		// "set" command from player using current world since it isn't specified, or allowed from console only if player name is specified
@@ -70,14 +72,14 @@ public class CmdSet extends WBCmd
 					sendErrorAndHelp(sender, "You must specify a world name from console if not specifying a player name.");
 					return;
 				}
-				player = Bukkit.getPlayer(params.get(params.size() - 1));
-				if (player == null || ! player.isOnline())
+				player = WorldBorder.server.getConfigurationManager().func_152612_a( params.get(params.size() - 1) );
+				if (player == null)
 				{
 					sendErrorAndHelp(sender, "The player you specified (\"" + params.get(params.size() - 1) + "\") does not appear to be online.");
 					return;
 				}
 			}
-			worldName = player.getWorld().getName();
+			worldName = Util.getWorldName(player.worldObj);
 		}
 
 		int radiusX, radiusZ;
@@ -88,22 +90,23 @@ public class CmdSet extends WBCmd
 		{
 			if (params.get(params.size() - 1).equalsIgnoreCase("spawn"))
 			{	// "spawn" specified for x/z coordinates
-				Location loc = sender.getServer().getWorld(worldName).getSpawnLocation();
-				x = loc.getX();
-				z = loc.getZ();
+				assert world != null;
+				ChunkCoordinates loc = world.getSpawnPoint();
+				x = loc.posX;
+				z = loc.posZ;
 				radiusCount -= 1;
 			}
 			else if (params.size() > 2 && params.get(params.size() - 2).equalsIgnoreCase("player"))
 			{	// player name specified for x/z coordinates
-				Player playerT = Bukkit.getPlayer(params.get(params.size() - 1));
-				if (playerT == null || ! playerT.isOnline())
+				EntityPlayerMP playerT = WorldBorder.server.getConfigurationManager().func_152612_a(params.get(params.size() - 1));
+				if (playerT == null)
 				{
 					sendErrorAndHelp(sender, "The player you specified (\"" + params.get(params.size() - 1) + "\") does not appear to be online.");
 					return;
 				}
-				worldName = playerT.getWorld().getName();
-				x = playerT.getLocation().getX();
-				z = playerT.getLocation().getZ();
+				worldName = Util.getWorldName(playerT.worldObj);
+				x = playerT.posX;
+				z = playerT.posZ;
 				radiusCount -= 2;
 			}
 			else
@@ -116,8 +119,8 @@ public class CmdSet extends WBCmd
 				}
 				else
 				{	// using coordinates of command sender (player)
-					x = player.getLocation().getX();
-					z = player.getLocation().getZ();
+					x = player.posX;
+					z = player.posZ;
 				}
 			}
 
@@ -140,6 +143,6 @@ public class CmdSet extends WBCmd
 		}
 
 		Config.setBorder(worldName, radiusX, radiusZ, x, z);
-		sender.sendMessage("Border has been set. " + Config.BorderDescription(worldName));
+		Util.chat(sender, "Border has been set. " + Config.BorderDescription(worldName));
 	}
 }

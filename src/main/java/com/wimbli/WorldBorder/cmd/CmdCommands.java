@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.WorldBorder;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdCommands extends WBCmd
@@ -20,7 +20,7 @@ public class CmdCommands extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		// determine which page we're viewing
 		int page = (player == null) ? 0 : 1;
@@ -42,8 +42,8 @@ public class CmdCommands extends WBCmd
 			page = (player == null) ? 0 : 1;
 
 		// send command example header
-		sender.sendMessage( C_HEAD + WorldBorder.plugin.getDescription().getFullName() + "  -  key: " +
-							commandEmphasized("command") + C_REQ + "<required> " + C_OPT + "[optional]" );
+		Util.chat(sender, C_HEAD + WorldBorder.MODID + "  -  key: " +
+				commandEmphasized("command") + C_REQ + "<required> " + C_OPT + "[optional]");
 
 		if (page > 0)
 		{
@@ -52,22 +52,22 @@ public class CmdCommands extends WBCmd
 			int count = Math.min(pageSize, examples.size() - first);
 			for(int i = first; i < first + count; i++)
 			{
-				sender.sendMessage(examples.get(i));
+				Util.chat(sender, examples.get(i));
 			}
 
 			// send page footer, if relevant; manual spacing to get right side lined up near edge is crude, but sufficient
 			String footer = C_HEAD + " (Page " + page + "/" + pageCount + ")              " + cmd(sender);
 			if (page < pageCount)
-				sender.sendMessage(footer + Integer.toString(page + 1) + C_DESC + " - view next page of commands.");
+				Util.chat(sender, footer + Integer.toString(page + 1) + C_DESC + " - view next page of commands.");
 			else if (page > 1)
-				sender.sendMessage(footer + C_DESC + "- view first page of commands.");
+				Util.chat(sender, footer + C_DESC + "- view first page of commands.");
 		}
 		else
 		{
 			// if page "0" is specified, send all examples; done by default for console but can be specified by player
 			for (String example : examples)
 			{
-				sender.sendMessage(example);
+				Util.chat(sender, example);
 			}
 		}
 	}

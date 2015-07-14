@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdKnockback extends WBCmd
@@ -20,22 +20,22 @@ public class CmdKnockback extends WBCmd
 	}
 
 	@Override
-	public void cmdStatus(CommandSender sender)
+	public void cmdStatus(ICommandSender sender)
 	{
 		double kb = Config.KnockBack();
 		if (kb < 1)
-			sender.sendMessage(C_HEAD + "Knockback is set to 0, disabling border enforcement.");
+			Util.chat(sender, C_HEAD + "Knockback is set to 0, disabling border enforcement.");
 		else
-			sender.sendMessage(C_HEAD + "Knockback is set to " + kb + " blocks inside the border.");
+			Util.chat(sender, C_HEAD + "Knockback is set to " + kb + " blocks inside the border.");
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
-		double numBlocks = 0.0;
+		float numBlocks = 0.0F;
 		try
 		{
-			numBlocks = Double.parseDouble(params.get(0));
+			numBlocks = Float.parseFloat(params.get(0));
 			if (numBlocks < 0.0 || (numBlocks > 0.0 && numBlocks < 1.0))
 				throw new NumberFormatException();
 		}

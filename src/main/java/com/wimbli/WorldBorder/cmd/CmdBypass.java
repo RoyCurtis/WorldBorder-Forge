@@ -3,6 +3,11 @@ package com.wimbli.WorldBorder.cmd;
 import java.util.List;
 import java.util.UUID;
 
+import com.mojang.authlib.GameProfile;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -27,17 +32,17 @@ public class CmdBypass extends WBCmd
 	}
 
 	@Override
-	public void cmdStatus(CommandSender sender)
+	public void cmdStatus(ICommandSender sender)
 	{
-		if (!(sender instanceof Player))
+		if (!(sender instanceof EntityPlayerMP))
 			return;
 
-		boolean bypass = Config.isPlayerBypassing(((Player)sender).getUniqueId());
-		sender.sendMessage(C_HEAD + "Border bypass is currently " + enabledColored(bypass) + C_HEAD + " for you.");
+		boolean bypass = Config.isPlayerBypassing(((EntityPlayerMP)sender).getUniqueID());
+		Util.chat(sender, C_HEAD + "Border bypass is currently " + enabledColored(bypass) + C_HEAD + " for you.");
 	}
 
 	@Override
-	public void execute(final CommandSender sender, final Player player, final List<String> params, String worldName)
+	public void execute(final ICommandSender sender, final EntityPlayerMP player, final List<String> params, String worldName)
 	{
 		if (player == null && params.isEmpty())
 		{
@@ -45,20 +50,21 @@ public class CmdBypass extends WBCmd
 			return;
 		}
 
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(WorldBorder.plugin, new Runnable()
+		WorldBorder.scheduler.scheduleSyncDelayedTask(WorldBorder.plugin, new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				final String sPlayer = (params.isEmpty()) ? player.getName() : params.get(0);
-				UUID uPlayer = (params.isEmpty()) ? player.getUniqueId() : null;
+                assert player != null;
+                final String sPlayer = (params.isEmpty()) ? player.getDisplayName() : params.get(0);
+				UUID uPlayer = (params.isEmpty()) ? player.getUniqueID() : null;
 
 				if (uPlayer == null)
 				{
-					Player p = Bukkit.getPlayer(sPlayer);
+                    GameProfile p = WorldBorder.server.func_152358_ax().func_152655_a(sPlayer);
 					if (p != null)
 					{
-						uPlayer = p.getUniqueId();
+						uPlayer = p.getId();
 					}
 					else
 					{
@@ -67,7 +73,7 @@ public class CmdBypass extends WBCmd
 						{
 							uPlayer = UUIDFetcher.getUUIDOf(sPlayer);
 						}
-						catch(Exception ex)
+						catch (Exception ex)
 						{
 							sendErrorAndHelp(sender, "Failed to look up UUID for the player name you specified. " + ex.getLocalizedMessage());
 							return;
@@ -81,19 +87,22 @@ public class CmdBypass extends WBCmd
 				}
 
 				boolean bypassing = !Config.isPlayerBypassing(uPlayer);
-				if (params.size() > 1)
-					bypassing = strAsBool(params.get(1));
+				if (params.size() > 1) bypassing = strAsBool(params.get(1));
 
 				Config.setPlayerBypass(uPlayer, bypassing);
 
-				Player target = Bukkit.getPlayer(sPlayer);
-				if (target != null && target.isOnline())
-					target.sendMessage("Border bypass is now " + enabledColored(bypassing) + ".");
+				EntityPlayerMP target = WorldBorder.server.getConfigurationManager().func_152612_a(sPlayer);
+				if ( target != null )
+					Util.chat(target, "Border bypass is now " + enabledColored(bypassing) + ".");
 
-				Config.log("Border bypass for player \"" + sPlayer + "\" is " + (bypassing ? "enabled" : "disabled") +
-						   (player != null ? " at the command of player \"" + player.getName() + "\"" : "") + ".");
-				if (player != null && player != target)
-					sender.sendMessage("Border bypass for player \"" + sPlayer + "\" is " + enabledColored(bypassing) + ".");
+				Config.log(
+                    "Border bypass for player \"" + sPlayer + "\" is "
+                    + (bypassing ? "enabled" : "disabled")
+                    + (" at the command of player \"" + player.getDisplayName() + "\"") + "."
+                );
+
+				if (player != target)
+					Util.chat(sender, "Border bypass for player \"" + sPlayer + "\" is " + enabledColored(bypassing) + ".");
 			}
 		});
 	}

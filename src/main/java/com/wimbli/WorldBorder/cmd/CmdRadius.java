@@ -1,11 +1,12 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
-
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdRadius extends WBCmd
@@ -24,10 +25,10 @@ public class CmdRadius extends WBCmd
 	}
 
 	@Override
-	public void execute(CommandSender sender, Player player, List<String> params, String worldName)
+	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		if (worldName == null)
-			worldName = player.getWorld().getName();
+			worldName = Util.getWorldName(player.worldObj);
 
 		BorderData border = Config.Border(worldName);
 		if (border == null)
@@ -86,6 +87,6 @@ public class CmdRadius extends WBCmd
 		Config.setBorder(worldName, radiusX, radiusZ, x, z);
 
 		if (player != null)
-			sender.sendMessage("Radius has been set. " + Config.BorderDescription(worldName));
+			Util.chat(sender, "Radius has been set. " + Config.BorderDescription(worldName));
 	}
 }
