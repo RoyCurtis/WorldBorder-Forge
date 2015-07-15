@@ -2,22 +2,14 @@ package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldSavedData;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-// image output stuff, for debugging method at bottom of this file
+import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.*;
-import javax.imageio.*;
-
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.util.*;
+import java.util.List;
 
 // by the way, this region file handler was created based on the divulged region file format:
 // http://mojang.com/2011/02/16/minecraft-save-file-format-in-beta-1-3/
@@ -30,12 +22,17 @@ public class WorldFileData
 	private transient EntityPlayerMP notifyPlayer = null;
 	private transient Map<CoordXZ, List<Boolean>> regionChunkExistence = Collections.synchronizedMap(new HashMap<CoordXZ, List<Boolean>>());
 
-	// Use this static method to create a new instance of this class. If null is returned, there was a problem so any process relying on this should be cancelled.
-	public static WorldFileData create(World world, EntityPlayerMP notifyPlayer)
+	/**
+	 * Use this static method to create a new instance of this class. If null is
+	 * returned, there was a problem so any process relying on this should be cancelled.
+     *
+     * TODO: Optimize this for Forge/Vanilla folder structure
+	 */
+    public static WorldFileData create(World world, EntityPlayerMP notifyPlayer)
 	{
 		WorldFileData newData = new WorldFileData(world, notifyPlayer);
 
-		newData.regionFolder = new File(newData.world.provider.getSaveFolder(), "region");
+		newData.regionFolder = new File(newData.world.getSaveHandler().getWorldDirectory(), "region");
 		if (!newData.regionFolder.exists() || !newData.regionFolder.isDirectory())
 		{
 			// check for region folder inside a DIM* folder (DIM-1 for nether, DIM1 for end, DIMwhatever for custom world types)
@@ -57,16 +54,11 @@ public class WorldFileData
 			}
 		}
 
-		// Accepted region file formats: MCR is from late beta versions through 1.1, MCA is from 1.2+
 		newData.regionFiles = newData.regionFolder.listFiles(new ExtFileFilter(".MCA"));
 		if (newData.regionFiles == null || newData.regionFiles.length == 0)
 		{
-			newData.regionFiles = newData.regionFolder.listFiles(new ExtFileFilter(".MCR"));
-			if (newData.regionFiles == null || newData.regionFiles.length == 0)
-			{
-				newData.sendMessage("Could not find any region files. Looked in: "+newData.regionFolder.getPath());
-				return null;
-			}
+            newData.sendMessage("Could not find any region files. Looked in: "+newData.regionFolder.getPath());
+            return null;
 		}
 
 		return newData;

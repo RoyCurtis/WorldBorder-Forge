@@ -43,9 +43,9 @@ public class Location
     public Location(EntityPlayer player)
     {
         world = (WorldServer) player.worldObj;
-        posX  = player.serverPosX;
-        posY  = player.serverPosY;
-        posZ  = player.serverPosZ;
+        posX  = player.posX;
+        posY  = player.posY;
+        posZ  = player.posZ;
         pitch = player.rotationPitch;
         yaw   = player.rotationYaw;
     }

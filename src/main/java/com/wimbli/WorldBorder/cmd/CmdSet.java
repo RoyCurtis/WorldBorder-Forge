@@ -142,6 +142,7 @@ public class CmdSet extends WBCmd
 			return;
 		}
 
+        assert worldName != null;
 		Config.setBorder(worldName, radiusX, radiusZ, x, z);
 		Util.chat(sender, "Border has been set. " + Config.BorderDescription(worldName));
 	}

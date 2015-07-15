@@ -1,10 +1,5 @@
 package com.wimbli.WorldBorder;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.world.World;
 import org.dynmap.DynmapCommonAPI;
@@ -13,6 +8,11 @@ import org.dynmap.markers.AreaMarker;
 import org.dynmap.markers.CircleMarker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 
 public class DynMapFeatures
@@ -80,7 +80,7 @@ public class DynMapFeatures
 
 	/*
 	 * Re-rendering methods, used for updating trimmed chunks to show them as gone
-	 * Sadly, not currently working. Might not even be possible to make it work.
+	 * TODO: Check if these are now working
 	 */
 
 	public static void renderRegion(World world, CoordXZ coord)

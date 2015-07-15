@@ -107,12 +107,11 @@ public class BorderCheckTask implements Runnable
 				Config.logWarn("Player had a passenger riding on them: " + rider.getCommandSenderName());
 		}
 
-
 		// give some particle and sound effects where the player was beyond the border, if "whoosh effect" is enabled
-		Config.showWhooshEffect(loc);
+		Config.showWhooshEffect(player);
 
 		if (!returnLocationOnly)
-            player.setPositionAndRotation(newLoc.posX, newLoc.posY, newLoc.posZ, newLoc.pitch, newLoc.yaw);
+            player.setPositionAndUpdate(newLoc.posX, newLoc.posY, newLoc.posZ);
 
 		if (!handlingVehicle)
 			handlingPlayers.remove(player.getDisplayName().toLowerCase());

@@ -17,6 +17,7 @@ public class CmdTrim extends WBCmd
 	{
 		name = permission = "trim";
 		hasWorldNameInput = true;
+		// false because we want to handle `wb trim confirm/cancel` in console
 		consoleRequiresWorldName = false;
 		minParams = 0;
 		maxParams = 2;
@@ -136,7 +137,7 @@ public class CmdTrim extends WBCmd
 		}
 		else
 		{
-			if (trimWorld.isEmpty())
+			if (trimWorld.isEmpty() || Util.getWorld(trimWorld) == null)
 			{
 				sendErrorAndHelp(sender, "You must first specify a valid world.");
 				return;

@@ -17,6 +17,7 @@ public class CmdFill extends WBCmd
 	{
 		name = permission = "fill";
 		hasWorldNameInput = true;
+		// false because we want to handle `wb fill confirm/cancel` in console
 		consoleRequiresWorldName = false;
 		minParams = 0;
 		maxParams = 3;
@@ -142,7 +143,7 @@ public class CmdFill extends WBCmd
 		}
 		else
 		{
-			if (fillWorld.isEmpty())
+			if (fillWorld.isEmpty() || Util.getWorld(fillWorld) == null)
 			{
 				sendErrorAndHelp(sender, "You must first specify a valid world.");
 				return;

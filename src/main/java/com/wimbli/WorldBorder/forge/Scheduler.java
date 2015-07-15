@@ -14,11 +14,13 @@ import java.util.List;
  * Modelled by the same Scheduler in Bukkit without using any of its implementation.
  *
  * This uses the server tick event to execute tasks on the main thread. To reduce the
- * overhead of having a tick handler, it has a resolution of 20 ticks (one second).
+ * overhead of having a tick handler, it has a resolution of 10 ticks (half a second).
+ *
+ * TODO: make border check task independent of this, and optimize for fill/trim tasks
  */
 public class Scheduler
 {
-    private static final int RESOLUTION = 20;
+    private static final int RESOLUTION = 10;
 
     private List<ScheduledTask> tasks = new ArrayList<>();
 
@@ -27,8 +29,11 @@ public class Scheduler
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onServerTick(TickEvent.ServerTickEvent event)
     {
-        if (WorldBorder.server.getTickCounter() % 20 != 0)
+        if (event.phase == TickEvent.Phase.END)
             return;
+
+//        if (WorldBorder.server.getTickCounter() % RESOLUTION != 0)
+//            return;
 
         synchronized (this)
         {
@@ -43,7 +48,7 @@ public class Scheduler
                     continue;
                 }
 
-                if ( (task.ticksLeft -= RESOLUTION) <= 0 )
+                if ( (task.ticksLeft -= 1) <= 0 )
                 {   // Firing scheduled task
                     currentTask = task.id;
 

@@ -1,8 +1,11 @@
 package com.wimbli.WorldBorder.forge;
 
+import com.mojang.realmsclient.gui.ChatFormatting;
+import com.wimbli.WorldBorder.WorldBorder;
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
@@ -19,7 +22,10 @@ public class Util
 {
     public static String getWorldName(World world)
     {
-        return world.provider.getSaveFolder();
+        if (world.provider.dimensionId == 0)
+            return "world";
+        else
+            return world.provider.getSaveFolder();
     }
 
     /**
@@ -30,8 +36,17 @@ public class Util
     public static WorldServer getWorld(String name)
     {
         for ( WorldServer world : DimensionManager.getWorlds() )
-            if ( world.provider.getSaveFolder().equals(name) )
+        {
+            String saveFolder = world.provider.getSaveFolder();
+
+            if (saveFolder == null)
+            {   // Special case for dimension 0 (overworld)
+                if ( WorldBorder.server.getFolderName().equals(name) )
+                    return world;
+            }
+            else if ( saveFolder.equals(name) )
                 return world;
+        }
 
         return null;
     }
@@ -68,7 +83,7 @@ public class Util
     public static void broadcast(MinecraftServer server, String msg, Object... parts)
     {
         server.getConfigurationManager()
-            .sendChatMsg( prepareText(msg, parts) );
+            .sendChatMsg( prepareText(false, msg, parts) );
     }
 
     /**
@@ -79,13 +94,16 @@ public class Util
      */
     public static void chat(ICommandSender sender, String msg, Object... parts)
     {
-        sender.addChatMessage(prepareText(msg, parts));
+        sender.addChatMessage( prepareText(sender instanceof DedicatedServer, msg, parts) );
     }
 
-    private static IChatComponent prepareText(String msg, Object... parts)
+    private static IChatComponent prepareText(boolean strip, String msg, Object... parts)
     {
         String translated = translate(msg);
         String formatted  = String.format(translated, parts);
+
+        if (strip)
+            formatted = ChatFormatting.stripFormatting(formatted);
 
         return new ChatComponentText(formatted);
     }

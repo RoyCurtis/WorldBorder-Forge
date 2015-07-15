@@ -6,6 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -140,16 +141,22 @@ public class WorldTrimTask implements Runnable
 				unloadChunks();
 				reportTrimmedRegions++;
 				File regionFile = worldData.regionFile(currentRegion);
-				if (!regionFile.delete())
-				{
-					sendMessage("Error! Region file which is outside the border could not be deleted: "+regionFile.getName());
-					wipeChunks();
-				}
-				else
-				{
-					// if DynMap is installed, re-render the trimmed region ... disabled since it's not currently working, oh well
-//					DynMapFeatures.renderRegion(world.getName(), new CoordXZ(regionX, regionZ));
-				}
+
+                try
+                {
+                    Files.delete(regionFile.toPath());
+                }
+                catch (Exception e)
+                {
+                    sendMessage("Error! Region file which is outside the border could not be deleted: "+regionFile.getName());
+                    sendMessage("It may be that the world spawn chunks are in this region.");
+                    sendMessage("Use /setworldspawn to set the spawn chunks elsewhere, restart the server and try again");
+                    sendMessage("Region delete exception: " + e.getMessage().replaceAll("\n", ""));
+                    wipeChunks();
+                }
+
+                // if DynMap is installed, re-render the trimmed region
+                DynMapFeatures.renderRegion(world, new CoordXZ(regionX, regionZ));
 
 				nextFile();
 				continue;
@@ -308,8 +315,9 @@ public class WorldTrimTask implements Runnable
 			}
 			unChunk.close();
 
-			// if DynMap is installed, re-render the trimmed chunks ... disabled since it's not currently working, oh well
-//			DynMapFeatures.renderChunks(world.getName(), trimChunks);
+			// if DynMap is installed, re-render the trimmed chunks
+			// TODO: check if this now works
+			DynMapFeatures.renderChunks(world, trimChunks);
 
 			reportTrimmedChunks += chunkCount;
 		}

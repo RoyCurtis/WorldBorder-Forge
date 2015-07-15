@@ -2,8 +2,9 @@ package com.wimbli.WorldBorder;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import com.wimbli.WorldBorder.forge.Configuration;
-import com.wimbli.WorldBorder.forge.Location;
-import net.minecraftforge.common.config.ConfigCategory;
+import com.wimbli.WorldBorder.forge.Particles;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.world.WorldServer;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
@@ -239,20 +240,15 @@ public class Config
 		return whooshEffect;
 	}
 
-	public static void showWhooshEffect(Location loc)
+	public static void showWhooshEffect(EntityPlayerMP player)
 	{
-        // Forge: NO-OP
-        // Will figure out how to implement another time
-//		if (!whooshEffect())
-//			return;
-//
-//		WorldServer world = loc.world;
-//		world.playEffect(loc, Effect.ENDER_SIGNAL, 0);
-//		world.playEffect(loc, Effect.ENDER_SIGNAL, 0);
-//		world.playEffect(loc, Effect.SMOKE, 4);
-//		world.playEffect(loc, Effect.SMOKE, 4);
-//		world.playEffect(loc, Effect.SMOKE, 4);
-//		world.playEffect(loc, Effect.GHAST_SHOOT, 0);
+		if (!whooshEffect())
+			return;
+
+        WorldServer world = player.getServerForPlayer();
+        Particles.emitEnder(world, player.posX, player.posY, player.posZ);
+        Particles.emitSmoke(world, player.posX, player.posY, player.posZ);
+        world.playSoundAtEntity(player, "mob.ghast.fireball", 1.0F, 1.0F);
 	}
 	
 	public static void setPreventBlockPlace(boolean enable)
@@ -596,39 +592,39 @@ public class Config
 
         for(String worldName : worldNames)
         {
-            ConfigCategory bord = cfgBorders.getCategory(worldName);
-
             // backwards compatibility for config from before elliptical/rectangular borders were supported
-            if (bord.containsKey("radius") && !bord.containsKey("radiusX"))
+            if (cfgBorders.hasKey(worldName, "radius") && !cfgBorders.hasKey(worldName, "radiusX"))
             {
-                int radius = bord.get("radius").getInt();
-                bord.get("radiusX").set(radius);
-                bord.get("radiusZ").set(radius);
+                int radius = cfgBorders.get(worldName, "radius", 0).getInt();
+                cfgBorders.set(worldName, "radiusX", radius);
+                cfgBorders.set(worldName, "radiusZ", radius);
             }
 
-            boolean overrideShape = bord.get("shape-round").getBoolean();
-            boolean wrap = bord.get("wrapping").getBoolean(false);
+            // TODO: make overrideShape nullable again, because WB uses null to determine if
+            // override is in effect
+            boolean overrideShape = cfgBorders.get(worldName, "shape-round", false).getBoolean();
+            boolean wrap = cfgBorders.get(worldName, "wrapping", false).getBoolean();
             BorderData border = new BorderData(
-                bord.get("x").getDouble(0), bord.get("z").getDouble(0),
-                bord.get("radiusX").getInt(0), bord.get("radiusZ").getInt(0), overrideShape, wrap
+                cfgBorders.get(worldName, "x", 0.0D).getDouble(), cfgBorders.get(worldName, "z", 0.0D).getDouble(),
+                cfgBorders.get(worldName, "radiusX", 0).getInt(), cfgBorders.get(worldName, "radiusZ", 0).getInt(),
+                overrideShape, wrap
             );
             borders.put(worldName, border);
             logConfig(BorderDescription(worldName));
         }
 
 		// if we have an unfinished fill task stored from a previous run, load it up
-		ConfigCategory storedFillTask = cfgMain.getCategory("fillTask");
-		if (storedFillTask != null)
+		if ( cfgMain.hasCategory("fillTask") )
 		{
-			String worldName = storedFillTask.get("world").getString();
-			int fillDistance = storedFillTask.get("fillDistance").getInt(176);
-			int chunksPerRun = storedFillTask.get("chunksPerRun").getInt(5);
-			int tickFrequency = storedFillTask.get("tickFrequency").getInt(20);
-			int fillX = storedFillTask.get("x").getInt(0);
-			int fillZ = storedFillTask.get("z").getInt(0);
-			int fillLength = storedFillTask.get("length").getInt(0);
-			int fillTotal = storedFillTask.get("total").getInt(0);
-			boolean forceLoad = storedFillTask.get("forceLoad").getBoolean(false);
+            String worldName = cfgMain.get("fillTask", "world", "").getString();
+			int fillDistance = cfgMain.get("fillTask", "fillDistance", 176).getInt();
+			int chunksPerRun = cfgMain.get("fillTask", "chunksPerRun", 5).getInt();
+			int tickFrequency = cfgMain.get("fillTask", "tickFrequency", 20).getInt();
+			int fillX = cfgMain.get("fillTask", "x", 0).getInt();
+			int fillZ = cfgMain.get("fillTask", "z", 0).getInt();
+			int fillLength = cfgMain.get("fillTask", "length", 0).getInt();
+			int fillTotal = cfgMain.get("fillTask", "total", 0).getInt();
+			boolean forceLoad = cfgMain.get("fillTask", "forceLoad", false).getBoolean();
 			RestoreFillTask(worldName, fillDistance, chunksPerRun, tickFrequency, fillX, fillZ, fillLength, fillTotal, forceLoad);
 			save(false);
 		}

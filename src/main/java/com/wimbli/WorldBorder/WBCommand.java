@@ -1,13 +1,12 @@
 package com.wimbli.WorldBorder;
 
-import java.util.*;
-
+import com.wimbli.WorldBorder.cmd.*;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.wimbli.WorldBorder.cmd.*;
+import java.util.*;
 
 
 public class WBCommand implements ICommand
@@ -135,7 +134,6 @@ public class WBCommand implements ICommand
 		// execute command
 		subCommand.execute(sender, player, params, worldName);
 	}
-
 
 	private boolean wasWorldQuotation = false;
 
