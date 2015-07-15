@@ -448,7 +448,7 @@ public class Config
 	{
 		StopBorderTimer();
 
-		borderTask = WorldBorder.scheduler.scheduleSyncRepeatingTask(plugin, new BorderCheckTask(), timerTicks, timerTicks);
+		borderTask = WorldBorder.scheduler.scheduleSyncRepeatingTask(new BorderCheckTask(), timerTicks, timerTicks);
 
 		if (borderTask == -1)
 			logWarn("Failed to start timed border-checking task! This will prevent the plugin from working. Try restarting Bukkit.");
@@ -486,14 +486,9 @@ public class Config
 		if (fillTask.valid())
 		{
 			fillTask.continueProgress(x, z, length, total);
-			int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(plugin, fillTask, 20, tickFrequency);
+			int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(fillTask, 20, tickFrequency);
 			fillTask.setTaskID(task);
 		}
-	}
-	// for backwards compatibility
-	public static void RestoreFillTask(String world, int fillDistance, int chunksPerRun, int tickFrequency, int x, int z, int length, int total)
-	{
-		RestoreFillTask(world, fillDistance, chunksPerRun, tickFrequency, x, z, length, total, false);
 	}
 
 

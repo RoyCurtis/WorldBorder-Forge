@@ -1,20 +1,16 @@
 package com.wimbli.WorldBorder;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import com.google.common.collect.ImmutableList;
-
+import com.wimbli.WorldBorder.forge.Location;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityBoat;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import com.wimbli.WorldBorder.forge.Location;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 
 public class BorderCheckTask implements Runnable
@@ -175,7 +171,7 @@ public class BorderCheckTask implements Runnable
 
 	private static void setPassengerDelayed(final Entity vehicle, final EntityPlayerMP player, final String playerName, long delay)
 	{
-        WorldBorder.scheduler.scheduleSyncDelayedTask(WorldBorder.plugin, new Runnable()
+        WorldBorder.scheduler.scheduleSyncDelayedTask(new Runnable()
         {
             @Override
             public void run()

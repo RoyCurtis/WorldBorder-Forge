@@ -7,8 +7,6 @@ import com.wimbli.WorldBorder.WorldFillTask;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import org.bukkit.Bukkit;
-import org.bukkit.command.*;
 
 import java.util.List;
 
@@ -133,7 +131,7 @@ public class CmdFill extends WBCmd
 			Config.fillTask = new WorldFillTask(WorldBorder.server, player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
 			if (Config.fillTask.valid())
 			{
-				int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(WorldBorder.plugin, Config.fillTask, ticks, ticks);
+				int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(Config.fillTask, ticks, ticks);
 				Config.fillTask.setTaskID(task);
 				Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
 			}

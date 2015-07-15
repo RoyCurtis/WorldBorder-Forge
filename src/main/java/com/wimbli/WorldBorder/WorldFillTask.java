@@ -3,17 +3,13 @@ package com.wimbli.WorldBorder;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.IProgressUpdate;
-import net.minecraft.world.MinecraftException;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
-import net.minecraftforge.common.DimensionManager;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public class WorldFillTask implements Runnable

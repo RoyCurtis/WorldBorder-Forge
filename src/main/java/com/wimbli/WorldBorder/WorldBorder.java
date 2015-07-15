@@ -78,9 +78,6 @@ public class WorldBorder
 		// our one real command, though it does also have aliases "wb" and "worldborder"
         event.registerServerCommand(wbCommand);
 
-        // register scheduler as tick handler
-        FMLCommonHandler.instance().bus().register(scheduler);
-
 		// keep an eye on teleports, to redirect them to a spot inside the border if necessary
         FMLCommonHandler.instance().bus().register(wbListener);
         MinecraftForge.EVENT_BUS.register(wbListener);

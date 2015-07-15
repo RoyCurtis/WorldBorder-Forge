@@ -7,8 +7,6 @@ import com.wimbli.WorldBorder.WorldTrimTask;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import org.bukkit.Bukkit;
-import org.bukkit.command.*;
 
 import java.util.List;
 
@@ -127,7 +125,7 @@ public class CmdTrim extends WBCmd
 			Config.trimTask = new WorldTrimTask(WorldBorder.server, player, trimWorld, trimPadding, repeats);
 			if (Config.trimTask.valid())
 			{
-				int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(WorldBorder.plugin, Config.trimTask, ticks, ticks);
+				int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(Config.trimTask, ticks, ticks);
 				Config.trimTask.setTaskID(task);
 				Util.chat(sender, "WorldBorder map trimming task for world \"" + trimWorld + "\" started.");
 			}

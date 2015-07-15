@@ -1,13 +1,12 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.util.List;
 import java.util.Set;
-
-import com.wimbli.WorldBorder.forge.Util;
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
-
-import com.wimbli.WorldBorder.*;
 
 
 public class CmdList extends WBCmd
