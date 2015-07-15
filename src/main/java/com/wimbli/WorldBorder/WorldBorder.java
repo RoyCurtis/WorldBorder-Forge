@@ -51,7 +51,7 @@ public class WorldBorder
     @SideOnly(Side.SERVER)
     public void serverPreInit(FMLPreInitializationEvent event)
     {
-        configDir = event.getModConfigurationDirectory();
+        configDir = new File( event.getModConfigurationDirectory(), MODID );
 
         if ( !configDir.exists() && configDir.mkdirs() )
             LOGGER.info("Created config directory for the first time");
@@ -77,6 +77,9 @@ public class WorldBorder
 
 		// our one real command, though it does also have aliases "wb" and "worldborder"
         event.registerServerCommand(wbCommand);
+
+        // register scheduler's tick handler
+        FMLCommonHandler.instance().bus().register(scheduler);
 
 		// keep an eye on teleports, to redirect them to a spot inside the border if necessary
         FMLCommonHandler.instance().bus().register(wbListener);
@@ -104,11 +107,14 @@ public class WorldBorder
 	}
 
 	// for other plugins to hook into
+    // TODO: use IMC for this?
+    @SideOnly(Side.SERVER)
 	public BorderData getWorldBorder(String worldName)
 	{
 		return Config.Border(worldName);
 	}
 
+    @SideOnly(Side.SERVER)
 	public void enableBlockPlaceListener(boolean enable)
 	{
 		if (enable)
@@ -117,6 +123,7 @@ public class WorldBorder
 			MinecraftForge.EVENT_BUS.unregister(this.blockPlaceListener);
 	}
 
+    @SideOnly(Side.SERVER)
 	public void enableMobSpawnListener(boolean enable)
 	{
 		if (enable)

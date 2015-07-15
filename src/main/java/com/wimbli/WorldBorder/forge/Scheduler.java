@@ -1,7 +1,6 @@
 package com.wimbli.WorldBorder.forge;
 
 import com.wimbli.WorldBorder.WorldBorder;
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -15,12 +14,12 @@ import java.util.List;
  * Modelled by the same Scheduler in Bukkit without using any of its implementation.
  *
  * This uses the server tick event to execute tasks on the main thread. To reduce the
- * overhead of having a tick handler, it is only registered when a task is scheduled.
- *
- * When no more tasks are scheduled, the handler is unregistered.
+ * overhead of having a tick handler, it has a resolution of 20 ticks (one second).
  */
 public class Scheduler
 {
+    private static final int RESOLUTION = 20;
+
     private List<ScheduledTask> tasks = new ArrayList<>();
 
     private int currentTask = -1;
@@ -28,6 +27,9 @@ public class Scheduler
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onServerTick(TickEvent.ServerTickEvent event)
     {
+        if (WorldBorder.server.getTickCounter() % 20 != 0)
+            return;
+
         synchronized (this)
         {
             Iterator<ScheduledTask> iterator = tasks.iterator();
@@ -41,7 +43,7 @@ public class Scheduler
                     continue;
                 }
 
-                if (task.ticksLeft-- <= 0)
+                if ( (task.ticksLeft -= RESOLUTION) <= 0 )
                 {   // Firing scheduled task
                     currentTask = task.id;
 
@@ -60,9 +62,6 @@ public class Scheduler
                         iterator.remove();
                 }
             }
-
-            if ( tasks.isEmpty() )
-                FMLCommonHandler.instance().bus().unregister(this);
         }
     }
 
@@ -89,7 +88,6 @@ public class Scheduler
     {
         ScheduledTask future = new ScheduledTask(task, delayTicks, periodTicks);
         tasks.add(future);
-        FMLCommonHandler.instance().bus().register(this);
 
         return future.id;
     }

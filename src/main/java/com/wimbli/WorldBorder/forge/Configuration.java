@@ -8,7 +8,7 @@ import java.util.Set;
  */
 public class Configuration extends net.minecraftforge.common.config.Configuration
 {
-    private static final String GENERAL = "General";
+    public static final String GENERAL = "General";
 
     public Configuration(File file)
     {
@@ -53,28 +53,33 @@ public class Configuration extends net.minecraftforge.common.config.Configuratio
         return getStringList(key, GENERAL, new String[0], "");
     }
 
-    public void set(String key, boolean value)
+    public void set(String category, String key, boolean value)
     {
-        getCategory(GENERAL).get(key).set(value);
+        get(category, key, value).set(value);
     }
 
-    public void set(String key, String value)
+    public void set(String category, String key, String value)
     {
-        getCategory(GENERAL).get(key).set(value);
+        get(category, key, value).set(value);
     }
 
-    public void set(String key, int value)
+    public void set(String category, String key, int value)
     {
-        getCategory(GENERAL).get(key).set(value);
+        get(category, key, value).set(value);
     }
 
-    public void set(String key, float value)
+    public void set(String category, String key, double value)
     {
-        getCategory(GENERAL).get(key).set(value);
+        get(category, key, value).set(value);
     }
 
-    public void set(String key, String[] values)
+    public void set(String category, String key, float value)
     {
-        getCategory(GENERAL).get(key).set(values);
+        get(category, key, value).set(value);
+    }
+
+    public void set(String category, String key, String[] values)
+    {
+        get(category, key, values).set(values);
     }
 }

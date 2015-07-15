@@ -35,7 +35,7 @@ public class Config
 	private static String messageClean;	// message cleaned of formatting codes
 	private static boolean DEBUG = false;
 	private static float knockBack = 3.0F;
-	private static int timerTicks = 4;
+	private static int timerTicks = 20;
 	private static boolean whooshEffect = true;
 	private static boolean portalRedirection = true;
 	private static boolean dynmapEnable = true;
@@ -430,11 +430,11 @@ public class Config
 	private static String[] exportBypassStringList()
 	{
 		ArrayList<String> strings = new ArrayList<String>();
-		for (UUID uuid: bypassPlayers)
-		{
+
+		for (UUID uuid : bypassPlayers)
 			strings.add(uuid.toString());
-		}
-		return (String[]) strings.toArray();
+
+		return strings.toArray(new String[ strings.size() ]);
 	}
 
 
@@ -550,6 +550,10 @@ public class Config
             cfgMain = new Configuration( new File(WorldBorder.configDir, "main.cfg") );
         else cfgMain.load();
 
+        if (cfgBorders == null)
+            cfgBorders = new Configuration( new File(WorldBorder.configDir, "borders.cfg") );
+        else cfgBorders.load();
+
 		int cfgVersion = cfgMain.getInt("cfg-version", currentCfgVersion);
 
 		String msg = cfgMain.getString("message", "");
@@ -558,7 +562,7 @@ public class Config
 		whooshEffect = cfgMain.getBoolean("whoosh-effect", true);
 		portalRedirection = cfgMain.getBoolean("portal-redirection", true);
 		knockBack = cfgMain.getFloat("knock-back-dist", 3.0F);
-		timerTicks = cfgMain.getInt("timer-delay-ticks", 5);
+		timerTicks = cfgMain.getInt("timer-delay-ticks", 20);
 		remountDelayTicks = cfgMain.getInt("remount-delay-ticks", 0);
 		dynmapEnable = cfgMain.getBoolean("dynmap-border-enabled", true);
 		dynmapMessage = cfgMain.getString("dynmap-border-message", "The border of the world.");
@@ -587,10 +591,6 @@ public class Config
 		// otherwise just set border message
 		else
 			updateMessage(msg);
-
-        if (cfgBorders == null)
-            cfgBorders = new Configuration( new File(WorldBorder.configDir, "borders.cfg") );
-        else cfgBorders.load();
 
         Set<String> worldNames = cfgBorders.getCategoryNames();
 
@@ -647,55 +647,53 @@ public class Config
 	{	// save config to file
 		if (cfgMain == null) return;
 
-		cfgMain.set("cfg-version", currentCfgVersion);
-		cfgMain.set("message", message);
-		cfgMain.set("round-border", shapeRound);
-		cfgMain.set("debug-mode", DEBUG);
-		cfgMain.set("whoosh-effect", whooshEffect);
-		cfgMain.set("portal-redirection", portalRedirection);
-		cfgMain.set("knock-back-dist", knockBack);
-		cfgMain.set("timer-delay-ticks", timerTicks);
-		cfgMain.set("remount-delay-ticks", remountDelayTicks);
-		cfgMain.set("dynmap-border-enabled", dynmapEnable);
-		cfgMain.set("dynmap-border-message", dynmapMessage);
-		cfgMain.set("player-killed-bad-spawn", killPlayer);
-		cfgMain.set("deny-enderpearl", denyEnderpearl);
-		cfgMain.set("fill-autosave-frequency", fillAutosaveFrequency);
-		cfgMain.set("bypass-list-uuids", exportBypassStringList());
-		cfgMain.set("fill-memory-tolerance", fillMemoryTolerance);
-		cfgMain.set("prevent-block-place", preventBlockPlace);
-		cfgMain.set("prevent-mob-spawn", preventMobSpawn);
+        String GENERAL = Configuration.GENERAL;
+		cfgMain.set(GENERAL, "cfg-version", currentCfgVersion);
+		cfgMain.set(GENERAL, "message", message);
+		cfgMain.set(GENERAL, "round-border", shapeRound);
+		cfgMain.set(GENERAL, "debug-mode", DEBUG);
+		cfgMain.set(GENERAL, "whoosh-effect", whooshEffect);
+		cfgMain.set(GENERAL, "portal-redirection", portalRedirection);
+		cfgMain.set(GENERAL, "knock-back-dist", knockBack);
+		cfgMain.set(GENERAL, "timer-delay-ticks", timerTicks);
+		cfgMain.set(GENERAL, "remount-delay-ticks", remountDelayTicks);
+		cfgMain.set(GENERAL, "dynmap-border-enabled", dynmapEnable);
+		cfgMain.set(GENERAL, "dynmap-border-message", dynmapMessage);
+		cfgMain.set(GENERAL, "player-killed-bad-spawn", killPlayer);
+		cfgMain.set(GENERAL, "deny-enderpearl", denyEnderpearl);
+		cfgMain.set(GENERAL, "fill-autosave-frequency", fillAutosaveFrequency);
+		cfgMain.set(GENERAL, "bypass-list-uuids", exportBypassStringList());
+		cfgMain.set(GENERAL, "fill-memory-tolerance", fillMemoryTolerance);
+		cfgMain.set(GENERAL, "prevent-block-place", preventBlockPlace);
+		cfgMain.set(GENERAL, "prevent-mob-spawn", preventMobSpawn);
 
 		cfgBorders.clear();
 		for(Entry<String, BorderData> stringBorderDataEntry : borders.entrySet())
 		{
-            String name = ((String) stringBorderDataEntry.getKey()).replace(".", "<");
-			BorderData bord = (BorderData) stringBorderDataEntry.getValue();
-            ConfigCategory cfgBorder = cfgBorders.getCategory(name);
+            String name = stringBorderDataEntry.getKey().replace(".", "<");
+			BorderData bord = stringBorderDataEntry.getValue();
 
-			cfgBorder.get("x").set(bord.getX());
-			cfgBorder.get("z").set(bord.getZ());
-			cfgBorder.get("radiusX").set(bord.getRadiusX());
-			cfgBorder.get("radiusZ").set(bord.getRadiusZ());
-			cfgBorder.get("wrapping").set(bord.getWrapping());
+			cfgBorders.set(name, "x", bord.getX());
+			cfgBorders.set(name, "z", bord.getZ());
+			cfgBorders.set(name, "radiusX", bord.getRadiusX());
+			cfgBorders.set(name, "radiusZ", bord.getRadiusZ());
+			cfgBorders.set(name, "wrapping", bord.getWrapping());
 
 			if (bord.getShape() != null)
-                cfgBorder.get("shape-round").set(bord.getShape());
+                cfgBorders.set(name, "shape-round", bord.getShape());
 		}
 
 		if (storeFillTask && fillTask != null && fillTask.valid())
 		{
-            ConfigCategory cfgFillTask = cfgMain.getCategory("fillTask");
-
-			cfgFillTask.get("world").set(fillTask.refWorld());
-			cfgFillTask.get("fillDistance").set(fillTask.refFillDistance());
-			cfgFillTask.get("chunksPerRun").set(fillTask.refChunksPerRun());
-			cfgFillTask.get("tickFrequency").set(fillTask.refTickFrequency());
-			cfgFillTask.get("x").set(fillTask.refX());
-			cfgFillTask.get("z").set(fillTask.refZ());
-			cfgFillTask.get("length").set(fillTask.refLength());
-			cfgFillTask.get("total").set(fillTask.refTotal());
-			cfgFillTask.get("forceLoad").set(fillTask.refForceLoad());
+			cfgMain.set("fillTask","world", fillTask.refWorld());
+			cfgMain.set("fillTask","fillDistance", fillTask.refFillDistance());
+			cfgMain.set("fillTask","chunksPerRun", fillTask.refChunksPerRun());
+			cfgMain.set("fillTask","tickFrequency", fillTask.refTickFrequency());
+			cfgMain.set("fillTask","x", fillTask.refX());
+			cfgMain.set("fillTask","z", fillTask.refZ());
+			cfgMain.set("fillTask","length", fillTask.refLength());
+			cfgMain.set("fillTask","total", fillTask.refTotal());
+			cfgMain.set("fillTask","forceLoad", fillTask.refForceLoad());
 		}
 		else
 			cfgMain.removeCategory("fillTask");
