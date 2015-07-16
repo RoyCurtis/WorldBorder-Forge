@@ -1,5 +1,6 @@
-package com.wimbli.WorldBorder;
+package com.wimbli.WorldBorder.task;
 
+import com.wimbli.WorldBorder.*;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;

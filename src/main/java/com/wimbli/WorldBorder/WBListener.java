@@ -2,6 +2,7 @@ package com.wimbli.WorldBorder;
 
 
 import com.wimbli.WorldBorder.forge.Location;
+import com.wimbli.WorldBorder.task.BorderCheckTask;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;

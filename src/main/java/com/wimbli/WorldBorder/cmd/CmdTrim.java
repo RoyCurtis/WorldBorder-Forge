@@ -3,7 +3,7 @@ package com.wimbli.WorldBorder.cmd;
 import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.CoordXZ;
 import com.wimbli.WorldBorder.WorldBorder;
-import com.wimbli.WorldBorder.WorldTrimTask;
+import com.wimbli.WorldBorder.task.WorldTrimTask;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;

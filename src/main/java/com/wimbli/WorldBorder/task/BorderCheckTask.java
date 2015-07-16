@@ -1,5 +1,8 @@
-package com.wimbli.WorldBorder;
+package com.wimbli.WorldBorder.task;
 
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.WorldBorder;
 import com.wimbli.WorldBorder.forge.Location;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.entity.Entity;
