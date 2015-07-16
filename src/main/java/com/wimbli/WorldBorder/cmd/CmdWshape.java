@@ -65,6 +65,6 @@ public class CmdWshape extends WBCmd
 		border.setShape(shape);
 		Config.setBorder(worldName, border, false);
 
-		Util.chat(sender, "Border shape for world \"" + worldName + "\" is now set to \"" + Config.ShapeName(shape) + "\".");
+		Util.chat(sender, "Border shape for world \"" + worldName + "\" is now set to \"" + Config.getShapeName(shape) + "\".");
 	}
 }

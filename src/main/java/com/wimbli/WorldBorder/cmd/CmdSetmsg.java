@@ -23,9 +23,9 @@ public class CmdSetmsg extends WBCmd
 	public void cmdStatus(ICommandSender sender)
 	{
 		Util.chat(sender, C_HEAD + "Border message is set to:");
-		Util.chat(sender, Config.MessageRaw());
+		Util.chat(sender, Config.getMessageRaw());
 		Util.chat(sender, C_HEAD + "Formatted border message:");
-		Util.chat(sender, Config.Message());
+		Util.chat(sender, Config.getMessage());
 	}
 
 	@Override

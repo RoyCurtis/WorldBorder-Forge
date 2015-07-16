@@ -24,7 +24,7 @@ public class CmdPortal extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		Util.chat(sender, C_HEAD + "Portal redirection is " + enabledColored(Config.portalRedirection()) + C_HEAD + ".");
+		Util.chat(sender, C_HEAD + "Portal redirection is " + enabledColored(Config.doPortalRedirection()) + C_HEAD + ".");
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class CmdPortal extends WBCmd
 
 		if (player != null)
 		{
-			Config.log((Config.portalRedirection() ? "Enabled" : "Disabled") + " portal redirection at the command of player \"" + player.getDisplayName() + "\".");
+			Config.log((Config.doPortalRedirection() ? "Enabled" : "Disabled") + " portal redirection at the command of player \"" + player.getDisplayName() + "\".");
 			cmdStatus(sender);
 		}
 	}

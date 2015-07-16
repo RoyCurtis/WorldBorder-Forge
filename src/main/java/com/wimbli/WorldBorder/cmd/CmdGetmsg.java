@@ -23,8 +23,8 @@ public class CmdGetmsg extends WBCmd
 	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
 		Util.chat(sender, "Border message is currently set to:");
-		Util.chat(sender, Config.MessageRaw());
+		Util.chat(sender, Config.getMessageRaw());
 		Util.chat(sender, "Formatted border message:");
-		Util.chat(sender, Config.Message());
+		Util.chat(sender, Config.getMessage());
 	}
 }

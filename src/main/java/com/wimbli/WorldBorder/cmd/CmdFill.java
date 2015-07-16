@@ -10,7 +10,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.List;
 
-
 public class CmdFill extends WBCmd
 {
 	public CmdFill()
@@ -44,7 +43,7 @@ public class CmdFill extends WBCmd
 					return;
 				Util.chat(sender, C_HEAD + "Cancelling the world map generation task.");
 				fillDefaults();
-				Config.StopFillTask();
+				Config.stopFillTask();
 				return;
 			}
 			else if (check.equals("pause"))
@@ -129,10 +128,10 @@ public class CmdFill extends WBCmd
 				ticks = 20 / fillFrequency;
 
 /*	*/		Config.log("world: " + fillWorld + "  padding: " + fillPadding + "  repeats: " + repeats + "  ticks: " + ticks);			
-			Config.fillTask = new WorldFillTask(WorldBorder.server, player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
+			Config.fillTask = new WorldFillTask(WorldBorder.SERVER, player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
 			if (Config.fillTask.valid())
 			{
-				int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(Config.fillTask, ticks, ticks);
+				int task = WorldBorder.SCHEDULER.scheduleSyncRepeatingTask(Config.fillTask, ticks, ticks);
 				Config.fillTask.setTaskID(task);
 				Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
 			}

@@ -24,7 +24,7 @@ public class CmdDynmapmsg extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		Util.chat(sender, C_HEAD + "DynMap border label is set to: " + C_ERR + Config.DynmapMessage());
+		Util.chat(sender, C_HEAD + "DynMap border label is set to: " + C_ERR + Config.getDynmapMessage());
 	}
 
 	@Override

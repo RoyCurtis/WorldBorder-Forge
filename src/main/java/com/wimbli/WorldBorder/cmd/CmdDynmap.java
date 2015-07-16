@@ -23,7 +23,7 @@ public class CmdDynmap extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		Util.chat(sender, C_HEAD + "DynMap border display is " + enabledColored(Config.DynmapBorderEnabled()) + C_HEAD + ".");
+		Util.chat(sender, C_HEAD + "DynMap border display is " + enabledColored(Config.isDynmapBorderEnabled()) + C_HEAD + ".");
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class CmdDynmap extends WBCmd
 		{
 			cmdStatus(sender);
 			Config.log(
-				(Config.DynmapBorderEnabled() ? "Enabled" : "Disabled")
+				(Config.isDynmapBorderEnabled() ? "Enabled" : "Disabled")
                 + " DynMap border display at the command of player \""
                 + player.getDisplayName() + "\"."
             );

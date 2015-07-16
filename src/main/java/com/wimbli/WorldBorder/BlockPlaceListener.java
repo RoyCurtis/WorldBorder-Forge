@@ -17,7 +17,7 @@ public class BlockPlaceListener
 		BorderData border = Config.Border( Util.getWorldName(world) );
 		if (border == null) return;
 		
-		if (!border.insideBorder(event.x, event.z, Config.ShapeRound()))
+		if (!border.insideBorder(event.x, event.z, Config.getShapeRound()))
 		{
 			event.setResult(Event.Result.DENY);
 		}

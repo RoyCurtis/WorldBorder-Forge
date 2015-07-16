@@ -22,7 +22,7 @@ public class CmdFillautosave extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		int seconds = Config.FillAutosaveFrequency();
+		int seconds = Config.getFillAutosaveFrequency();
 		if (seconds == 0)
 		{
 			Util.chat(sender, C_HEAD + "World autosave frequency during Fill process is set to 0, disabling it.");

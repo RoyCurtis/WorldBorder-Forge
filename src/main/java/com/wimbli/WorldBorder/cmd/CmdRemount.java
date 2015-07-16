@@ -24,7 +24,7 @@ public class CmdRemount extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		int delay = Config.RemountTicks();
+		int delay = Config.getRemountTicks();
 		if (delay == 0)
 			Util.chat(sender, C_HEAD + "Remount delay set to 0. Players will be left dismounted when knocked back from the border while on a vehicle.");
 		else

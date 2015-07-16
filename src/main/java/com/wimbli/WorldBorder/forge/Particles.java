@@ -9,6 +9,14 @@ import net.minecraft.world.WorldServer;
  */
 public class Particles
 {
+    public static void showWhooshEffect(EntityPlayerMP player)
+    {
+        WorldServer world = player.getServerForPlayer();
+        Particles.emitEnder(world, player.posX, player.posY, player.posZ);
+        Particles.emitSmoke(world, player.posX, player.posY, player.posZ);
+        world.playSoundAtEntity(player, "mob.ghast.fireball", 1.0F, 1.0F);
+    }
+
     public static void emitSmoke(WorldServer world, double x, double y, double z)
     {
         S2APacketParticles packet = new S2APacketParticles(

@@ -23,17 +23,17 @@ public class CmdDebug extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		Util.chat(sender, C_HEAD + "Debug mode is " + enabledColored(Config.Debug()) + C_HEAD + ".");
+		Util.chat(sender, C_HEAD + "Debug mode is " + enabledColored(Config.isDebugMode()) + C_HEAD + ".");
 	}
 
 	@Override
 	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
-		Config.setDebug(strAsBool(params.get(0)));
+		Config.setDebugMode(strAsBool(params.get(0)));
 
 		if (player != null)
 		{
-			Config.log((Config.Debug() ? "Enabled" : "Disabled") + " debug output at the command of player \"" + player.getDisplayName() + "\".");
+			Config.log((Config.isDebugMode() ? "Enabled" : "Disabled") + " debug output at the command of player \"" + player.getDisplayName() + "\".");
 			cmdStatus(sender);
 		}
 	}

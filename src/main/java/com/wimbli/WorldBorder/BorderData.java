@@ -2,7 +2,6 @@ package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Location;
 import com.wimbli.WorldBorder.forge.Util;
-import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 
@@ -162,7 +161,7 @@ public class BorderData
 	@Override
 	public String toString()
 	{
-		return "radius " + ((radiusX == radiusZ) ? radiusX : radiusX + "x" + radiusZ) + " at X: " + Config.coord.format(x) + " Z: " + Config.coord.format(z) + (shapeRound != null ? (" (shape override: " + Config.ShapeName(shapeRound.booleanValue()) + ")") : "") + (wrapping ? (" (wrapping)") : "");
+		return "radius " + ((radiusX == radiusZ) ? radiusX : radiusX + "x" + radiusZ) + " at X: " + Config.COORD_FORMAT.format(x) + " Z: " + Config.COORD_FORMAT.format(z) + (shapeRound != null ? (" (shape override: " + Config.getShapeName(shapeRound.booleanValue()) + ")") : "") + (wrapping ? (" (wrapping)") : "");
 	}
 
 	// This algorithm of course needs to be fast, since it will be run very frequently
@@ -195,11 +194,11 @@ public class BorderData
 	}
 	public boolean insideBorder(double xLoc, double zLoc)
 	{
-		return insideBorder(xLoc, zLoc, Config.ShapeRound());
+		return insideBorder(xLoc, zLoc, Config.getShapeRound());
 	}
 	public boolean insideBorder(Location loc)
 	{
-		return insideBorder(loc.posX, loc.posZ, Config.ShapeRound());
+		return insideBorder(loc.posX, loc.posZ, Config.getShapeRound());
 	}
 	public boolean insideBorder(CoordXZ coord, boolean round)
 	{
@@ -207,7 +206,7 @@ public class BorderData
 	}
 	public boolean insideBorder(CoordXZ coord)
 	{
-		return insideBorder(coord.x, coord.z, Config.ShapeRound());
+		return insideBorder(coord.x, coord.z, Config.getShapeRound());
 	}
 
 	public Location correctedPosition(Location loc, boolean round, boolean flying)
@@ -226,24 +225,24 @@ public class BorderData
 			if (wrapping)
 			{
 				if (xLoc <= minX)
-					xLoc = maxX - Config.KnockBack();
+					xLoc = maxX - Config.getKnockBack();
 				else if (xLoc >= maxX)
-					xLoc = minX + Config.KnockBack();
+					xLoc = minX + Config.getKnockBack();
 				if (zLoc <= minZ)
-					zLoc = maxZ - Config.KnockBack();
+					zLoc = maxZ - Config.getKnockBack();
 				else if (zLoc >= maxZ)
-					zLoc = minZ + Config.KnockBack();
+					zLoc = minZ + Config.getKnockBack();
 			}
 			else
 			{
 				if (xLoc <= minX)
-					xLoc = minX + Config.KnockBack();
+					xLoc = minX + Config.getKnockBack();
 				else if (xLoc >= maxX)
-					xLoc = maxX - Config.KnockBack();
+					xLoc = maxX - Config.getKnockBack();
 				if (zLoc <= minZ)
-					zLoc = minZ + Config.KnockBack();
+					zLoc = minZ + Config.getKnockBack();
 				else if (zLoc >= maxZ)
-					zLoc = maxZ - Config.KnockBack();
+					zLoc = maxZ - Config.getKnockBack();
 			}
 		}
 
@@ -258,7 +257,7 @@ public class BorderData
 			double dZ = zLoc - z;
 			double dU = Math.sqrt(dX *dX + dZ * dZ); //distance of the untransformed point from the center
 			double dT = Math.sqrt(dX *dX / radiusXSquared + dZ * dZ / radiusZSquared); //distance of the transformed point from the center
-			double f = (1 / dT - Config.KnockBack() / dU); //"correction" factor for the distances
+			double f = (1 / dT - Config.getKnockBack() / dU); //"correction" factor for the distances
 			if (wrapping)
 			{
 				xLoc = x - dX * f;
@@ -291,7 +290,7 @@ public class BorderData
 	}
 	public Location correctedPosition(Location loc)
 	{
-		return correctedPosition(loc, Config.ShapeRound(), false);
+		return correctedPosition(loc, Config.getShapeRound(), false);
 	}
 
 	//these material IDs are acceptable for places to teleport player; breathable blocks and water

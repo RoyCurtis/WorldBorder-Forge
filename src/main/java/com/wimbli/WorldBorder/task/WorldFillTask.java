@@ -144,7 +144,7 @@ public class WorldFillTask implements Runnable
 
 		if (pausedForMemory)
 		{	// if available memory gets too low, we automatically pause, so handle that
-			if (Config.AvailableMemoryTooLow())
+			if (Config.isAvailableMemoryTooLow())
 				return;
 
 			pausedForMemory = false;
@@ -336,7 +336,7 @@ public class WorldFillTask implements Runnable
 
 		readyToGo = false;
 		if (taskID != -1)
-			WorldBorder.scheduler.cancelTask(taskID);
+			WorldBorder.SCHEDULER.cancelTask(taskID);
 		server = null;
 
 		// go ahead and unload any chunks we still have loaded
@@ -370,11 +370,11 @@ public class WorldFillTask implements Runnable
 			this.paused = pause;
 		if (this.paused)
 		{
-			Config.StoreFillTask();
+			Config.storeFillTask();
 			reportProgress();
 		}
 		else
-			Config.UnStoreFillTask();
+			Config.unStoreFillTask();
 	}
 	public boolean isPaused()
 	{
@@ -387,12 +387,12 @@ public class WorldFillTask implements Runnable
 		lastReport = Config.Now();
 		double perc = ((double)(reportTotal + reportNum) / (double)reportTarget) * 100;
 		if (perc > 100) perc = 100;
-		sendMessage(reportNum + " more chunks processed (" + (reportTotal + reportNum) + " total, ~" + Config.coord.format(perc) + "%" + ")");
+		sendMessage(reportNum + " more chunks processed (" + (reportTotal + reportNum) + " total, ~" + Config.COORD_FORMAT.format(perc) + "%" + ")");
 		reportTotal += reportNum;
 		reportNum = 0;
 
 		// go ahead and save world to disk every 30 seconds or so by default, just in case; can take a couple of seconds or more, so we don't want to run it too often
-		if (Config.FillAutosaveFrequency() > 0 && lastAutosave + (Config.FillAutosaveFrequency() * 1000) < lastReport)
+		if (Config.getFillAutosaveFrequency() > 0 && lastAutosave + (Config.getFillAutosaveFrequency() * 1000) < lastReport)
 		{
 			lastAutosave = lastReport;
 			sendMessage("Saving the world to disk, just to be on the safe side.");
@@ -404,7 +404,7 @@ public class WorldFillTask implements Runnable
 	private void sendMessage(String text)
 	{
 		// Due to chunk generation eating up memory and Java being too slow about GC, we need to track memory availability
-		int availMem = Config.AvailableMemory();
+		long availMem = Config.getAvailableMemory();
 
 		Config.log("[Fill] " + text + " (free mem: " + availMem + " MB)");
 		if (notifyPlayer != null)
@@ -413,7 +413,7 @@ public class WorldFillTask implements Runnable
 		if (availMem < 200)
 		{	// running low on memory, auto-pause
 			pausedForMemory = true;
-			Config.StoreFillTask();
+			Config.storeFillTask();
 			text = "Available memory is very low, task is pausing. A cleanup will be attempted now, and the task will automatically continue if/when sufficient memory is freed up.\n Alternatively, if you restart the server, this task will automatically continue once the server is back up.";
 			Config.log("[Fill] " + text);
 			if (notifyPlayer != null)

@@ -23,7 +23,7 @@ public class CmdDelay extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		int delay = Config.TimerTicks();
+		int delay = Config.getTimerTicks();
 		Util.chat(sender, C_HEAD + "Timer delay is set to " + delay + " tick(s). That is roughly " + (delay * 50) + "ms.");
 	}
 

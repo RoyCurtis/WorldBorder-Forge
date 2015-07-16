@@ -52,7 +52,7 @@ public class CmdBypass extends WBCmd
 
         if (uPlayer == null)
         {
-            GameProfile p = WorldBorder.server.func_152358_ax().func_152655_a(sPlayer);
+            GameProfile p = WorldBorder.SERVER.func_152358_ax().func_152655_a(sPlayer);
             if (p != null)
             {
                 uPlayer = p.getId();
@@ -82,7 +82,7 @@ public class CmdBypass extends WBCmd
 
         Config.setPlayerBypass(uPlayer, bypassing);
 
-        EntityPlayerMP target = WorldBorder.server.getConfigurationManager().func_152612_a(sPlayer);
+        EntityPlayerMP target = WorldBorder.SERVER.getConfigurationManager().func_152612_a(sPlayer);
         if ( target != null )
             Util.chat(target, "Border bypass is now " + enabledColored(bypassing) + ".");
 

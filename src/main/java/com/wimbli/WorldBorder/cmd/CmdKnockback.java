@@ -22,7 +22,7 @@ public class CmdKnockback extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		double kb = Config.KnockBack();
+		double kb = Config.getKnockBack();
 		if (kb < 1)
 			Util.chat(sender, C_HEAD + "Knockback is set to 0, disabling border enforcement.");
 		else

@@ -18,7 +18,7 @@ public class MobSpawnListener
 		BorderData border = Config.Border( Util.getWorldName(world) );
 		if (border == null) return;
 		
-		if (!border.insideBorder(event.entity.posX, event.entity.posZ, Config.ShapeRound()))
+		if (!border.insideBorder(event.entity.posX, event.entity.posZ, Config.getShapeRound()))
 		{
 			event.setResult(Event.Result.DENY);
 		}

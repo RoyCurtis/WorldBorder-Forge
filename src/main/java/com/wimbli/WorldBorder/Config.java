@@ -2,64 +2,69 @@ package com.wimbli.WorldBorder;
 
 import com.mojang.realmsclient.gui.ChatFormatting;
 import com.wimbli.WorldBorder.forge.Configuration;
-import com.wimbli.WorldBorder.forge.Particles;
 import com.wimbli.WorldBorder.task.BorderCheckTask;
 import com.wimbli.WorldBorder.task.WorldFillTask;
 import com.wimbli.WorldBorder.task.WorldTrimTask;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.world.WorldServer;
 import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.Map.Entry;
 
-
+/**
+ * Static class for holding, loading and saving global and per-border data
+ */
 public class Config
 {
-	// private stuff used within this class
-	private static WorldBorder plugin;
-    private static Configuration cfgMain = null;
-    private static Configuration cfgBorders = null;
-	private static Logger wbLog = null;
-	public static volatile DecimalFormat coord = new DecimalFormat("0.0");
+    public static final DecimalFormat COORD_FORMAT = new DecimalFormat("0.0");
+
+    // TODO: move these elsewhere
+    public static volatile WorldFillTask fillTask = null;
+    public static volatile WorldTrimTask trimTask = null;
+
+    private static File          configDir;
+    private static Configuration cfgMain;
+    private static Configuration cfgBorders;
 	private static int borderTask = -1;
-	public static volatile WorldFillTask fillTask = null;
-	public static volatile WorldTrimTask trimTask = null;
-	private static Runtime rt = Runtime.getRuntime();
 
-	// actual configuration values which can be changed
-	private static boolean shapeRound = true;
-	private static Map<String, BorderData> borders = Collections.synchronizedMap(new LinkedHashMap<String, BorderData>());
-	private static Set<UUID> bypassPlayers = Collections.synchronizedSet(new LinkedHashSet<UUID>());
-	private static String message;		// raw message without color code formatting
-	private static String messageFmt;	// message with color code formatting ("&" changed to funky sort-of-double-dollar-sign for legitimate color/formatting codes)
-	private static String messageClean;	// message cleaned of formatting codes
-	private static boolean DEBUG = false;
-	private static float knockBack = 3.0F;
-	private static int timerTicks = 20;
-	private static boolean whooshEffect = true;
-	private static boolean portalRedirection = true;
-	private static boolean dynmapEnable = true;
-	private static String dynmapMessage;
-	private static int remountDelayTicks = 0;
-	private static boolean killPlayer = false;
-	private static boolean denyEnderpearl = false;
-	private static int fillAutosaveFrequency = 30;
-	private static int fillMemoryTolerance = 500;
-	private static boolean preventBlockPlace = false;
-	private static boolean preventMobSpawn = false;
+    // actual configuration values which can be changed
+    private static Map<String, BorderData> borders = Collections.synchronizedMap(new LinkedHashMap<String, BorderData>());
 
-	// for monitoring plugin efficiency
-//	public static long timeUsed = 0;
+    /** Knockback message without formatting */
+    private static String    message;
+    /** Knockback message with formatting */
+    private static String    messageFmt;
+    private static String    dynmapMessage;
+    private static Set<UUID> bypassPlayers     = Collections.synchronizedSet(new LinkedHashSet<UUID>());
+    private static boolean   debugMode         = false;
+    private static boolean   shapeRound        = true;
+	private static float     knockBack         = 3.0F;
+	private static int       timerTicks        = 20;
+	private static boolean   whooshEffect      = true;
+	private static boolean   dynmapEnable      = true;
+    private static int       remountDelayTicks = 0;
+    private static boolean   killPlayer        = false;
+    private static boolean   portalRedirection = true;
+    private static boolean   denyEnderpearl    = false;
+	private static boolean   preventBlockPlace = false;
+    private static boolean   preventMobSpawn   = false;
+
+    private static int fillAutosaveFrequency = 30;
+    private static int fillMemoryTolerance   = 500;
 
 	public static long Now()
 	{
 		return System.currentTimeMillis();
 	}
 
+    public static void setupConfigDir(File globalDir)
+    {
+        configDir = new File(globalDir, WorldBorder.MODID);
+
+        if ( !configDir.exists() && configDir.mkdirs() )
+            log("Created config directory for the first time");
+    }
 
 	public static void setBorder(String world, BorderData border, boolean logIt)
 	{
@@ -69,17 +74,7 @@ public class Config
 		save(true);
 		DynMapFeatures.showBorder(world, border);
 	}
-	public static void setBorder(String world, BorderData border)
-	{
-		setBorder(world, border, true);
-	}
 
-	public static void setBorder(String world, int radiusX, int radiusZ, double x, double z, Boolean shapeRound)
-	{
-		BorderData old = Border(world);
-		boolean oldWrap = (old != null) && old.getWrapping();
-		setBorder(world, new BorderData(x, z, radiusX, radiusZ, shapeRound, oldWrap), true);
-	}
 	public static void setBorder(String world, int radiusX, int radiusZ, double x, double z)
 	{
 		BorderData old = Border(world);
@@ -87,18 +82,6 @@ public class Config
 		boolean oldWrap = (old != null) && old.getWrapping();
 		setBorder(world, new BorderData(x, z, radiusX, radiusZ, oldShape, oldWrap), true);
 	}
-
-
-	// backwards-compatible methods from before elliptical/rectangular shapes were supported
-	public static void setBorder(String world, int radius, double x, double z, Boolean shapeRound)
-	{
-		setBorder(world, new BorderData(x, z, radius, radius, shapeRound), true);
-	}
-	public static void setBorder(String world, int radius, double x, double z)
-	{
-		setBorder(world, radius, radius, x, z);
-	}
-
 
 	// set border based on corner coordinates
 	public static void setBorderCorners(String world, double x1, double z1, double x2, double z2, Boolean shapeRound, boolean wrap)
@@ -109,10 +92,7 @@ public class Config
 		double z = ((z1 < z2) ? z1 : z2) + radiusZ;
 		setBorder(world, new BorderData(x, z, (int) Math.round(radiusX), (int) Math.round(radiusZ), shapeRound, wrap), true);
 	}
-	public static void setBorderCorners(String world, double x1, double z1, double x2, double z2, Boolean shapeRound)
-	{
-		setBorderCorners(world, x1, z1, x2, z2, shapeRound, false);
-	}
+
 	public static void setBorderCorners(String world, double x1, double z1, double x2, double z2)
 	{
 		BorderData old = Border(world);
@@ -120,7 +100,6 @@ public class Config
 		boolean oldWrap = (old != null) && old.getWrapping();
 		setBorderCorners(world, x1, z1, x2, z2, oldShape, oldWrap);
 	}
-
 
 	public static void removeBorder(String world)
 	{
@@ -141,20 +120,18 @@ public class Config
 	public static String BorderDescription(String world)
 	{
 		BorderData border = borders.get(world);
-		if (border == null)
-			return "No border was found for the world \"" + world + "\".";
-		else
-			return "World \"" + world + "\" has border " + border.toString();
+
+        return border == null
+            ? "No border was found for the world \"" + world + "\"."
+            : "World \"" + world + "\" has border " + border.toString();
 	}
 
 	public static Set<String> BorderDescriptions()
 	{
 		Set<String> output = new HashSet<String>();
 
-		for(String worldName : borders.keySet())
-		{
+		for (String worldName : borders.keySet())
 			output.add(BorderDescription(worldName));
-		}
 
 		return output;
 	}
@@ -179,56 +156,53 @@ public class Config
 	{
 		message = msg;
 		messageFmt = replaceAmpColors(msg);
-		messageClean = stripAmpColors(msg);
 	}
 
-	public static String Message()
+	public static String getMessage()
 	{
 		return messageFmt;
 	}
-	public static String MessageRaw()
+
+	public static String getMessageRaw()
 	{
 		return message;
-	}
-	public static String MessageClean()
-	{
-		return messageClean;
 	}
 
 	public static void setShape(boolean round)
 	{
 		shapeRound = round;
-		log("Set default border shape to " + (ShapeName()) + ".");
+		log("Set default border shape to " + (getShapeName()) + ".");
 		save(true);
 		DynMapFeatures.showAllBorders();
 	}
 
-	public static boolean ShapeRound()
+	public static boolean getShapeRound()
 	{
 		return shapeRound;
 	}
 
-	public static String ShapeName()
+	public static String getShapeName()
 	{
-		return ShapeName(shapeRound);
+		return getShapeName(shapeRound);
 	}
-	public static String ShapeName(Boolean round)
+
+	public static String getShapeName(Boolean round)
 	{
 		if (round == null)
 			return "default";
 		return round ? "elliptic/round" : "rectangular/square";
 	}
 
-	public static void setDebug(boolean debugMode)
+	public static void setDebugMode(boolean mode)
 	{
-		DEBUG = debugMode;
-		log("Debug mode " + (DEBUG ? "enabled" : "disabled") + ".");
+		debugMode = mode;
+		log("Debug mode " + (debugMode ? "enabled" : "disabled") + ".");
 		save(true);
 	}
 
-	public static boolean Debug()
+	public static boolean isDebugMode()
 	{
-		return DEBUG;
+		return debugMode;
 	}
 
 	public static void setWhooshEffect(boolean enable)
@@ -238,39 +212,28 @@ public class Config
 		save(true);
 	}
 
-	public static boolean whooshEffect()
+	public static boolean doWhooshEffect()
 	{
 		return whooshEffect;
-	}
-
-	public static void showWhooshEffect(EntityPlayerMP player)
-	{
-		if (!whooshEffect())
-			return;
-
-        WorldServer world = player.getServerForPlayer();
-        Particles.emitEnder(world, player.posX, player.posY, player.posZ);
-        Particles.emitSmoke(world, player.posX, player.posY, player.posZ);
-        world.playSoundAtEntity(player, "mob.ghast.fireball", 1.0F, 1.0F);
 	}
 	
 	public static void setPreventBlockPlace(boolean enable)
 	{
 		if (preventBlockPlace != enable)
-			WorldBorder.plugin.enableBlockPlaceListener(enable);
+			WorldBorder.INSTANCE.enableBlockPlaceListener(enable);
 
 		preventBlockPlace = enable;
-		log("prevent block place " + (enable ? "enabled" : "disabled") + ".");
+		log("Prevent block place " + (enable ? "enabled" : "disabled") + ".");
 		save(true);
 	}
 	
 	public static void setPreventMobSpawn(boolean enable)
 	{
 		if (preventMobSpawn != enable)
-			WorldBorder.plugin.enableMobSpawnListener(enable);
+			WorldBorder.INSTANCE.enableMobSpawnListener(enable);
 
 		preventMobSpawn = enable;
-		log("prevent mob spawn " + (enable ? "enabled" : "disabled") + ".");
+		log("Prevent mob spawn " + (enable ? "enabled" : "disabled") + ".");
 		save(true);
 	}
 
@@ -284,7 +247,7 @@ public class Config
 		return preventMobSpawn;
 	}
 
-	public static boolean getIfPlayerKill()
+	public static boolean doPlayerKill()
 	{
 		return killPlayer;
 	}
@@ -308,7 +271,7 @@ public class Config
 		save(true);
 	}
 
-	public static boolean portalRedirection()
+	public static boolean doPortalRedirection()
 	{
 		return portalRedirection;
 	}
@@ -320,7 +283,7 @@ public class Config
 		save(true);
 	}
 
-	public static double KnockBack()
+	public static double getKnockBack()
 	{
 		return knockBack;
 	}
@@ -329,11 +292,11 @@ public class Config
 	{
 		timerTicks = ticks;
 		log("Timer delay set to " + timerTicks + " tick(s). That is roughly " + (timerTicks * 50) + "ms / " + (((double)timerTicks * 50.0) / 1000.0) + " seconds.");
-		StartBorderTimer();
+		startBorderTimer();
 		save(true);
 	}
 
-	public static int TimerTicks()
+	public static int getTimerTicks()
 	{
 		return timerTicks;
 	}
@@ -352,7 +315,7 @@ public class Config
 		save(true);
 	}
 
-	public static int RemountTicks()
+	public static int getRemountTicks()
 	{
 		return remountDelayTicks;
 	}
@@ -367,7 +330,7 @@ public class Config
 		save(true);
 	}
 
-	public static int FillAutosaveFrequency()
+	public static int getFillAutosaveFrequency()
 	{
 		return fillAutosaveFrequency;
 	}
@@ -381,7 +344,7 @@ public class Config
 		DynMapFeatures.showAllBorders();
 	}
 
-	public static boolean DynmapBorderEnabled()
+	public static boolean isDynmapBorderEnabled()
 	{
 		return dynmapEnable;
 	}
@@ -394,7 +357,7 @@ public class Config
 		DynMapFeatures.showAllBorders();
 	}
 
-	public static String DynmapMessage()
+	public static String getDynmapMessage()
 	{
 		return dynmapMessage;
 	}
@@ -440,14 +403,14 @@ public class Config
 	public static boolean isBorderTimerRunning()
     {
         return borderTask != -1
-            && (WorldBorder.scheduler.isQueued(borderTask) || WorldBorder.scheduler.isCurrentlyRunning(borderTask));
+            && (WorldBorder.SCHEDULER.isQueued(borderTask) || WorldBorder.SCHEDULER.isCurrentlyRunning(borderTask));
     }
 
-	public static void StartBorderTimer()
+	public static void startBorderTimer()
 	{
-		StopBorderTimer();
+		stopBorderTimer();
 
-		borderTask = WorldBorder.scheduler.scheduleSyncRepeatingTask(new BorderCheckTask(), timerTicks, timerTicks);
+		borderTask = WorldBorder.SCHEDULER.scheduleSyncRepeatingTask(new BorderCheckTask(), timerTicks, timerTicks);
 
 		if (borderTask == -1)
 			logWarn("Failed to start timed border-checking task! This will prevent the plugin from working. Try restarting Bukkit.");
@@ -455,75 +418,69 @@ public class Config
 		logConfig("Border-checking timed task started.");
 	}
 
-	public static void StopBorderTimer()
+	public static void stopBorderTimer()
 	{
 		if (borderTask == -1) return;
 
-        WorldBorder.scheduler.cancelTask(borderTask);
+        WorldBorder.SCHEDULER.cancelTask(borderTask);
 		borderTask = -1;
 		logConfig("Border-checking timed task stopped.");
 	}
 
-	public static void StopFillTask()
+	public static void stopFillTask()
 	{
 		if (fillTask != null && fillTask.valid())
 			fillTask.cancel();
 	}
 
-	public static void StoreFillTask()
+	public static void storeFillTask()
 	{
 		save(false, true);
 	}
-	public static void UnStoreFillTask()
+	public static void unStoreFillTask()
 	{
 		save(false);
 	}
 
-	public static void RestoreFillTask(String world, int fillDistance, int chunksPerRun, int tickFrequency, int x, int z, int length, int total, boolean forceLoad)
+	public static void restoreFillTask(String world, int fillDistance, int chunksPerRun, int tickFrequency, int x, int z, int length, int total, boolean forceLoad)
 	{
-		fillTask = new WorldFillTask(WorldBorder.server, null, world, fillDistance, chunksPerRun, tickFrequency, forceLoad);
+		fillTask = new WorldFillTask(WorldBorder.SERVER, null, world, fillDistance, chunksPerRun, tickFrequency, forceLoad);
 		if (fillTask.valid())
 		{
 			fillTask.continueProgress(x, z, length, total);
-			int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(fillTask, 20, tickFrequency);
+			int task = WorldBorder.SCHEDULER.scheduleSyncRepeatingTask(fillTask, 20, tickFrequency);
 			fillTask.setTaskID(task);
 		}
 	}
 
 
-	public static void StopTrimTask()
+	public static void stopTrimTask()
 	{
 		if (trimTask != null && trimTask.valid())
 			trimTask.cancel();
 	}
 
 
-	public static int AvailableMemory()
+	public static long getAvailableMemory()
 	{
-		return (int)((rt.maxMemory() - rt.totalMemory() + rt.freeMemory()) / 1048576);  // 1024*1024 = 1048576 (bytes in 1 MB)
+        Runtime rt = Runtime.getRuntime();
+        // 1024*1024 = 1048576 (bytes in 1 MB)
+		return (rt.maxMemory() - rt.totalMemory() + rt.freeMemory()) / 1048576;
 	}
 
-	public static boolean AvailableMemoryTooLow()
+	public static boolean isAvailableMemoryTooLow()
 	{
-		return AvailableMemory() < fillMemoryTolerance;
+		return getAvailableMemory() < fillMemoryTolerance;
 	}
-
 
 	public static String replaceAmpColors (String message)
 	{
         return message.replaceAll("(?i)&([a-fk-or0-9])", ChatFormatting.PREFIX_CODE + "$1");
     }
 
-    // adapted from code posted by Sleaker
-	public static String stripAmpColors (String message)
-	{
-		return message.replaceAll("(?i)&([a-fk-or0-9])", "");
-	}
-
-
 	public static void log(Level lvl, String text)
 	{
-		wbLog.log(lvl, text);
+		WorldBorder.LOGGER.log(lvl, text);
 	}
 	public static void log(String text)
 	{
@@ -538,43 +495,43 @@ public class Config
 		log(Level.INFO, "[CONFIG] " + text);
 	}
 
-
 	private static final int currentCfgVersion = 11;
 
 	public static void load(boolean logIt)
-	{	// load config from file
-		wbLog = WorldBorder.LOGGER;
-
+	{
         if (cfgMain == null)
-            cfgMain = new Configuration( new File(WorldBorder.configDir, "main.cfg") );
+            cfgMain = new Configuration( new File(configDir, "main.cfg") );
         else cfgMain.load();
 
         if (cfgBorders == null)
-            cfgBorders = new Configuration( new File(WorldBorder.configDir, "borders.cfg") );
+            cfgBorders = new Configuration( new File(configDir, "borders.cfg") );
         else cfgBorders.load();
 
 		int cfgVersion = cfgMain.getInt("cfg-version", currentCfgVersion);
 
 		String msg = cfgMain.getString("message", "");
-		shapeRound = cfgMain.getBoolean("round-border", true);
-		DEBUG = cfgMain.getBoolean("debug-mode", false);
-		whooshEffect = cfgMain.getBoolean("whoosh-effect", true);
-		portalRedirection = cfgMain.getBoolean("portal-redirection", true);
-		knockBack = cfgMain.getFloat("knock-back-dist", 3.0F);
-		timerTicks = cfgMain.getInt("timer-delay-ticks", 20);
-		remountDelayTicks = cfgMain.getInt("remount-delay-ticks", 0);
-		dynmapEnable = cfgMain.getBoolean("dynmap-border-enabled", true);
-		dynmapMessage = cfgMain.getString("dynmap-border-message", "The border of the world.");
-		logConfig("Using " + (ShapeName()) + " border, knockback of " + knockBack + " blocks, and timer delay of " + timerTicks + ".");
-		killPlayer = cfgMain.getBoolean("player-killed-bad-spawn", false);
-		denyEnderpearl = cfgMain.getBoolean("deny-enderpearl", true);
-		fillAutosaveFrequency = cfgMain.getInt("fill-autosave-frequency", 30);
-		importBypassStringList(cfgMain.getStringList("bypass-list-uuids"));
-		fillMemoryTolerance = cfgMain.getInt("fill-memory-tolerance", 500);
-		preventBlockPlace = cfgMain.getBoolean("prevent-block-place", true);
-		preventMobSpawn = cfgMain.getBoolean("prevent-mob-spawn", true);
+        importBypassStringList(cfgMain.getStringList("bypass-list-uuids"));
+        debugMode         = cfgMain.getBoolean("debug-mode", false);
+        shapeRound        = cfgMain.getBoolean("round-border", true);
+        whooshEffect      = cfgMain.getBoolean("whoosh-effect", true);
+        portalRedirection = cfgMain.getBoolean("portal-redirection", true);
+        knockBack         = cfgMain.getFloat("knock-back-dist", 3.0F);
+        timerTicks        = cfgMain.getInt("timer-delay-ticks", 20);
+        remountDelayTicks = cfgMain.getInt("remount-delay-ticks", 0);
+        dynmapEnable      = cfgMain.getBoolean("dynmap-border-enabled", true);
+        dynmapMessage     = cfgMain.getString("dynmap-border-message", "The border of the world.");
+        killPlayer        = cfgMain.getBoolean("player-killed-bad-spawn", false);
+        denyEnderpearl    = cfgMain.getBoolean("deny-enderpearl", true);
+        preventBlockPlace = cfgMain.getBoolean("prevent-block-place", true);
+		preventMobSpawn   = cfgMain.getBoolean("prevent-mob-spawn", true);
 
-		StartBorderTimer();
+        fillAutosaveFrequency = cfgMain.getInt("fill-autosave-frequency", 30);
+        fillMemoryTolerance   = cfgMain.getInt("fill-memory-tolerance", 500);
+
+        logConfig("Using " + (getShapeName()) + " border, knockback of " + knockBack + " blocks, and timer delay of " + timerTicks + ".");
+
+        // TODO: move to server setup
+        startBorderTimer();
 
 		borders.clear();
 
@@ -628,7 +585,7 @@ public class Config
 			int fillLength = cfgMain.get("fillTask", "length", 0).getInt();
 			int fillTotal = cfgMain.get("fillTask", "total", 0).getInt();
 			boolean forceLoad = cfgMain.get("fillTask", "forceLoad", false).getBoolean();
-			RestoreFillTask(worldName, fillDistance, chunksPerRun, tickFrequency, fillX, fillZ, fillLength, fillTotal, forceLoad);
+			restoreFillTask(worldName, fillDistance, chunksPerRun, tickFrequency, fillX, fillZ, fillLength, fillTotal, forceLoad);
 			save(false);
 		}
 
@@ -650,7 +607,7 @@ public class Config
 		cfgMain.set(GENERAL, "cfg-version", currentCfgVersion);
 		cfgMain.set(GENERAL, "message", message);
 		cfgMain.set(GENERAL, "round-border", shapeRound);
-		cfgMain.set(GENERAL, "debug-mode", DEBUG);
+		cfgMain.set(GENERAL, "debug-mode", debugMode);
 		cfgMain.set(GENERAL, "whoosh-effect", whooshEffect);
 		cfgMain.set(GENERAL, "portal-redirection", portalRedirection);
 		cfgMain.set(GENERAL, "knock-back-dist", knockBack);
@@ -703,4 +660,6 @@ public class Config
 		if (logIt)
 			logConfig("Configuration saved.");
 	}
+
+
 }

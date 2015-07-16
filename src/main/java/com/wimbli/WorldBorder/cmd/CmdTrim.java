@@ -43,7 +43,7 @@ public class CmdTrim extends WBCmd
 					return;
 				Util.chat(sender, C_HEAD + "Cancelling the world map trimming task.");
 				trimDefaults();
-				Config.StopTrimTask();
+				Config.stopTrimTask();
 				return;
 			}
 			else if (check.equals("pause"))
@@ -123,10 +123,10 @@ public class CmdTrim extends WBCmd
 			else
 				ticks = 20 / trimFrequency;
 
-			Config.trimTask = new WorldTrimTask(WorldBorder.server, player, trimWorld, trimPadding, repeats);
+			Config.trimTask = new WorldTrimTask(WorldBorder.SERVER, player, trimWorld, trimPadding, repeats);
 			if (Config.trimTask.valid())
 			{
-				int task = WorldBorder.scheduler.scheduleSyncRepeatingTask(Config.trimTask, ticks, ticks);
+				int task = WorldBorder.SCHEDULER.scheduleSyncRepeatingTask(Config.trimTask, ticks, ticks);
 				Config.trimTask.setTaskID(task);
 				Util.chat(sender, "WorldBorder map trimming task for world \"" + trimWorld + "\" started.");
 			}

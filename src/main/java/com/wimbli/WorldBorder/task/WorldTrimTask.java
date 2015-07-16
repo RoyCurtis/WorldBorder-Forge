@@ -361,7 +361,7 @@ public class WorldTrimTask implements Runnable
 
 		readyToGo = false;
 		if (taskID != -1)
-			WorldBorder.scheduler.cancelTask(taskID);
+			WorldBorder.SCHEDULER.cancelTask(taskID);
 		server = null;
 	}
 
@@ -392,7 +392,7 @@ public class WorldTrimTask implements Runnable
 	{
 		lastReport = Config.Now();
 		double perc = ((double)(reportTotal) / (double)reportTarget) * 100;
-		sendMessage(reportTrimmedRegions + " entire region(s) and " + reportTrimmedChunks + " individual chunk(s) trimmed so far (" + Config.coord.format(perc) + "% done" + ")");
+		sendMessage(reportTrimmedRegions + " entire region(s) and " + reportTrimmedChunks + " individual chunk(s) trimmed so far (" + Config.COORD_FORMAT.format(perc) + "% done" + ")");
 	}
 
 	// send a message to the server console/log and possibly to an in-game player

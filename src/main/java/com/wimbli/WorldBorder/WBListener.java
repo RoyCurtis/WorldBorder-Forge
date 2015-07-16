@@ -19,10 +19,10 @@ public class WBListener
             return;
 
 		// if knockback is set to 0, simply return
-		if (Config.KnockBack() == 0.0)
+		if (Config.getKnockBack() == 0.0)
 			return;
 
-		if (Config.Debug())
+		if (Config.isDebugMode())
 			Config.log("Teleport cause: Enderpearl");
 
         EntityPlayerMP player = (EntityPlayerMP) event.entityLiving;
@@ -50,7 +50,7 @@ public class WBListener
 //	public void onPlayerTeleport(PlayerTeleportEvent event)
 //	{
 //		// if knockback is set to 0, simply return
-//		if (Config.KnockBack() == 0.0)
+//		if (Config.getKnockBack() == 0.0)
 //			return;
 //
 //		if (Config.Debug())
@@ -75,10 +75,10 @@ public class WBListener
     public void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event)
     {
         // if knockback is set to 0, simply return
-        if (Config.KnockBack() == 0.0)
+        if (Config.getKnockBack() == 0.0)
             return;
 
-        if (Config.Debug())
+        if (Config.isDebugMode())
             Config.log("Teleport cause: Respawn");
 
         EntityPlayerMP player = (EntityPlayerMP) event.player;
@@ -96,10 +96,10 @@ public class WBListener
 	public void onPlayerPortal(PlayerEvent.PlayerChangedDimensionEvent event)
 	{
 		// if knockback is set to 0, or portal redirection is disabled, simply return
-		if (Config.KnockBack() == 0.0 || !Config.portalRedirection())
+		if (Config.getKnockBack() == 0.0 || !Config.doPortalRedirection())
 			return;
 
-        if (Config.Debug())
+        if (Config.isDebugMode())
             Config.log("Teleport cause: Dimension change");
 
         EntityPlayerMP player = (EntityPlayerMP) event.player;
@@ -131,6 +131,6 @@ public class WBListener
 		if (Config.isBorderTimerRunning()) return;
 
 		Config.logWarn("Border-checking task was not running! Something on your server apparently killed it. It will now be restarted.");
-		Config.StartBorderTimer();
+		Config.startBorderTimer();
 	}
 }

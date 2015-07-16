@@ -24,7 +24,7 @@ public class CmdList extends WBCmd
 	@Override
 	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
 	{
-		Util.chat(sender, "Default border shape for all worlds is \"" + Config.ShapeName() + "\".");
+		Util.chat(sender, "Default border shape for all worlds is \"" + Config.getShapeName() + "\".");
 
 		Set<String> list = Config.BorderDescriptions();
 

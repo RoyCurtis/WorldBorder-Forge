@@ -41,7 +41,7 @@ public class Util
 
             if (saveFolder == null)
             {   // Special case for dimension 0 (overworld)
-                if ( WorldBorder.server.getFolderName().equals(name) )
+                if ( WorldBorder.SERVER.getFolderName().equals(name) )
                     return world;
             }
             else if ( saveFolder.equals(name) )

@@ -129,7 +129,7 @@ public class DynMapFeatures
 		// in case any borders are already shown
 		removeAllBorders();
 
-		if (!Config.DynmapBorderEnabled())
+		if (!Config.isDynmapBorderEnabled())
 		{
 			// don't want to show the marker set in DynMap if our integration is disabled
 			if (markSet != null)
@@ -159,9 +159,9 @@ public class DynMapFeatures
 	{
 		if (!borderEnabled()) return;
 
-		if (!Config.DynmapBorderEnabled()) return;
+		if (!Config.isDynmapBorderEnabled()) return;
 
-		if ((border.getShape() == null) ? Config.ShapeRound() : border.getShape())
+		if ((border.getShape() == null) ? Config.getShapeRound() : border.getShape())
 			showRoundBorder(worldName, border);
 		else
 			showSquareBorder(worldName, border);
@@ -175,7 +175,7 @@ public class DynMapFeatures
 		CircleMarker marker = roundBorders.get(worldName);
 		if (marker == null)
 		{
-			marker = markSet.createCircleMarker("worldborder_"+worldName, Config.DynmapMessage(), false, worldName, border.getX(), 64.0, border.getZ(), border.getRadiusX(), border.getRadiusZ(), true);
+			marker = markSet.createCircleMarker("worldborder_"+worldName, Config.getDynmapMessage(), false, worldName, border.getX(), 64.0, border.getZ(), border.getRadiusX(), border.getRadiusZ(), true);
 			marker.setLineStyle(lineWeight, lineOpacity, lineColor);
 			marker.setFillStyle(0.0, 0x000000);
 			roundBorders.put(worldName, marker);
@@ -199,7 +199,7 @@ public class DynMapFeatures
 		AreaMarker marker = squareBorders.get(worldName);
 		if (marker == null)
 		{
-			marker = markSet.createAreaMarker("worldborder_"+worldName, Config.DynmapMessage(), false, worldName, xVals, zVals, true);
+			marker = markSet.createAreaMarker("worldborder_"+worldName, Config.getDynmapMessage(), false, worldName, xVals, zVals, true);
 			marker.setLineStyle(3, 1.0, 0xFF0000);
 			marker.setFillStyle(0.0, 0x000000);
 			squareBorders.put(worldName, marker);

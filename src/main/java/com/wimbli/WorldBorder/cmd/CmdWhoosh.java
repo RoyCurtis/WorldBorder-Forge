@@ -23,7 +23,7 @@ public class CmdWhoosh extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		Util.chat(sender, C_HEAD + "\"Whoosh\" knockback effect is " + enabledColored(Config.whooshEffect()) + C_HEAD + ".");
+		Util.chat(sender, C_HEAD + "\"Whoosh\" knockback effect is " + enabledColored(Config.doWhooshEffect()) + C_HEAD + ".");
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class CmdWhoosh extends WBCmd
 
 		if (player != null)
 		{
-			Config.log((Config.whooshEffect() ? "Enabled" : "Disabled") + " \"whoosh\" knockback effect at the command of player \"" + player.getDisplayName() + "\".");
+			Config.log((Config.doWhooshEffect() ? "Enabled" : "Disabled") + " \"whoosh\" knockback effect at the command of player \"" + player.getDisplayName() + "\".");
 			cmdStatus(sender);
 		}
 	}

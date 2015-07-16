@@ -24,7 +24,7 @@ public class CmdHelp extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		String commands = WorldBorder.wbCommand.getCommandNames().toString().replace(", ", C_DESC + ", " + C_CMD);
+		String commands = WorldBorder.COMMAND.getCommandNames().toString().replace(", ", C_DESC + ", " + C_CMD);
 		Util.chat(sender, C_HEAD + "Commands: " + C_CMD + commands.substring(1, commands.length() - 1));
 		Util.chat(sender, "Example, for info on \"set\" command: " + cmd(sender) + nameEmphasized() + C_CMD + "set");
 		Util.chat(sender, C_HEAD + "For a full command example list, simply run the root " + cmd(sender) + C_HEAD + "command by itself with nothing specified.");
@@ -39,12 +39,12 @@ public class CmdHelp extends WBCmd
 			return;
 		}
 
-		Set<String> commands = WorldBorder.wbCommand.getCommandNames();
+		Set<String> commands = WorldBorder.COMMAND.getCommandNames();
 		for (String param : params)
 		{
 			if (commands.contains(param.toLowerCase()))
 			{
-				WorldBorder.wbCommand.subCommands.get(param.toLowerCase()).sendCmdHelp(sender);
+				WorldBorder.COMMAND.subCommands.get(param.toLowerCase()).sendCmdHelp(sender);
 				return;
 			}
 		}

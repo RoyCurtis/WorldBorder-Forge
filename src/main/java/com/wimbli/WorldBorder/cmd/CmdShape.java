@@ -26,7 +26,7 @@ public class CmdShape extends WBCmd
 	@Override
 	public void cmdStatus(ICommandSender sender)
 	{
-		Util.chat(sender, C_HEAD + "The default border shape for all worlds is currently set to \"" + Config.ShapeName() + "\".");
+		Util.chat(sender, C_HEAD + "The default border shape for all worlds is currently set to \"" + Config.getShapeName() + "\".");
 	}
 
 	@Override

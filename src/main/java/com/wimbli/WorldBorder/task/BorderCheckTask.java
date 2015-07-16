@@ -4,6 +4,7 @@ import com.wimbli.WorldBorder.BorderData;
 import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.WorldBorder;
 import com.wimbli.WorldBorder.forge.Location;
+import com.wimbli.WorldBorder.forge.Particles;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -22,10 +23,10 @@ public class BorderCheckTask implements Runnable
 	public void run()
 	{
 		// if knockback is set to 0, simply return
-		if (Config.KnockBack() == 0.0)
+		if (Config.getKnockBack() == 0.0)
 			return;
 
-		for (Object o : WorldBorder.server.getConfigurationManager().playerEntityList)
+		for (Object o : WorldBorder.SERVER.getConfigurationManager().playerEntityList)
 		{
 			EntityPlayerMP player = (EntityPlayerMP) o;
 			checkPlayer(player, null, false, true);
@@ -47,7 +48,7 @@ public class BorderCheckTask implements Runnable
 		BorderData border = Config.Border( Util.getWorldName(world) );
 		if (border == null) return null;
 
-		if (border.insideBorder(loc.posX, loc.posZ, Config.ShapeRound()))
+		if (border.insideBorder(loc.posX, loc.posZ, Config.getShapeRound()))
 			return null;
 
 		// if player is in bypass list (from bypass command), allow them beyond border; also ignore players currently being handled already
@@ -76,7 +77,7 @@ public class BorderCheckTask implements Runnable
 				double vertOffset = (ride instanceof EntityLiving) ? 0 : ride.posY - loc.posY;
 				Location rideLoc = new Location(newLoc);
 				rideLoc.posY = newLoc.posY + vertOffset;
-				if (Config.Debug())
+				if (Config.isDebugMode())
 					Config.logWarn("Player was riding a \"" + ride.toString() + "\".");
 				if (ride instanceof EntityBoat)
 				{	// boats currently glitch on client when teleported, so crappy workaround is to remove it and spawn a new one
@@ -90,9 +91,9 @@ public class BorderCheckTask implements Runnable
                     ride.setPositionAndRotation(rideLoc.posX, rideLoc.posY, rideLoc.posZ, rideLoc.pitch, rideLoc.yaw);
 				}
 
-				if (Config.RemountTicks() > 0)
+				if (Config.getRemountTicks() > 0)
 				{
-					setPassengerDelayed(ride, player, player.getDisplayName(), Config.RemountTicks());
+					setPassengerDelayed(ride, player, player.getDisplayName(), Config.getRemountTicks());
 					handlingVehicle = true;
 				}
 			}
@@ -106,12 +107,13 @@ public class BorderCheckTask implements Runnable
 			rider.mountEntity(null);
             rider.setPositionAndRotation(newLoc.posX, newLoc.posY, newLoc.posZ, newLoc.pitch, newLoc.yaw);
             Util.chat(player, "Your passenger has been ejected.");
-			if (Config.Debug())
+			if (Config.isDebugMode())
 				Config.logWarn("Player had a passenger riding on them: " + rider.getCommandSenderName());
 		}
 
 		// give some particle and sound effects where the player was beyond the border, if "whoosh effect" is enabled
-		Config.showWhooshEffect(player);
+        if ( Config.doWhooshEffect() )
+		    Particles.showWhooshEffect(player);
 
 		if (!returnLocationOnly)
             player.setPositionAndUpdate(newLoc.posX, newLoc.posY, newLoc.posZ);
@@ -131,26 +133,26 @@ public class BorderCheckTask implements Runnable
 
 	private static Location newLocation(EntityPlayerMP player, Location loc, BorderData border, boolean notify)
 	{
-		if (Config.Debug())
+		if (Config.isDebugMode())
 		{
 			Config.logWarn(
                 (notify ? "Border crossing" : "Check was run")
                 + " in \"" + Util.getWorldName(loc.world)
                 + "\". Border " + border.toString());
 			Config.logWarn(
-                "Player position X: " + Config.coord.format(loc.posX)
-                + " Y: " + Config.coord.format(loc.posY)
-                + " Z: " + Config.coord.format(loc.posZ));
+                "Player position X: " + Config.COORD_FORMAT.format(loc.posX)
+                + " Y: " + Config.COORD_FORMAT.format(loc.posY)
+                + " Z: " + Config.COORD_FORMAT.format(loc.posZ));
 		}
 
-		Location newLoc = border.correctedPosition(loc, Config.ShapeRound(), player.capabilities.isFlying);
+		Location newLoc = border.correctedPosition(loc, Config.getShapeRound(), player.capabilities.isFlying);
 
 		// it's remotely possible (such as in the Nether) a suitable location isn't available, in which case...
 		if (newLoc == null)
 		{
-			if (Config.Debug())
+			if (Config.isDebugMode())
 				Config.logWarn("Target new location unviable, using spawn or killing player.");
-			if (Config.getIfPlayerKill())
+			if (Config.doPlayerKill())
 			{
 				player.setHealth(0.0F);
 				return null;
@@ -158,22 +160,22 @@ public class BorderCheckTask implements Runnable
 			newLoc = new Location( (WorldServer) player.worldObj );
 		}
 
-		if (Config.Debug())
+		if (Config.isDebugMode())
 			Config.logWarn(
                 "New position in world \"" + Util.getWorldName( newLoc.world )
-                + "\" at X: " + Config.coord.format(newLoc.posX)
-                + " Y: " + Config.coord.format(newLoc.posY)
-                + " Z: " + Config.coord.format(newLoc.posZ));
+                + "\" at X: " + Config.COORD_FORMAT.format(newLoc.posX)
+                + " Y: " + Config.COORD_FORMAT.format(newLoc.posY)
+                + " Z: " + Config.COORD_FORMAT.format(newLoc.posZ));
 
 		if (notify)
-			Util.chat(player, Config.Message());
+			Util.chat(player, Config.getMessage());
 
 		return newLoc;
 	}
 
 	private static void setPassengerDelayed(final Entity vehicle, final EntityPlayerMP player, final String playerName, long delay)
 	{
-        WorldBorder.scheduler.scheduleSyncDelayedTask(new Runnable()
+        WorldBorder.SCHEDULER.scheduleSyncDelayedTask(new Runnable()
         {
             @Override
             public void run()

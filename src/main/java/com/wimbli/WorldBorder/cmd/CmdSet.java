@@ -72,7 +72,7 @@ public class CmdSet extends WBCmd
 					sendErrorAndHelp(sender, "You must specify a world name from console if not specifying a player name.");
 					return;
 				}
-				player = WorldBorder.server.getConfigurationManager().func_152612_a( params.get(params.size() - 1) );
+				player = WorldBorder.SERVER.getConfigurationManager().func_152612_a( params.get(params.size() - 1) );
 				if (player == null)
 				{
 					sendErrorAndHelp(sender, "The player you specified (\"" + params.get(params.size() - 1) + "\") does not appear to be online.");
@@ -98,7 +98,7 @@ public class CmdSet extends WBCmd
 			}
 			else if (params.size() > 2 && params.get(params.size() - 2).equalsIgnoreCase("player"))
 			{	// player name specified for x/z coordinates
-				EntityPlayerMP playerT = WorldBorder.server.getConfigurationManager().func_152612_a(params.get(params.size() - 1));
+				EntityPlayerMP playerT = WorldBorder.SERVER.getConfigurationManager().func_152612_a(params.get(params.size() - 1));
 				if (playerT == null)
 				{
 					sendErrorAndHelp(sender, "The player you specified (\"" + params.get(params.size() - 1) + "\") does not appear to be online.");
@@ -130,7 +130,7 @@ public class CmdSet extends WBCmd
 			else
 				radiusZ = Integer.parseInt(params.get(1));
 
-			if (radiusX < Config.KnockBack() || radiusZ < Config.KnockBack())
+			if (radiusX < Config.getKnockBack() || radiusZ < Config.getKnockBack())
 			{
 				sendErrorAndHelp(sender, "Radius value(s) must be more than the knockback distance.");
 				return;
