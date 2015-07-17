@@ -24,7 +24,6 @@ public class Config
 
     // TODO: move these elsewhere?
     public static BorderCheckTask borderTask = null;
-    public static WorldFillTask   fillTask   = null;
     public static WorldTrimTask   trimTask   = null;
 
     private static File          configDir;
@@ -413,31 +412,25 @@ public class Config
         logConfig("Border-checking timed task stopped.");
 	}
 
-	public static void stopFillTask()
-	{
-		if (fillTask != null)
-			fillTask.cancel();
-	}
-
 	public static void storeFillTask()
 	{
 		save(false, true);
 	}
 
-	public static void unStoreFillTask()
+	public static void deleteFillTask()
 	{
 		save(false);
 	}
 
 	public static void restoreFillTask(String world, int fillDistance, int chunksPerRun, int tickFrequency, int x, int z, int length, int total, boolean forceLoad)
 	{
-        if (fillTask != null)
+        if (WorldFillTask.getInstance() != null)
             throw new IllegalArgumentException("Tried to restore fill task when one is already running");
 
         try
         {
-            fillTask = new WorldFillTask(WorldBorder.SERVER, world, fillDistance, chunksPerRun, tickFrequency, forceLoad);
-            fillTask.continueProgress(x, z, length, total);
+            WorldFillTask task = new WorldFillTask(WorldBorder.SERVER, world, fillDistance, chunksPerRun, tickFrequency, forceLoad);
+            task.startFrom(x, z, length, total);
         }
 		catch (Exception e)
         {
@@ -635,6 +628,7 @@ public class Config
                 cfgBorders.set(name, "shape-round", bord.getShape());
 		}
 
+        WorldFillTask fillTask = WorldFillTask.getInstance();
 		if (storeFillTask && fillTask != null)
 		{
 			cfgMain.set(FILL_CAT, "world", fillTask.getWorld());

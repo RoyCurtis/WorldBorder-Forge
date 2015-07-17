@@ -19,10 +19,18 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Tick handler that performs a fill task upon request
+ * Singleton tick handler that performs a fill task over a long running series of ticks
  */
 public class WorldFillTask
 {
+	private static WorldFillTask INSTANCE = null;
+
+	/** Gets the singleton instance of this task, or null if none exists */
+	public static WorldFillTask getInstance()
+	{
+		return INSTANCE;
+	}
+
 	// Per-task shortcut references
 	private final WorldServer         world;
 	private final WorldFileData       worldData;
@@ -66,6 +74,8 @@ public class WorldFillTask
 	private int refX     = 0, lastLegX     = 0;
 	private int refZ     = 0, lastLegZ     = 0;
 	private int refTotal = 0, lastLegTotal = 0;
+
+	// <editor-fold desc="Getters">
 
 	/** Gets X of last chunk to be processed */
 	public int getRefX()
@@ -121,51 +131,48 @@ public class WorldFillTask
 		return forceLoad;
 	}
 
+	// </editor-fold>
+
+	/** Starts this task by registering the tick handler */
 	public void start()
 	{
+		if (INSTANCE != this)
+			throw new IllegalStateException("Cannot start a stopped task");
+
 		FMLCommonHandler.instance().bus().register(this);
 	}
 
-	// stuff for saving / restoring progress
-	public void continueFrom(int x, int z, int length, int totalDone)
+	/** Starts this task by resuming from prior progress */
+	public void startFrom(int x, int z, int length, int totalDone)
 	{
-		this.x = x;
-		this.z = z;
-		this.length = length;
-		this.reportTotal = totalDone;
+		this.x 				= x;
+		this.z 				= z;
+		this.length         = length;
+		this.reportTotal    = totalDone;
 		this.continueNotice = true;
 		start();
 	}
 
-	public void cancel()
+	/** Stops this task by unregistering the tick handler and removing the instance */
+	public void stop()
 	{
-		this.stop();
-	}
+		if (INSTANCE != this)
+			throw new IllegalStateException("Task has already been stopped");
 
-	// for successful completion
-	private void finish()
-	{
-		this.paused = true;
-		reportProgress();
-		Util.saveWorld(world);
-		sendMessage("task successfully completed for world \"" + getWorld() + "\"!");
-		this.stop();
-	}
-
-	// we're done, whether finished or cancelled
-	// TODO: stuff called here should be handled upon exception creating
-	private void stop()
-	{
-		readyToGo = false;
 		FMLCommonHandler.instance().bus().unregister(this);
 
-		// go ahead and unload any chunks we still have loaded
-		while(!storedChunks.isEmpty())
+		// Unload chunks that are still loaded
+		while( !storedChunks.isEmpty() )
 		{
 			CoordXZ coord = storedChunks.remove(0);
-			if (!originalChunks.contains(coord))
+
+			if ( !originalChunks.contains(coord) )
 				provider.unloadChunksIfNotNearSpawn(coord.x, coord.z);
 		}
+
+		originalChunks.clear();
+
+		INSTANCE = null;
 	}
 
 	public void pause()
@@ -188,7 +195,7 @@ public class WorldFillTask
 			reportProgress();
 		}
 		else
-			Config.unStoreFillTask();
+			Config.deleteFillTask();
 	}
 
 	public boolean isPaused()
@@ -198,6 +205,11 @@ public class WorldFillTask
 
 	public WorldFillTask(ICommandSender requester, String worldName, int fillDistance, int chunksPerRun, int tickFrequency, boolean forceLoad)
 	{
+		if (INSTANCE != null)
+			throw new IllegalStateException("There can only be one WorldFillTask");
+		else
+			INSTANCE = this;
+
 		this.requester     = requester;
 		this.fillDistance  = fillDistance;
 		this.tickFrequency = tickFrequency;
@@ -428,8 +440,14 @@ public class WorldFillTask
 	 */
 	}
 
-
-
+	private void finish()
+	{
+		this.paused = true;
+		reportProgress();
+		Util.saveWorld(world);
+		sendMessage("task successfully completed for world \"" + getWorld() + "\"!");
+		this.stop();
+	}
 
 	// let the user know how things are coming along
 	private void reportProgress()
@@ -473,5 +491,11 @@ public class WorldFillTask
 			System.gc();
 		}
 	}
-	
+
+	@Override
+	protected void finalize() throws Throwable
+	{
+		super.finalize();
+		Config.log( "WorldFillTask cleaned up for " + getWorld() );
+	}
 }

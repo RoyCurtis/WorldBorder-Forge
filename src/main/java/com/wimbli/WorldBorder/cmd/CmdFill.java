@@ -40,17 +40,24 @@ public class CmdFill extends WBCmd
 			{
 				if (!makeSureFillIsRunning(sender))
 					return;
+
 				Util.chat(sender, C_HEAD + "Cancelling the world map generation task.");
 				fillDefaults();
-				Config.stopFillTask();
+				WorldFillTask.getInstance().stop();
+
 				return;
 			}
 			else if (check.equals("pause"))
 			{
 				if (!makeSureFillIsRunning(sender))
 					return;
-				Config.fillTask.pause();
-				Util.chat(sender, C_HEAD + "The world map generation task is now " + (Config.fillTask.isPaused() ? "" : "un") + "paused.");
+
+                WorldFillTask.getInstance().pause();
+				Util.chat(
+                    sender, C_HEAD + "The world map generation task is now "
+                    + (WorldFillTask.getInstance().isPaused() ? "" : "un") + "paused."
+                );
+
 				return;
 			}
 
@@ -73,7 +80,7 @@ public class CmdFill extends WBCmd
 		String cmd = cmd(sender) + nameEmphasized() + C_CMD;
 
 		// make sure Fill isn't already running
-		if (Config.fillTask != null)
+		if (WorldFillTask.getInstance() != null)
 		{
 			Util.chat(sender, C_ERR + "The world map generation task is already running.");
 			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
@@ -130,10 +137,9 @@ public class CmdFill extends WBCmd
 
             try
             {
-                Config.fillTask = new WorldFillTask(player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
-                Config.fillTask.start();
+                WorldFillTask task = new WorldFillTask(player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
+                task.start();
                 Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
-
             }
 			catch (Exception e)
             {
@@ -179,7 +185,7 @@ public class CmdFill extends WBCmd
 
 	private boolean makeSureFillIsRunning(ICommandSender sender)
 	{
-		if (Config.fillTask != null)
+		if (WorldFillTask.getInstance() != null)
 			return true;
 
 		sendErrorAndHelp(sender, "The world map generation task is not currently running.");
