@@ -158,8 +158,8 @@ public class WorldFillTask
 	{
 		if (INSTANCE != this)
 			throw new IllegalStateException("Task has already been stopped");
-
-		FMLCommonHandler.instance().bus().unregister(this);
+		else
+			FMLCommonHandler.instance().bus().unregister(this);
 
 		// Unload chunks that are still loaded
 		while( !storedChunks.isEmpty() )
@@ -175,6 +175,7 @@ public class WorldFillTask
 		INSTANCE = null;
 	}
 
+	// TODO: Optimize this away
 	public void pause()
 	{
 		if(this.memoryPause)
@@ -203,7 +204,7 @@ public class WorldFillTask
 		return this.paused || this.memoryPause;
 	}
 
-	public WorldFillTask(ICommandSender requester, String worldName, int fillDistance, int chunksPerRun, int tickFrequency, boolean forceLoad)
+	public WorldFillTask(ICommandSender requester, String worldName, boolean forceLoad, int fillDistance, int chunksPerRun, int tickFrequency)
 	{
 		if (INSTANCE != null)
 			throw new IllegalStateException("There can only be one WorldFillTask");
@@ -237,16 +238,15 @@ public class WorldFillTask
 		this.x = CoordXZ.blockToChunk((int)border.getX());
 		this.z = CoordXZ.blockToChunk((int)border.getZ());
 
+		// We need to calculate the reportTarget with the bigger width, since the spiral
+		// will only stop if it has a size of biggerWidth * biggerWidth
 		int chunkWidthX = (int) Math.ceil((double)((border.getRadiusX() + 16) * 2) / 16);
 		int chunkWidthZ = (int) Math.ceil((double)((border.getRadiusZ() + 16) * 2) / 16);
-		int biggerWidth = (chunkWidthX > chunkWidthZ) ? chunkWidthX : chunkWidthZ; //We need to calculate the reportTarget with the bigger width, since the spiral will only stop if it has a size of biggerWidth x biggerWidth
+		int biggerWidth = (chunkWidthX > chunkWidthZ) ? chunkWidthX : chunkWidthZ;
+
 		this.reportTarget = (biggerWidth * biggerWidth) + biggerWidth + 1;
 
-		//This would be another way to calculate reportTarget, it assumes that we don't need time to check if the chunk is outside and then skip it (it calculates the area of the rectangle/ellipse)
-		//this.reportTarget = (this.border.getShape()) ? ((int) Math.ceil(chunkWidthX * chunkWidthZ / 4 * Math.PI + 2 * chunkWidthX)) : (chunkWidthX * chunkWidthZ);
-		//                                                                       Area of the ellipse                 just to be safe      area of the rectangle
-
-		// keep track of the chunks which are already loaded when the task starts, to not unload them
+		// Keep track of the chunks which are already loaded when the task starts, to not unload them
 		this.provider = world.theChunkProviderServer;
 		List<Chunk> originals = provider.loadedChunks;
 

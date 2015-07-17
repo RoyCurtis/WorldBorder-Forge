@@ -42,15 +42,21 @@ public class CmdTrim extends WBCmd
 					return;
 				Util.chat(sender, C_HEAD + "Cancelling the world map trimming task.");
 				trimDefaults();
-				Config.stopTrimTask();
+                WorldTrimTask.getInstance().stop();
+
 				return;
 			}
 			else if (check.equals("pause"))
 			{
 				if (!makeSureTrimIsRunning(sender))
 					return;
-				Config.trimTask.pause();
-				Util.chat(sender, C_HEAD + "The world map trimming task is now " + (Config.trimTask.isPaused() ? "" : "un") + "paused.");
+
+                WorldTrimTask.getInstance().pause();
+				Util.chat(
+                    sender, C_HEAD + "The world map trimming task is now "
+                    + (WorldTrimTask.getInstance().isPaused() ? "" : "un") + "paused."
+                );
+
 				return;
 			}
 
@@ -73,7 +79,7 @@ public class CmdTrim extends WBCmd
 		String cmd = cmd(sender) + nameEmphasized() + C_CMD;
 
 		// make sure Trim isn't already running
-		if (Config.trimTask != null)
+		if (WorldTrimTask.getInstance() != null)
 		{
 			Util.chat(sender, C_ERR + "The world map trimming task is already running.");
 			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
@@ -125,8 +131,8 @@ public class CmdTrim extends WBCmd
             // TODO: make use of ticks for tick limiting
 			try
 			{
-                Config.trimTask = new WorldTrimTask(player, trimWorld, trimPadding, repeats);
-				Config.trimTask.start();
+                WorldTrimTask task = new WorldTrimTask(player, trimWorld, trimPadding, repeats);
+				task.start();
                 Util.chat(sender, "WorldBorder map trimming task for world \"" + trimWorld + "\" started.");
 			}
 			catch (Exception e)
@@ -172,8 +178,9 @@ public class CmdTrim extends WBCmd
 
 	private boolean makeSureTrimIsRunning(ICommandSender sender)
 	{
-		if (Config.trimTask != null)
+		if (WorldTrimTask.getInstance() != null)
 			return true;
+
 		sendErrorAndHelp(sender, "The world map trimming task is not currently running.");
 		return false;
 	}

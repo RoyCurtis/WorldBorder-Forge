@@ -4,7 +4,6 @@ import com.mojang.realmsclient.gui.ChatFormatting;
 import com.wimbli.WorldBorder.forge.Configuration;
 import com.wimbli.WorldBorder.task.BorderCheckTask;
 import com.wimbli.WorldBorder.task.WorldFillTask;
-import com.wimbli.WorldBorder.task.WorldTrimTask;
 import org.apache.logging.log4j.Level;
 
 import java.io.File;
@@ -24,7 +23,6 @@ public class Config
 
     // TODO: move these elsewhere?
     public static BorderCheckTask borderTask = null;
-    public static WorldTrimTask   trimTask   = null;
 
     private static File          configDir;
     private static Configuration cfgMain;
@@ -429,7 +427,7 @@ public class Config
 
         try
         {
-            WorldFillTask task = new WorldFillTask(WorldBorder.SERVER, world, fillDistance, chunksPerRun, tickFrequency, forceLoad);
+            WorldFillTask task = new WorldFillTask(WorldBorder.SERVER, world, forceLoad, fillDistance, chunksPerRun, tickFrequency);
             task.startFrom(x, z, length, total);
         }
 		catch (Exception e)
@@ -437,13 +435,6 @@ public class Config
             logWarn("Could not resume fill task: " + e.getMessage());
         }
 	}
-
-	public static void stopTrimTask()
-	{
-		if (trimTask != null)
-			trimTask.cancel();
-	}
-
 
 	public static long getAvailableMemory()
 	{

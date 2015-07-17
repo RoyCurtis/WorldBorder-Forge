@@ -135,9 +135,10 @@ public class CmdFill extends WBCmd
 
     		Config.log("world: " + fillWorld + "  padding: " + fillPadding + "  repeats: " + repeats + "  ticks: " + ticks);
 
+            // TODO: make use of ticks for tick limiting
             try
             {
-                WorldFillTask task = new WorldFillTask(player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
+                WorldFillTask task = new WorldFillTask(player, fillWorld, fillForceLoad, fillPadding, repeats, ticks);
                 task.start();
                 Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
             }

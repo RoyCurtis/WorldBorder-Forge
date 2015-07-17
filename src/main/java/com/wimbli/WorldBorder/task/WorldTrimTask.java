@@ -17,10 +17,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tick handler that performs a trim task upon request
+ * Singleton tick handler that performs a trim task over a long running series of ticks
  */
 public class WorldTrimTask
 {
+    private static WorldTrimTask INSTANCE = null;
+
+    /** Gets the singleton instance of this task, or null if none exists */
+    public static WorldTrimTask getInstance()
+    {
+        return INSTANCE;
+    }
+
     // Per-task shortcut references
 	private final WorldServer    world;
 	private final WorldFileData  worldData;
@@ -51,8 +59,54 @@ public class WorldTrimTask
 	private int reportTrimmedRegions = 0;
 	private int reportTrimmedChunks  = 0;
 
+    /** Starts this task by registering the tick handler */
+    public void start()
+    {
+        if (INSTANCE != this)
+            throw new IllegalStateException("Cannot start a stopped task");
+
+        FMLCommonHandler.instance().bus().register(this);
+    }
+
+    /** Stops this task by unregistering the tick handler and removing the instance */
+    public void stop()
+    {
+        if (INSTANCE != this)
+            throw new IllegalStateException("Task has already been stopped");
+        else
+            FMLCommonHandler.instance().bus().unregister(this);
+
+        regionChunks.clear();
+        trimChunks.clear();
+
+        INSTANCE = null;
+    }
+
+    // TODO: Optimize this away
+    public void pause()
+    {
+        pause(!this.paused);
+    }
+
+    public void pause(boolean pause)
+    {
+        this.paused = pause;
+        if (pause)
+            reportProgress();
+    }
+
+    public boolean isPaused()
+    {
+        return this.paused;
+    }
+
 	public WorldTrimTask(ICommandSender player, String worldName, int trimDistance, int chunksPerRun)
 	{
+        if (INSTANCE != null)
+            throw new IllegalStateException("There can only be one WorldFillTask");
+        else
+            INSTANCE = this;
+
 		this.requester    = player;
 		this.chunksPerRun = chunksPerRun;
 
@@ -336,46 +390,12 @@ public class WorldTrimTask
 	}
 
 	// for successful completion
-	public void finish()
+	private void finish()
 	{
 		reportTotal = reportTarget;
 		reportProgress();
 		sendMessage("task successfully completed!");
 		this.stop();
-	}
-
-	// for cancelling prematurely
-	public void cancel()
-	{
-		this.stop();
-	}
-
-	// we're done, whether finished or cancelled
-	private void stop()
-	{
-        readyToGo = false;
-        FMLCommonHandler.instance().bus().unregister(this);
-	}
-
-    public void start()
-    {
-        FMLCommonHandler.instance().bus().register(this);
-    }
-
-	// handle pausing/unpausing the task
-	public void pause()
-	{
-		pause(!this.paused);
-	}
-	public void pause(boolean pause)
-	{
-		this.paused = pause;
-		if (pause)
-			reportProgress();
-	}
-	public boolean isPaused()
-	{
-		return this.paused;
 	}
 
 	// let the user know how things are coming along
