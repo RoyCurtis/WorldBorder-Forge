@@ -2,9 +2,8 @@ package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.CoordXZ;
-import com.wimbli.WorldBorder.WorldBorder;
-import com.wimbli.WorldBorder.task.WorldFillTask;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.task.WorldFillTask;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
@@ -74,7 +73,7 @@ public class CmdFill extends WBCmd
 		String cmd = cmd(sender) + nameEmphasized() + C_CMD;
 
 		// make sure Fill isn't already running
-		if (Config.fillTask != null && Config.fillTask.valid())
+		if (Config.fillTask != null)
 		{
 			Util.chat(sender, C_ERR + "The world map generation task is already running.");
 			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
@@ -127,16 +126,19 @@ public class CmdFill extends WBCmd
 			else
 				ticks = 20 / fillFrequency;
 
-/*	*/		Config.log("world: " + fillWorld + "  padding: " + fillPadding + "  repeats: " + repeats + "  ticks: " + ticks);			
-			Config.fillTask = new WorldFillTask(WorldBorder.SERVER, player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
-			if (Config.fillTask.valid())
-			{
-				int task = WorldBorder.SCHEDULER.scheduleSyncRepeatingTask(Config.fillTask, ticks, ticks);
-				Config.fillTask.setTaskID(task);
-				Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
-			}
-			else
-				Util.chat(sender, C_ERR + "The world map generation task failed to start.");
+    		Config.log("world: " + fillWorld + "  padding: " + fillPadding + "  repeats: " + repeats + "  ticks: " + ticks);
+
+            try
+            {
+                Config.fillTask = new WorldFillTask(player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
+                Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
+
+            }
+			catch (Exception e)
+            {
+                Util.chat(sender, C_ERR + "The world map generation task failed to start:");
+                Util.chat(sender, C_ERR + e.getMessage());
+            }
 
 			fillDefaults();
 		}
@@ -162,23 +164,24 @@ public class CmdFill extends WBCmd
 	 */
 	private final int defaultPadding = CoordXZ.chunkToBlock(13);
 
-	private String fillWorld = "";
-	private int fillFrequency = 20;
-	private int fillPadding = defaultPadding;
+	private String  fillWorld     = "";
+	private int     fillFrequency = 20;
+	private int     fillPadding   = defaultPadding;
 	private boolean fillForceLoad = false;
 
 	private void fillDefaults()
 	{
-		fillWorld = "";
+		fillWorld     = "";
 		fillFrequency = 20;
-		fillPadding = defaultPadding;
+		fillPadding   = defaultPadding;
 		fillForceLoad = false;
 	}
 
 	private boolean makeSureFillIsRunning(ICommandSender sender)
 	{
-		if (Config.fillTask != null && Config.fillTask.valid())
+		if (Config.fillTask != null)
 			return true;
+
 		sendErrorAndHelp(sender, "The world map generation task is not currently running.");
 		return false;
 	}

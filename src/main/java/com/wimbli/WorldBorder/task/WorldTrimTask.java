@@ -34,7 +34,7 @@ public class WorldTrimTask implements Runnable
 	private transient int counter = 0;
 
 	// for reporting progress back to user occasionally
-	private transient long lastReport = Config.Now();
+	private transient long lastReport = Util.now();
 	private transient int reportTarget = 0;
 	private transient int reportTotal = 0;
 	private transient int reportTrimmedRegions = 0;
@@ -100,7 +100,7 @@ public class WorldTrimTask implements Runnable
 		// this is set so it only does one iteration at a time, no matter how frequently the timer fires
 		readyToGo = false;
 		// and this is tracked to keep one iteration from dragging on too long and possibly choking the system if the user specified a really high frequency
-		long loopStartTime = Config.Now();
+		long loopStartTime = Util.now();
 
 		counter = 0;
 		while (counter <= chunksPerRun)
@@ -109,7 +109,7 @@ public class WorldTrimTask implements Runnable
 			if (paused)
 				return;
 
-			long now = Config.Now();
+			long now = Util.now();
 
 			// every 5 seconds or so, give basic progress report to let user know how it's going
 			if (now > lastReport + 5000)
@@ -390,7 +390,7 @@ public class WorldTrimTask implements Runnable
 	// let the user know how things are coming along
 	private void reportProgress()
 	{
-		lastReport = Config.Now();
+		lastReport = Util.now();
 		double perc = ((double)(reportTotal) / (double)reportTarget) * 100;
 		sendMessage(reportTrimmedRegions + " entire region(s) and " + reportTrimmedChunks + " individual chunk(s) trimmed so far (" + Config.COORD_FORMAT.format(perc) + "% done" + ")");
 	}

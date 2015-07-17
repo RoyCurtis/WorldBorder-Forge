@@ -8,78 +8,89 @@ import java.util.Set;
  */
 public class Configuration extends net.minecraftforge.common.config.Configuration
 {
-    public static final String GENERAL = "General";
-
     public Configuration(File file)
     {
         super(file);
     }
 
+    /** Shortcut for getting a string from a key and category */
+    public String getString(String category, String key, String defValue)
+    {
+        return getString(key, category, defValue, "");
+    }
+
+    /** Shortcut for getting a boolean from a key and category */
+    public boolean getBoolean(String category, String key, boolean defValue)
+    {
+        return getBoolean(key, category, defValue, "");
+    }
+
+    /** Shortcut for getting a float from a key and category */
+    public float getFloat(String category, String key, float defValue)
+    {
+        return getFloat(key, category, defValue, 0, Float.MAX_VALUE, "");
+    }
+
+    /** Shortcut for getting an int from a key and category */
+    public int getInt(String category, String key, int defValue)
+    {
+        return getInt(key, category, defValue, Integer.MIN_VALUE, Integer.MAX_VALUE, "");
+    }
+
+    /** Shortcut for getting a string array from a key and category */
+    public String[] getStringList(String category, String key)
+    {
+        return getStringList(key, category, new String[0], "");
+    }
+
+    /** Shortcut for setting a boolean to a key and category */
+    public void set(String category, String key, boolean value)
+    {
+        get(category, key, value).set(value);
+    }
+
+    /** Shortcut for setting a string to a key and category */
+    public void set(String category, String key, String value)
+    {
+        get(category, key, value).set(value);
+    }
+
+    /** Shortcut for setting an integer to a key and category */
+    public void set(String category, String key, int value)
+    {
+        get(category, key, value).set(value);
+    }
+
+    /** Shortcut for setting a double to a key and category */
+    public void set(String category, String key, double value)
+    {
+        get(category, key, value).set(value);
+    }
+
+    /** Shortcut for setting a float to a key and category */
+    public void set(String category, String key, float value)
+    {
+        get(category, key, value).set(value);
+    }
+
+    /** Shortcut for setting a string array to a key and category */
+    public void set(String category, String key, String[] values)
+    {
+        get(category, key, values).set(values);
+    }
+
+    /** Removes a category by given name */
     public void removeCategory(String category)
     {
         removeCategory(getCategory(category));
     }
 
+    /** Clears this configuration of all its data */
     public void clear()
     {
         Set<String> categories = getCategoryNames();
 
         for(String category : categories)
             removeCategory( getCategory(category) );
-    }
-
-    public String getString(String key, String defValue)
-    {
-        return getString(key, GENERAL, defValue, "");
-    }
-
-    public boolean getBoolean(String key, boolean defValue)
-    {
-        return getBoolean(key, GENERAL, defValue, "");
-    }
-
-    public float getFloat(String key, float defValue)
-    {
-        return getFloat(key, GENERAL, defValue, 0, Float.MAX_VALUE, "");
-    }
-
-    public int getInt(String key, int defValue)
-    {
-        return getInt(key, GENERAL, defValue, Integer.MIN_VALUE, Integer.MAX_VALUE, "");
-    }
-
-    public String[] getStringList(String key)
-    {
-        return getStringList(key, GENERAL, new String[0], "");
-    }
-
-    public void set(String category, String key, boolean value)
-    {
-        get(category, key, value).set(value);
-    }
-
-    public void set(String category, String key, String value)
-    {
-        get(category, key, value).set(value);
-    }
-
-    public void set(String category, String key, int value)
-    {
-        get(category, key, value).set(value);
-    }
-
-    public void set(String category, String key, double value)
-    {
-        get(category, key, value).set(value);
-    }
-
-    public void set(String category, String key, float value)
-    {
-        get(category, key, value).set(value);
-    }
-
-    public void set(String category, String key, String[] values)
-    {
-        get(category, key, values).set(values);
     }
 }

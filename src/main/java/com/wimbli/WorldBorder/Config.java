@@ -19,14 +19,17 @@ public class Config
 {
     public static final DecimalFormat COORD_FORMAT = new DecimalFormat("0.0");
 
-    // TODO: move these elsewhere
-    public static volatile WorldFillTask fillTask = null;
-    public static volatile WorldTrimTask trimTask = null;
+    private static final String MAIN_CAT = "general";
+    private static final String FILL_CAT = "fillTask";
+
+    // TODO: move these elsewhere?
+    public static BorderCheckTask borderTask = null;
+    public static WorldFillTask   fillTask   = null;
+    public static WorldTrimTask   trimTask   = null;
 
     private static File          configDir;
     private static Configuration cfgMain;
     private static Configuration cfgBorders;
-	private static int borderTask = -1;
 
     // actual configuration values which can be changed
     private static Map<String, BorderData> borders = Collections.synchronizedMap(new LinkedHashMap<String, BorderData>());
@@ -52,11 +55,6 @@ public class Config
 
     private static int fillAutosaveFrequency = 30;
     private static int fillMemoryTolerance   = 500;
-
-	public static long Now()
-	{
-		return System.currentTimeMillis();
-	}
 
     public static void setupConfigDir(File globalDir)
     {
@@ -389,47 +387,38 @@ public class Config
 			bypassPlayers.add(UUID.fromString(string));
 		}
 	}
+
 	private static String[] exportBypassStringList()
 	{
-		ArrayList<String> strings = new ArrayList<String>();
+		ArrayList<String> strings = new ArrayList<>();
 
 		for (UUID uuid : bypassPlayers)
-			strings.add(uuid.toString());
+			strings.add( uuid.toString() );
 
-		return strings.toArray(new String[ strings.size() ]);
+		return strings.toArray(new String[strings.size()]);
 	}
-
-
-	public static boolean isBorderTimerRunning()
-    {
-        return borderTask != -1
-            && (WorldBorder.SCHEDULER.isQueued(borderTask) || WorldBorder.SCHEDULER.isCurrentlyRunning(borderTask));
-    }
 
 	public static void startBorderTimer()
 	{
-		stopBorderTimer();
+		if (borderTask == null)
+            borderTask = new BorderCheckTask();
 
-		borderTask = WorldBorder.SCHEDULER.scheduleSyncRepeatingTask(new BorderCheckTask(), timerTicks, timerTicks);
-
-		if (borderTask == -1)
-			logWarn("Failed to start timed border-checking task! This will prevent the plugin from working. Try restarting Bukkit.");
-
+        borderTask.setRunning(true);
 		logConfig("Border-checking timed task started.");
 	}
 
 	public static void stopBorderTimer()
 	{
-		if (borderTask == -1) return;
+        if (borderTask == null)
+            return;
 
-        WorldBorder.SCHEDULER.cancelTask(borderTask);
-		borderTask = -1;
-		logConfig("Border-checking timed task stopped.");
+        borderTask.setRunning(false);
+        logConfig("Border-checking timed task stopped.");
 	}
 
 	public static void stopFillTask()
 	{
-		if (fillTask != null && fillTask.valid())
+		if (fillTask != null)
 			fillTask.cancel();
 	}
 
@@ -437,6 +426,7 @@ public class Config
 	{
 		save(false, true);
 	}
+
 	public static void unStoreFillTask()
 	{
 		save(false);
@@ -444,15 +434,19 @@ public class Config
 
 	public static void restoreFillTask(String world, int fillDistance, int chunksPerRun, int tickFrequency, int x, int z, int length, int total, boolean forceLoad)
 	{
-		fillTask = new WorldFillTask(WorldBorder.SERVER, null, world, fillDistance, chunksPerRun, tickFrequency, forceLoad);
-		if (fillTask.valid())
-		{
-			fillTask.continueProgress(x, z, length, total);
-			int task = WorldBorder.SCHEDULER.scheduleSyncRepeatingTask(fillTask, 20, tickFrequency);
-			fillTask.setTaskID(task);
-		}
-	}
+        if (fillTask != null)
+            throw new IllegalArgumentException("Tried to restore fill task when one is already running");
 
+        try
+        {
+            fillTask = new WorldFillTask(WorldBorder.SERVER, world, fillDistance, chunksPerRun, tickFrequency, forceLoad);
+            fillTask.continueProgress(x, z, length, total);
+        }
+		catch (Exception e)
+        {
+            logWarn("Could not resume fill task: " + e.getMessage());
+        }
+	}
 
 	public static void stopTrimTask()
 	{
@@ -507,28 +501,31 @@ public class Config
             cfgBorders = new Configuration( new File(configDir, "borders.cfg") );
         else cfgBorders.load();
 
-		int cfgVersion = cfgMain.getInt("cfg-version", currentCfgVersion);
+		int cfgVersion = cfgMain.getInt(MAIN_CAT, "cfg-version", currentCfgVersion);
 
-		String msg = cfgMain.getString("message", "");
-        importBypassStringList(cfgMain.getStringList("bypass-list-uuids"));
-        debugMode         = cfgMain.getBoolean("debug-mode", false);
-        shapeRound        = cfgMain.getBoolean("round-border", true);
-        whooshEffect      = cfgMain.getBoolean("whoosh-effect", true);
-        portalRedirection = cfgMain.getBoolean("portal-redirection", true);
-        knockBack         = cfgMain.getFloat("knock-back-dist", 3.0F);
-        timerTicks        = cfgMain.getInt("timer-delay-ticks", 20);
-        remountDelayTicks = cfgMain.getInt("remount-delay-ticks", 0);
-        dynmapEnable      = cfgMain.getBoolean("dynmap-border-enabled", true);
-        dynmapMessage     = cfgMain.getString("dynmap-border-message", "The border of the world.");
-        killPlayer        = cfgMain.getBoolean("player-killed-bad-spawn", false);
-        denyEnderpearl    = cfgMain.getBoolean("deny-enderpearl", true);
-        preventBlockPlace = cfgMain.getBoolean("prevent-block-place", true);
-		preventMobSpawn   = cfgMain.getBoolean("prevent-mob-spawn", true);
+		String msg = cfgMain.getString(MAIN_CAT, "message", "");
+        importBypassStringList(cfgMain.getStringList(MAIN_CAT, "bypass-list-uuids"));
+        debugMode         = cfgMain.getBoolean(MAIN_CAT, "debug-mode", false);
+        shapeRound        = cfgMain.getBoolean(MAIN_CAT, "round-border", true);
+        whooshEffect      = cfgMain.getBoolean(MAIN_CAT, "whoosh-effect", true);
+        portalRedirection = cfgMain.getBoolean(MAIN_CAT, "portal-redirection", true);
+        knockBack         = cfgMain.getFloat(MAIN_CAT, "knock-back-dist", 3.0F);
+        timerTicks        = cfgMain.getInt(MAIN_CAT, "timer-delay-ticks", 20);
+        remountDelayTicks = cfgMain.getInt(MAIN_CAT, "remount-delay-ticks", 0);
+        dynmapEnable      = cfgMain.getBoolean(MAIN_CAT, "dynmap-border-enabled", true);
+        dynmapMessage     = cfgMain.getString(MAIN_CAT, "dynmap-border-message", "The border of the world.");
+        killPlayer        = cfgMain.getBoolean(MAIN_CAT, "player-killed-bad-spawn", false);
+        denyEnderpearl    = cfgMain.getBoolean(MAIN_CAT, "deny-enderpearl", true);
+        preventBlockPlace = cfgMain.getBoolean(MAIN_CAT, "prevent-block-place", true);
+		preventMobSpawn   = cfgMain.getBoolean(MAIN_CAT, "prevent-mob-spawn", true);
 
-        fillAutosaveFrequency = cfgMain.getInt("fill-autosave-frequency", 30);
-        fillMemoryTolerance   = cfgMain.getInt("fill-memory-tolerance", 500);
+        fillAutosaveFrequency = cfgMain.getInt(MAIN_CAT, "fill-autosave-frequency", 30);
+        fillMemoryTolerance   = cfgMain.getInt(MAIN_CAT, "fill-memory-tolerance", 500);
 
-        logConfig("Using " + (getShapeName()) + " border, knockback of " + knockBack + " blocks, and timer delay of " + timerTicks + ".");
+        logConfig(
+            "Using " + (getShapeName()) + " border, knockback of "
+            + knockBack + " blocks, and timer delay of " + timerTicks + "."
+        );
 
         // TODO: move to server setup
         startBorderTimer();
@@ -576,9 +573,9 @@ public class Config
 		// if we have an unfinished fill task stored from a previous run, load it up
 		if ( cfgMain.hasCategory("fillTask") )
 		{
-            String worldName = cfgMain.get("fillTask", "world", "").getString();
-			int fillDistance = cfgMain.get("fillTask", "fillDistance", 176).getInt();
-			int chunksPerRun = cfgMain.get("fillTask", "chunksPerRun", 5).getInt();
+            String worldName  = cfgMain.get("fillTask", "world", "").getString();
+			int fillDistance  = cfgMain.get("fillTask", "fillDistance", 176).getInt();
+			int chunksPerRun  = cfgMain.get("fillTask", "chunksPerRun", 5).getInt();
 			int tickFrequency = cfgMain.get("fillTask", "tickFrequency", 20).getInt();
 			int fillX = cfgMain.get("fillTask", "x", 0).getInt();
 			int fillZ = cfgMain.get("fillTask", "z", 0).getInt();
@@ -603,25 +600,24 @@ public class Config
 	{	// save config to file
 		if (cfgMain == null) return;
 
-        String GENERAL = Configuration.GENERAL;
-		cfgMain.set(GENERAL, "cfg-version", currentCfgVersion);
-		cfgMain.set(GENERAL, "message", message);
-		cfgMain.set(GENERAL, "round-border", shapeRound);
-		cfgMain.set(GENERAL, "debug-mode", debugMode);
-		cfgMain.set(GENERAL, "whoosh-effect", whooshEffect);
-		cfgMain.set(GENERAL, "portal-redirection", portalRedirection);
-		cfgMain.set(GENERAL, "knock-back-dist", knockBack);
-		cfgMain.set(GENERAL, "timer-delay-ticks", timerTicks);
-		cfgMain.set(GENERAL, "remount-delay-ticks", remountDelayTicks);
-		cfgMain.set(GENERAL, "dynmap-border-enabled", dynmapEnable);
-		cfgMain.set(GENERAL, "dynmap-border-message", dynmapMessage);
-		cfgMain.set(GENERAL, "player-killed-bad-spawn", killPlayer);
-		cfgMain.set(GENERAL, "deny-enderpearl", denyEnderpearl);
-		cfgMain.set(GENERAL, "fill-autosave-frequency", fillAutosaveFrequency);
-		cfgMain.set(GENERAL, "bypass-list-uuids", exportBypassStringList());
-		cfgMain.set(GENERAL, "fill-memory-tolerance", fillMemoryTolerance);
-		cfgMain.set(GENERAL, "prevent-block-place", preventBlockPlace);
-		cfgMain.set(GENERAL, "prevent-mob-spawn", preventMobSpawn);
+		cfgMain.set(MAIN_CAT, "cfg-version", currentCfgVersion);
+		cfgMain.set(MAIN_CAT, "message", message);
+		cfgMain.set(MAIN_CAT, "round-border", shapeRound);
+		cfgMain.set(MAIN_CAT, "debug-mode", debugMode);
+		cfgMain.set(MAIN_CAT, "whoosh-effect", whooshEffect);
+		cfgMain.set(MAIN_CAT, "portal-redirection", portalRedirection);
+		cfgMain.set(MAIN_CAT, "knock-back-dist", knockBack);
+		cfgMain.set(MAIN_CAT, "timer-delay-ticks", timerTicks);
+		cfgMain.set(MAIN_CAT, "remount-delay-ticks", remountDelayTicks);
+		cfgMain.set(MAIN_CAT, "dynmap-border-enabled", dynmapEnable);
+		cfgMain.set(MAIN_CAT, "dynmap-border-message", dynmapMessage);
+		cfgMain.set(MAIN_CAT, "player-killed-bad-spawn", killPlayer);
+		cfgMain.set(MAIN_CAT, "deny-enderpearl", denyEnderpearl);
+		cfgMain.set(MAIN_CAT, "fill-autosave-frequency", fillAutosaveFrequency);
+		cfgMain.set(MAIN_CAT, "bypass-list-uuids", exportBypassStringList());
+		cfgMain.set(MAIN_CAT, "fill-memory-tolerance", fillMemoryTolerance);
+		cfgMain.set(MAIN_CAT, "prevent-block-place", preventBlockPlace);
+		cfgMain.set(MAIN_CAT, "prevent-mob-spawn", preventMobSpawn);
 
 		cfgBorders.clear();
 		for(Entry<String, BorderData> stringBorderDataEntry : borders.entrySet())
@@ -639,17 +635,17 @@ public class Config
                 cfgBorders.set(name, "shape-round", bord.getShape());
 		}
 
-		if (storeFillTask && fillTask != null && fillTask.valid())
+		if (storeFillTask && fillTask != null)
 		{
-			cfgMain.set("fillTask","world", fillTask.refWorld());
-			cfgMain.set("fillTask","fillDistance", fillTask.refFillDistance());
-			cfgMain.set("fillTask","chunksPerRun", fillTask.refChunksPerRun());
-			cfgMain.set("fillTask","tickFrequency", fillTask.refTickFrequency());
-			cfgMain.set("fillTask","x", fillTask.refX());
-			cfgMain.set("fillTask","z", fillTask.refZ());
-			cfgMain.set("fillTask","length", fillTask.refLength());
-			cfgMain.set("fillTask","total", fillTask.refTotal());
-			cfgMain.set("fillTask","forceLoad", fillTask.refForceLoad());
+			cfgMain.set("fillTask","world", fillTask.getWorld());
+			cfgMain.set("fillTask","fillDistance", fillTask.getFillDistance());
+			cfgMain.set("fillTask","chunksPerRun", fillTask.getChunksPerRun());
+			cfgMain.set("fillTask","tickFrequency", fillTask.getTickFrequency());
+			cfgMain.set("fillTask","x", fillTask.getRefX());
+			cfgMain.set("fillTask","z", fillTask.getRefZ());
+			cfgMain.set("fillTask","length", fillTask.getRefLength());
+			cfgMain.set("fillTask","total", fillTask.getRefTotal());
+			cfgMain.set("fillTask","forceLoad", fillTask.getForceLoad());
 		}
 		else
 			cfgMain.removeCategory("fillTask");

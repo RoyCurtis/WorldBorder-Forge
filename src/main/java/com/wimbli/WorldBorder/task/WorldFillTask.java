@@ -1,9 +1,14 @@
 package com.wimbli.WorldBorder.task;
 
-import com.wimbli.WorldBorder.*;
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.CoordXZ;
+import com.wimbli.WorldBorder.WorldFileData;
 import com.wimbli.WorldBorder.forge.Util;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
@@ -13,86 +18,132 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class WorldFillTask implements Runnable
+/**
+ * Tick handler that performs a fill task upon request
+ */
+public class WorldFillTask
 {
-	// general task-related reference data
-	private transient MinecraftServer server = null;
-	private transient WorldServer world = null;
-	private transient ChunkProviderServer provider = null;
-	private transient BorderData border = null;
-	private transient WorldFileData worldData = null;
-	private transient boolean readyToGo = false;
-	private transient boolean paused = false;
-	private transient boolean pausedForMemory = false;
-	private transient int taskID = -1;
-	private transient EntityPlayerMP notifyPlayer = null;
-	private transient int chunksPerRun = 1;
-	private transient boolean continueNotice = false;
-	private transient boolean forceLoad = false;
-	
-	// these are only stored for saving task to config
-	private transient int fillDistance = 208;
-	private transient int tickFrequency = 1;
-	private transient int refX = 0, lastLegX = 0;
-	private transient int refZ = 0, lastLegZ = 0;
-	private transient int refLength = -1;
-	private transient int refTotal = 0, lastLegTotal = 0;
+	// Per-task shortcut references
+	private final WorldServer         world;
+	private final WorldFileData       worldData;
+	private final ChunkProviderServer provider;
+	private final BorderData          border;
+	private final ICommandSender 	  requester;
 
-	// values for the spiral pattern check which fills out the map to the border
-	private transient int x = 0;
-	private transient int z = 0;
-	private transient boolean isZLeg = false;
-	private transient boolean isNeg = false;
-	private transient int length = -1;
-	private transient int current = 0;
-	private transient boolean insideBorder = true;
-	private List<CoordXZ> storedChunks = new LinkedList<CoordXZ>();
-	private Set<CoordXZ> originalChunks = new HashSet<CoordXZ>();
-	private transient CoordXZ lastChunk = new CoordXZ(0, 0);
+	// Per-task state variables
+	private final List<CoordXZ> storedChunks   = new LinkedList<>();
+	private final Set<CoordXZ>  originalChunks = new HashSet<>();
+	private final CoordXZ       lastChunk      = new CoordXZ(0, 0);
 
-	// for reporting progress back to user occasionally
-	private transient long lastReport = Config.Now();
-	private transient long lastAutosave = Config.Now();
-	private transient int reportTarget = 0;
-	private transient int reportTotal = 0;
-	private transient int reportNum = 0;
+	private int     chunksPerRun   = 1;
+	private boolean readyToGo      = false;
+	private boolean paused         = false;
+	private boolean memoryPause    = false;
+	private boolean continueNotice = false;
+	private boolean forceLoad      = false;
 
+	// Per-task state for the spiral fill pattern
+	private int     x       = 0;
+	private int     z       = 0;
+	private boolean isZLeg  = false;
+	private boolean isNeg   = false;
+	private boolean inside  = true;
+	private int     length  = -1;
+	private int     current = 0;
 
-	public WorldFillTask(MinecraftServer theServer, EntityPlayerMP player, String worldName, int fillDistance, int chunksPerRun, int tickFrequency, boolean forceLoad)
+	// Per-task state for progress reporting
+	private long lastReport   = Util.now();
+	private long lastAutosave = Util.now();
+	private int  reportTarget = 0;
+	private int  reportTotal  = 0;
+	private int  reportNum    = 0;
+
+	// Per-task persistent settings
+	private int fillDistance  = 208;
+	private int tickFrequency = 1;
+	private int refLength     = -1;
+
+	private int refX     = 0, lastLegX     = 0;
+	private int refZ     = 0, lastLegZ     = 0;
+	private int refTotal = 0, lastLegTotal = 0;
+
+	/** Gets X of last chunk to be processed */
+	public int getRefX()
 	{
-		this.server = theServer;
-		this.notifyPlayer = player;
-		this.fillDistance = fillDistance;
+		return refX;
+	}
+
+	/** Gets Z of last chunk to be processed */
+	public int getRefZ()
+	{
+		return refZ;
+	}
+
+	/** Gets progress amount of chunks to process */
+	public int getRefLength()
+	{
+		return refLength;
+	}
+
+	/** Gets total amount of chunks to process */
+	public int getRefTotal()
+	{
+		return refTotal;
+	}
+
+	/** Gets configured fill distance of this task */
+	public int getFillDistance()
+	{
+		return fillDistance;
+	}
+
+	/** Gets configured per-tick fill frequency of this task */
+	public int getTickFrequency()
+	{
+		return tickFrequency;
+	}
+
+	/** Gets configured per-tick fill frequency of this task */
+	public int getChunksPerRun()
+	{
+		return chunksPerRun;
+	}
+
+	/** Gets configured world of this task */
+	public String getWorld()
+	{
+		return Util.getWorldName(world);
+	}
+
+	/** Gets whether this task forces loading of existing chunks */
+	public boolean getForceLoad()
+	{
+		return forceLoad;
+	}
+
+	public WorldFillTask(ICommandSender requester, String worldName, int fillDistance, int chunksPerRun, int tickFrequency, boolean forceLoad)
+	{
+		this.requester     = requester;
+		this.fillDistance  = fillDistance;
 		this.tickFrequency = tickFrequency;
-		this.chunksPerRun = chunksPerRun;
-		this.forceLoad = forceLoad;
+		this.chunksPerRun  = chunksPerRun;
+		this.forceLoad     = forceLoad;
 
 		this.world = Util.getWorld(worldName);
+
 		if (this.world == null)
-		{
-			if (worldName.isEmpty())
-				sendMessage("You must specify a world!");
-			else
-				sendMessage("World \"" + worldName + "\" not found!");
-			this.stop();
-			return;
-		}
+			throw new IllegalArgumentException("World \"" + worldName + "\" not found!");
 
-		this.border = (Config.Border(worldName) == null) ? null : Config.Border(worldName).copy();
+		this.border = (Config.Border(worldName) == null)
+			? null
+			: Config.Border(worldName).copy();
+
 		if (this.border == null)
-		{
-			sendMessage("No border found for world \"" + worldName + "\"!");
-			this.stop();
-			return;
-		}
+			throw new IllegalStateException("No border found for world \"" + worldName + "\"!");
 
-		// load up a new WorldFileData for the world in question, used to scan region files for which chunks are already fully generated and such
-		worldData = WorldFileData.create(world, notifyPlayer);
+		this.worldData = WorldFileData.create(world, requester);
 		if (worldData == null)
-		{
-			this.stop();
-			return;
-		}
+			throw new IllegalStateException("Could not create WorldFileData!");
 
 		this.border.setRadiusX(border.getRadiusX() + fillDistance);
 		this.border.setRadiusZ(border.getRadiusZ() + fillDistance);
@@ -107,34 +158,24 @@ public class WorldFillTask implements Runnable
 		//This would be another way to calculate reportTarget, it assumes that we don't need time to check if the chunk is outside and then skip it (it calculates the area of the rectangle/ellipse)
 		//this.reportTarget = (this.border.getShape()) ? ((int) Math.ceil(chunkWidthX * chunkWidthZ / 4 * Math.PI + 2 * chunkWidthX)) : (chunkWidthX * chunkWidthZ);
 		//                                                                       Area of the ellipse                 just to be safe      area of the rectangle
-		
-		
+
 		// keep track of the chunks which are already loaded when the task starts, to not unload them
 		this.provider = world.theChunkProviderServer;
 		List<Chunk> originals = provider.loadedChunks;
+
 		for (Chunk original : originals)
-		{
 			originalChunks.add(new CoordXZ(original.xPosition, original.zPosition));
-		}
 
 		this.readyToGo = true;
 	}
-	// for backwards compatibility
-	public WorldFillTask(MinecraftServer theServer, EntityPlayerMP player, String worldName, int fillDistance, int chunksPerRun, int tickFrequency)
+
+	@SubscribeEvent()
+	public void onServerTick(TickEvent.ServerTickEvent event)
 	{
-		this(theServer, player, worldName, fillDistance, chunksPerRun, tickFrequency, false);
-	}
+		// Only run at start of tick
+		if (event.phase == TickEvent.Phase.END)
+			return;
 
-	public void setTaskID(int ID)
-	{	
-		if (ID == -1) this.stop();
-		this.taskID = ID;
-	}
-
-
-	@Override
-	public void run()
-	{
 		if (continueNotice)
 		{	// notify user that task has continued automatically
 			continueNotice = false;
@@ -142,31 +183,31 @@ public class WorldFillTask implements Runnable
 			sendMessage("Reminder: you can cancel at any time with \"wb fill cancel\", or pause/unpause with \"wb fill pause\".");
 		}
 
-		if (pausedForMemory)
+		if (memoryPause)
 		{	// if available memory gets too low, we automatically pause, so handle that
 			if (Config.isAvailableMemoryTooLow())
 				return;
 
-			pausedForMemory = false;
+			memoryPause = false;
 			readyToGo = true;
 			sendMessage("Available memory is sufficient, automatically continuing.");
 		}
 
-		if (server == null || !readyToGo || paused)
+		if (!readyToGo || paused)
 			return;
 
 		// this is set so it only does one iteration at a time, no matter how frequently the timer fires
 		readyToGo = false;
 		// and this is tracked to keep one iteration from dragging on too long and possibly choking the system if the user specified a really high frequency
-		long loopStartTime = Config.Now();
+		long loopStartTime = Util.now();
 
 		for (int loop = 0; loop < chunksPerRun; loop++)
 		{
 			// in case the task has been paused while we're repeating...
-			if (paused || pausedForMemory)
+			if (paused || memoryPause)
 				return;
 
-			long now = Config.Now();
+			long now = Util.now();
 
 			// every 5 seconds or so, give basic progress report to let user know how it's going
 			if (now > lastReport + 5000)
@@ -185,14 +226,14 @@ public class WorldFillTask implements Runnable
 				if (!moveToNext())
 					return;
 			}
-			insideBorder = true;
+			inside = true;
 
 			if (!forceLoad)
 			{
 				// skip past any chunks which are confirmed as fully generated using our super-special isChunkFullyGenerated routine
 				while (worldData.isChunkFullyGenerated(x, z))
 				{
-					insideBorder = true;
+					inside = true;
 					if (!moveToNext())
 						return;
 				}
@@ -241,7 +282,7 @@ public class WorldFillTask implements Runnable
 	// step through chunks in spiral pattern from center; returns false if we're done, otherwise returns true
 	public boolean moveToNext()
 	{
-		if (paused || pausedForMemory)
+		if (paused || memoryPause)
 			return false;
 
 		reportNum++;
@@ -289,13 +330,13 @@ public class WorldFillTask implements Runnable
 		// if we've been around one full loop (4 legs)...
 		if (isZLeg && isNeg && current == 0)
 		{	// see if we've been outside the border for the whole loop
-			if (!insideBorder)
+			if (!inside)
 			{	// and finish if so
 				finish();
 				return false;
 			}	// otherwise, reset the "inside border" flag
 			else
-				insideBorder = false;
+				inside = false;
 		}
 		return true;
 
@@ -313,12 +354,12 @@ public class WorldFillTask implements Runnable
 	}
 
 	// for successful completion
-	public void finish()
+	private void finish()
 	{
 		this.paused = true;
 		reportProgress();
         Util.saveWorld(world);
-		sendMessage("task successfully completed for world \"" + refWorld() + "\"!");
+		sendMessage("task successfully completed for world \"" + getWorld() + "\"!");
 		this.stop();
 	}
 
@@ -329,15 +370,11 @@ public class WorldFillTask implements Runnable
 	}
 
 	// we're done, whether finished or cancelled
+	// TODO: stuff called here should be handled upon exception creating
 	private void stop()
 	{
-		if (server == null)
-			return;
-
 		readyToGo = false;
-		if (taskID != -1)
-			WorldBorder.SCHEDULER.cancelTask(taskID);
-		server = null;
+		FMLCommonHandler.instance().bus().unregister(this);
 
 		// go ahead and unload any chunks we still have loaded
 		while(!storedChunks.isEmpty())
@@ -348,24 +385,19 @@ public class WorldFillTask implements Runnable
 		}
 	}
 
-	// is this task still valid/workable?
-	public boolean valid()
-	{
-		return this.server != null;
-	}
-
 	// handle pausing/unpausing the task
 	public void pause()
 	{
-		if(this.pausedForMemory)
+		if(this.memoryPause)
 			pause(false);
 		else
 			pause(!this.paused);
 	}
+
 	public void pause(boolean pause)
 	{
-		if (this.pausedForMemory && !pause)
-			this.pausedForMemory = false;
+		if (this.memoryPause && !pause)
+			this.memoryPause = false;
 		else
 			this.paused = pause;
 		if (this.paused)
@@ -376,15 +408,16 @@ public class WorldFillTask implements Runnable
 		else
 			Config.unStoreFillTask();
 	}
+
 	public boolean isPaused()
 	{
-		return this.paused || this.pausedForMemory;
+		return this.paused || this.memoryPause;
 	}
 
 	// let the user know how things are coming along
 	private void reportProgress()
 	{
-		lastReport = Config.Now();
+		lastReport = Util.now();
 		double perc = ((double)(reportTotal + reportNum) / (double)reportTarget) * 100;
 		if (perc > 100) perc = 100;
 		sendMessage(reportNum + " more chunks processed (" + (reportTotal + reportNum) + " total, ~" + Config.COORD_FORMAT.format(perc) + "%" + ")");
@@ -407,17 +440,17 @@ public class WorldFillTask implements Runnable
 		long availMem = Config.getAvailableMemory();
 
 		Config.log("[Fill] " + text + " (free mem: " + availMem + " MB)");
-		if (notifyPlayer != null)
-			Util.chat(notifyPlayer, "[Fill] " + text);
+		if (requester != null)
+			Util.chat(requester, "[Fill] " + text);
 
 		if (availMem < 200)
 		{	// running low on memory, auto-pause
-			pausedForMemory = true;
+			memoryPause = true;
 			Config.storeFillTask();
 			text = "Available memory is very low, task is pausing. A cleanup will be attempted now, and the task will automatically continue if/when sufficient memory is freed up.\n Alternatively, if you restart the server, this task will automatically continue once the server is back up.";
 			Config.log("[Fill] " + text);
-			if (notifyPlayer != null)
-                Util.chat(notifyPlayer, "[Fill] " + text);
+			if (requester != null)
+                Util.chat(requester, "[Fill] " + text);
 			// prod Java with a request to go ahead and do GC to clean unloaded chunks from memory; this seems to work wonders almost immediately
 			// yes, explicit calls to System.gc() are normally bad, but in this case it otherwise can take a long long long time for Java to recover memory
 			System.gc();
@@ -433,40 +466,5 @@ public class WorldFillTask implements Runnable
 		this.reportTotal = totalDone;
 		this.continueNotice = true;
 	}
-	public int refX()
-	{
-		return refX;
-	}
-	public int refZ()
-	{
-		return refZ;
-	}
-	public int refLength()
-	{
-		return refLength;
-	}
-	public int refTotal()
-	{
-		return refTotal;
-	}
-	public int refFillDistance()
-	{
-		return fillDistance;
-	}
-	public int refTickFrequency()
-	{
-		return tickFrequency;
-	}
-	public int refChunksPerRun()
-	{
-		return chunksPerRun;
-	}
-	public String refWorld()
-	{
-		return Util.getWorldName(world);
-	}
-	public boolean refForceLoad()
-	{
-		return forceLoad;
-	}
+
 }

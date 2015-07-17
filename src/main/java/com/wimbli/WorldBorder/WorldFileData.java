@@ -1,7 +1,7 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Util;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.world.World;
 
 import javax.imageio.ImageIO;
@@ -16,21 +16,23 @@ import java.util.List;
 
 public class WorldFileData
 {
-	private transient World world;
-	private transient File regionFolder = null;
-	private transient File[] regionFiles = null;
-	private transient EntityPlayerMP notifyPlayer = null;
-	private transient Map<CoordXZ, List<Boolean>> regionChunkExistence = Collections.synchronizedMap(new HashMap<CoordXZ, List<Boolean>>());
+	private Map<CoordXZ, List<Boolean>> regionChunkExistence = Collections.synchronizedMap(new HashMap<CoordXZ, List<Boolean>>());
+
+	private World          world;
+	private File           regionFolder = null;
+	private File[]         regionFiles  = null;
+	private ICommandSender requester    = null;
 
 	/**
 	 * Use this static method to create a new instance of this class. If null is
 	 * returned, there was a problem so any process relying on this should be cancelled.
      *
      * TODO: Optimize this for Forge/Vanilla folder structure
+     * TODO: Throw exceptions on failures
 	 */
-    public static WorldFileData create(World world, EntityPlayerMP notifyPlayer)
+    public static WorldFileData create(World world, ICommandSender requester)
 	{
-		WorldFileData newData = new WorldFileData(world, notifyPlayer);
+		WorldFileData newData = new WorldFileData(world, requester);
 
 		newData.regionFolder = new File(newData.world.getSaveHandler().getWorldDirectory(), "region");
 		if (!newData.regionFolder.exists() || !newData.regionFolder.isDirectory())
@@ -65,10 +67,10 @@ public class WorldFileData
 	}
 
 	// the constructor is private; use create() method above to create an instance of this class.
-	private WorldFileData(World world, EntityPlayerMP notifyPlayer)
+	private WorldFileData(World world, ICommandSender requester)
 	{
-		this.world = world;
-		this.notifyPlayer = notifyPlayer;
+		this.world     = world;
+		this.requester = requester;
 	}
 
 
@@ -217,8 +219,8 @@ public class WorldFileData
 	private void sendMessage(String text)
 	{
 		Config.log("[WorldData] " + text);
-		if (notifyPlayer != null)
-            Util.chat(notifyPlayer, "[WorldData] " + text);
+		if (requester != null)
+            Util.chat(requester, "[WorldData] " + text);
 	}
 
 	// file filter used for region files
