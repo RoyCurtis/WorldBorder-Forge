@@ -14,37 +14,37 @@ import java.util.UUID;
 
 public class CmdBypass extends WBCmd
 {
-	public CmdBypass()
-	{
-		name = permission = "bypass";
-		minParams = 0;
-		maxParams = 2;
+    public CmdBypass()
+    {
+        name = permission = "bypass";
+        minParams = 0;
+        maxParams = 2;
 
-		addCmdExample(nameEmphasized() + "{player} [on|off] - let player go beyond border.");
-		helpText = "If [player] isn't specified, command sender is used. If [on|off] isn't specified, the value will " +
-			"be toggled. Once bypass is enabled, the player will not be stopped by any borders until bypass is " +
-			"disabled for them again. Use the " + commandEmphasized("bypasslist") + C_DESC + "command to list all " +
-			"players with bypass enabled.";
-	}
+        addCmdExample(nameEmphasized() + "{player} [on|off] - let player go beyond border.");
+        helpText = "If [player] isn't specified, command sender is used. If [on|off] isn't specified, the value will " +
+            "be toggled. Once bypass is enabled, the player will not be stopped by any borders until bypass is " +
+            "disabled for them again. Use the " + commandEmphasized("bypasslist") + C_DESC + "command to list all " +
+            "players with bypass enabled.";
+    }
 
-	@Override
-	public void cmdStatus(ICommandSender sender)
-	{
-		if (!(sender instanceof EntityPlayerMP))
-			return;
+    @Override
+    public void cmdStatus(ICommandSender sender)
+    {
+        if (!(sender instanceof EntityPlayerMP))
+            return;
 
-		boolean bypass = Config.isPlayerBypassing(((EntityPlayerMP)sender).getUniqueID());
-		Util.chat(sender, C_HEAD + "Border bypass is currently " + enabledColored(bypass) + C_HEAD + " for you.");
-	}
+        boolean bypass = Config.isPlayerBypassing(((EntityPlayerMP)sender).getUniqueID());
+        Util.chat(sender, C_HEAD + "Border bypass is currently " + enabledColored(bypass) + C_HEAD + " for you.");
+    }
 
-	@Override
-	public void execute(final ICommandSender sender, final EntityPlayerMP player, final List<String> params, String worldName)
-	{
-		if (player == null && params.isEmpty())
-		{
-			sendErrorAndHelp(sender, "When running this command from console, you must specify a player.");
-			return;
-		}
+    @Override
+    public void execute(final ICommandSender sender, final EntityPlayerMP player, final List<String> params, String worldName)
+    {
+        if (player == null && params.isEmpty())
+        {
+            sendErrorAndHelp(sender, "When running this command from console, you must specify a player.");
+            return;
+        }
 
         assert player != null;
         final String sPlayer = (params.isEmpty()) ? player.getDisplayName() : params.get(0);
@@ -94,5 +94,5 @@ public class CmdBypass extends WBCmd
 
         if (player != target)
             Util.chat(sender, "Border bypass for player \"" + sPlayer + "\" is " + enabledColored(bypassing) + ".");
-	}
+    }
 }

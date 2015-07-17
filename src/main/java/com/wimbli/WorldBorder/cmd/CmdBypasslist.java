@@ -13,25 +13,25 @@ import java.util.UUID;
 
 public class CmdBypasslist extends WBCmd
 {
-	public CmdBypasslist()
-	{
-		name = permission = "bypasslist";
-		minParams = maxParams = 0;
+    public CmdBypasslist()
+    {
+        name = permission = "bypasslist";
+        minParams = maxParams = 0;
 
-		addCmdExample(nameEmphasized() + "- list players with border bypass enabled.");
-		helpText = "The bypass list will persist between server restarts, and applies to all worlds. Use the " +
-			commandEmphasized("bypass") + C_DESC + "command to add or remove players.";
-	}
+        addCmdExample(nameEmphasized() + "- list players with border bypass enabled.");
+        helpText = "The bypass list will persist between server restarts, and applies to all worlds. Use the " +
+            commandEmphasized("bypass") + C_DESC + "command to add or remove players.";
+    }
 
-	@Override
-	public void execute(final ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
-	{
-		final UUID[] uuids = Config.getPlayerBypassList();
-		if (uuids.length == 0)
-		{
-			Util.chat(sender, "Players with border bypass enabled: <none>");
-			return;
-		}
+    @Override
+    public void execute(final ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
+    {
+        final UUID[] uuids = Config.getPlayerBypassList();
+        if (uuids.length == 0)
+        {
+            Util.chat(sender, "Players with border bypass enabled: <none>");
+            return;
+        }
 
         try
         {
@@ -45,5 +45,5 @@ public class CmdBypasslist extends WBCmd
         {
             sendErrorAndHelp(sender, "Failed to look up names for the UUIDs in the border bypass list. " + ex.getLocalizedMessage());
         }
-	}
+    }
 }

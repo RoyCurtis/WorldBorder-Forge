@@ -10,17 +10,17 @@ import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
 public class MobSpawnListener
 {
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onCreatureSpawn(LivingSpawnEvent.CheckSpawn event)
-	{
-		World world = event.entity.worldObj;
-		if (world == null) return;
-		BorderData border = Config.Border( Util.getWorldName(world) );
-		if (border == null) return;
-		
-		if (!border.insideBorder(event.entity.posX, event.entity.posZ, Config.getShapeRound()))
-		{
-			event.setResult(Event.Result.DENY);
-		}
-	}
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onCreatureSpawn(LivingSpawnEvent.CheckSpawn event)
+    {
+        World world = event.entity.worldObj;
+        if (world == null) return;
+        BorderData border = Config.Border( Util.getWorldName(world) );
+        if (border == null) return;
+
+        if (!border.insideBorder(event.entity.posX, event.entity.posZ, Config.getShapeRound()))
+        {
+            event.setResult(Event.Result.DENY);
+        }
+    }
 }

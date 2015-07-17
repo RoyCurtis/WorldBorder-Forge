@@ -10,32 +10,32 @@ import java.util.List;
 
 public class CmdPortal extends WBCmd
 {
-	public CmdPortal()
-	{
-		name = permission = "portal";
-		minParams = maxParams = 1;
+    public CmdPortal()
+    {
+        name = permission = "portal";
+        minParams = maxParams = 1;
 
-		addCmdExample(nameEmphasized() + "<on|off> - turn portal redirection on or off.");
-		helpText = "Default value: on. This feature monitors new portal creation and changes the target new portal " +
-			"location if it is outside of the border. Try disabling this if you have problems with other plugins " +
-			"related to portals.";
-	}
+        addCmdExample(nameEmphasized() + "<on|off> - turn portal redirection on or off.");
+        helpText = "Default value: on. This feature monitors new portal creation and changes the target new portal " +
+            "location if it is outside of the border. Try disabling this if you have problems with other plugins " +
+            "related to portals.";
+    }
 
-	@Override
-	public void cmdStatus(ICommandSender sender)
-	{
-		Util.chat(sender, C_HEAD + "Portal redirection is " + enabledColored(Config.doPortalRedirection()) + C_HEAD + ".");
-	}
+    @Override
+    public void cmdStatus(ICommandSender sender)
+    {
+        Util.chat(sender, C_HEAD + "Portal redirection is " + enabledColored(Config.doPortalRedirection()) + C_HEAD + ".");
+    }
 
-	@Override
-	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
-	{
-		Config.setPortalRedirection(strAsBool(params.get(0)));
+    @Override
+    public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
+    {
+        Config.setPortalRedirection(strAsBool(params.get(0)));
 
-		if (player != null)
-		{
-			Config.log((Config.doPortalRedirection() ? "Enabled" : "Disabled") + " portal redirection at the command of player \"" + player.getDisplayName() + "\".");
-			cmdStatus(sender);
-		}
-	}
+        if (player != null)
+        {
+            Config.log((Config.doPortalRedirection() ? "Enabled" : "Disabled") + " portal redirection at the command of player \"" + player.getDisplayName() + "\".");
+            cmdStatus(sender);
+        }
+    }
 }

@@ -10,31 +10,31 @@ import java.util.List;
 
 public class CmdWhoosh extends WBCmd
 {
-	public CmdWhoosh()
-	{
-		name = permission = "whoosh";
-		minParams = maxParams = 1;
+    public CmdWhoosh()
+    {
+        name = permission = "whoosh";
+        minParams = maxParams = 1;
 
-		addCmdExample(nameEmphasized() + "<on|off> - turn knockback effect on or off.");
-		helpText = "Default value: on. This will show a particle effect and play a sound where a player is knocked " +
-			"back from the border.";
-	}
+        addCmdExample(nameEmphasized() + "<on|off> - turn knockback effect on or off.");
+        helpText = "Default value: on. This will show a particle effect and play a sound where a player is knocked " +
+            "back from the border.";
+    }
 
-	@Override
-	public void cmdStatus(ICommandSender sender)
-	{
-		Util.chat(sender, C_HEAD + "\"Whoosh\" knockback effect is " + enabledColored(Config.doWhooshEffect()) + C_HEAD + ".");
-	}
+    @Override
+    public void cmdStatus(ICommandSender sender)
+    {
+        Util.chat(sender, C_HEAD + "\"Whoosh\" knockback effect is " + enabledColored(Config.doWhooshEffect()) + C_HEAD + ".");
+    }
 
-	@Override
-	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
-	{
-		Config.setWhooshEffect(strAsBool(params.get(0)));
+    @Override
+    public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
+    {
+        Config.setWhooshEffect(strAsBool(params.get(0)));
 
-		if (player != null)
-		{
-			Config.log((Config.doWhooshEffect() ? "Enabled" : "Disabled") + " \"whoosh\" knockback effect at the command of player \"" + player.getDisplayName() + "\".");
-			cmdStatus(sender);
-		}
-	}
+        if (player != null)
+        {
+            Config.log((Config.doWhooshEffect() ? "Enabled" : "Disabled") + " \"whoosh\" knockback effect at the command of player \"" + player.getDisplayName() + "\".");
+            cmdStatus(sender);
+        }
+    }
 }

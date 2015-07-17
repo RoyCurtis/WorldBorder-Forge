@@ -10,25 +10,25 @@ import java.util.List;
 
 public class CmdReload extends WBCmd
 {
-	public CmdReload()
-	{
-		name = permission = "reload";
-		minParams = maxParams = 0;
+    public CmdReload()
+    {
+        name = permission = "reload";
+        minParams = maxParams = 0;
 
-		addCmdExample(nameEmphasized() + "- re-load data from config.yml.");
-		helpText = "If you make manual changes to config.yml while the server is running, you can use this command " +
-			"to make WorldBorder load the changes without needing to restart the server.";
-	}
+        addCmdExample(nameEmphasized() + "- re-load data from config.yml.");
+        helpText = "If you make manual changes to config.yml while the server is running, you can use this command " +
+            "to make WorldBorder load the changes without needing to restart the server.";
+    }
 
-	@Override
-	public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
-	{
-		if (player != null)
-			Config.log("Reloading config file at the command of player \"" + player.getDisplayName() + "\".");
+    @Override
+    public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
+    {
+        if (player != null)
+            Config.log("Reloading config file at the command of player \"" + player.getDisplayName() + "\".");
 
-		Config.load(true);
+        Config.load(true);
 
-		if (player != null)
-			Util.chat(sender, "WorldBorder configuration reloaded.");
-	}
+        if (player != null)
+            Util.chat(sender, "WorldBorder configuration reloaded.");
+    }
 }

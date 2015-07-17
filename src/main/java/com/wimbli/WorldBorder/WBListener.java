@@ -10,32 +10,32 @@ import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 
 public class WBListener
 {
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onPlayerPearl(EnderTeleportEvent event)
-	{
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPlayerPearl(EnderTeleportEvent event)
+    {
         if ( !(event.entityLiving instanceof EntityPlayerMP) )
             return;
 
-		// if knockback is set to 0, simply return
-		if (Config.getKnockBack() == 0.0 || !Config.getDenyEnderpearl())
-			return;
+        // if knockback is set to 0, simply return
+        if (Config.getKnockBack() == 0.0 || !Config.getDenyEnderpearl())
+            return;
 
-		if (Config.isDebugMode())
-			Config.log("Teleport cause: Enderpearl");
+        if (Config.isDebugMode())
+            Config.log("Teleport cause: Enderpearl");
 
         EntityPlayerMP player = (EntityPlayerMP) event.entityLiving;
 
         Location target = new Location(event, player);
-		Location newLoc = BorderCheck.checkPlayer(player, target, true, true);
+        Location newLoc = BorderCheck.checkPlayer(player, target, true, true);
 
-		if (newLoc != null)
-		{
-			event.setCanceled(true);
+        if (newLoc != null)
+        {
+            event.setCanceled(true);
             event.targetX = newLoc.posX;
             event.targetY = newLoc.posY;
             event.targetZ = newLoc.posZ;
-		}
-	}
+        }
+    }
 
     // FORGE: This is a very hacky attempt at emulating teleport event. May not work as
     // intended.
@@ -60,12 +60,12 @@ public class WBListener
 
     // FORGE: This is a very hacky attempt at emulating portal event. May not work as
     // intended.
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onPlayerPortal(PlayerEvent.PlayerChangedDimensionEvent event)
-	{
-		// if knockback is set to 0, or portal redirection is disabled, simply return
-		if (Config.getKnockBack() == 0.0 || !Config.doPortalRedirection())
-			return;
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPlayerPortal(PlayerEvent.PlayerChangedDimensionEvent event)
+    {
+        // if knockback is set to 0, or portal redirection is disabled, simply return
+        if (Config.getKnockBack() == 0.0 || !Config.doPortalRedirection())
+            return;
 
         if (Config.isDebugMode())
             Config.log("Teleport cause: Dimension change");
@@ -73,9 +73,9 @@ public class WBListener
         EntityPlayerMP player = (EntityPlayerMP) event.player;
 
         Location target = new Location(event.player);
-		Location newLoc = BorderCheck.checkPlayer(player, target, true, true);
+        Location newLoc = BorderCheck.checkPlayer(player, target, true, true);
 
-		if (newLoc != null)
-			event.player.setPositionAndUpdate(newLoc.posX, newLoc.posY, newLoc.posZ);
-	}
+        if (newLoc != null)
+            event.player.setPositionAndUpdate(newLoc.posX, newLoc.posY, newLoc.posZ);
+    }
 }

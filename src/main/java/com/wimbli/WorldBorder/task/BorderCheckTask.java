@@ -33,23 +33,23 @@ public class BorderCheckTask
         running = state;
     }
 
-	/** Uses lowest event priority to run after everything else has */
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onServerTick(TickEvent.ServerTickEvent event)
-	{
-		// Only run at end of tick to catch players that just moved past border
-		if (event.phase == TickEvent.Phase.START)
-			return;
+    /** Uses lowest event priority to run after everything else has */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onServerTick(TickEvent.ServerTickEvent event)
+    {
+        // Only run at end of tick to catch players that just moved past border
+        if (event.phase == TickEvent.Phase.START)
+            return;
 
-		// if knockback is set to 0, simply return
+        // if knockback is set to 0, simply return
         // TODO: optimize so this task is never enabled if knockback is 0
-		if (Config.getKnockBack() == 0.0)
-			return;
+        if (Config.getKnockBack() == 0.0)
+            return;
 
         if ( WorldBorder.SERVER.getTickCounter() % Config.getTimerTicks() != 0 )
             return;
 
-		for (Object o : WorldBorder.SERVER.getConfigurationManager().playerEntityList)
-			BorderCheck.checkPlayer( (EntityPlayerMP) o, null, false, true );
-	}
+        for (Object o : WorldBorder.SERVER.getConfigurationManager().playerEntityList)
+            BorderCheck.checkPlayer( (EntityPlayerMP) o, null, false, true );
+    }
 }

@@ -9,17 +9,17 @@ import net.minecraftforge.event.world.BlockEvent;
 
 public class BlockPlaceListener
 {
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onBlockPlace(BlockEvent.PlaceEvent event)
-	{
-		World world = event.world;
-		if (world == null) return;
-		BorderData border = Config.Border( Util.getWorldName(world) );
-		if (border == null) return;
-		
-		if (!border.insideBorder(event.x, event.z, Config.getShapeRound()))
-		{
-			event.setResult(Event.Result.DENY);
-		}
-	}
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onBlockPlace(BlockEvent.PlaceEvent event)
+    {
+        World world = event.world;
+        if (world == null) return;
+        BorderData border = Config.Border( Util.getWorldName(world) );
+        if (border == null) return;
+
+        if (!border.insideBorder(event.x, event.z, Config.getShapeRound()))
+        {
+            event.setResult(Event.Result.DENY);
+        }
+    }
 }
