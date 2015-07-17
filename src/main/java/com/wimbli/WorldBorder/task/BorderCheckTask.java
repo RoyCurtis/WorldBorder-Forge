@@ -46,7 +46,7 @@ public class BorderCheckTask
 		if (Config.getKnockBack() == 0.0)
 			return;
 
-        if ( Config.getTimerTicks() % WorldBorder.SERVER.getTickCounter() != 0 )
+        if ( WorldBorder.SERVER.getTickCounter() % Config.getTimerTicks() != 0 )
             return;
 
 		for (Object o : WorldBorder.SERVER.getConfigurationManager().playerEntityList)

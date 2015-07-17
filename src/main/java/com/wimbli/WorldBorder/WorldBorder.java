@@ -1,6 +1,5 @@
 package com.wimbli.WorldBorder;
 
-import com.wimbli.WorldBorder.forge.Scheduler;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -32,15 +31,13 @@ public class WorldBorder
     public static final Logger LOGGER  = LogManager.getFormatterLogger(MODID);
 
     /** Singleton instance of WorldBorder, created by Forge */
-    public static WorldBorder     INSTANCE  = null;
+    public static WorldBorder     INSTANCE = null;
     /** Shortcut reference to vanilla server instance */
-    public static MinecraftServer SERVER    = null;
-    /** Singleton instance of WorldBorder's task scheduler */
-    public static Scheduler       SCHEDULER = null;
+    public static MinecraftServer SERVER   = null;
     /** Singleton instance of WorldBorder's command handler */
-    public static WBCommand       COMMAND   = null;
+    public static WBCommand       COMMAND  = null;
     /** Singleton instance of WorldBorder's event handler */
-    public static WBListener      LISTENER  = null;
+    public static WBListener      LISTENER = null;
 
     private BlockPlaceListener blockPlaceListener = null;
     private MobSpawnListener   mobSpawnListener   = null;
@@ -68,20 +65,16 @@ public class WorldBorder
     @SideOnly(Side.SERVER)
     public void serverStart(FMLServerStartingEvent event)
     {
-        if (INSTANCE  == null) INSTANCE  = this;
-        if (SERVER    == null) SERVER    = event.getServer();
-        if (SCHEDULER == null) SCHEDULER = new Scheduler();
-        if (COMMAND   == null) COMMAND   = new WBCommand();
-        if (LISTENER  == null) LISTENER  = new WBListener();
+        if (INSTANCE  == null) INSTANCE = this;
+        if (SERVER    == null) SERVER   = event.getServer();
+        if (COMMAND   == null) COMMAND  = new WBCommand();
+        if (LISTENER  == null) LISTENER = new WBListener();
 
         // Load (or create new) config files
         Config.load(false);
 
         // our one real command, though it does also have aliases "wb" and "worldborder"
         event.registerServerCommand(COMMAND);
-
-        // register scheduler's tick handler
-        FMLCommonHandler.instance().bus().register(SCHEDULER);
 
         // keep an eye on teleports, to redirect them to a spot inside the border if necessary
         FMLCommonHandler.instance().bus().register(LISTENER);

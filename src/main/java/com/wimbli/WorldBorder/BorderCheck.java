@@ -47,7 +47,6 @@ public class BorderCheck
         handlingPlayers.add(player.getDisplayName().toLowerCase());
 
         Location newLoc = newLocation(player, loc, border, notify);
-        boolean handlingVehicle = false;
 
         /*
          * since we need to forcibly eject players who are inside vehicles, that fires a teleport event (go figure) and
@@ -73,16 +72,10 @@ public class BorderCheck
                     world.spawnEntityInWorld(ride);
                 }
                 else
-                {
-                    ride.setVelocity(0, 0, 0);
                     ride.setPositionAndRotation(rideLoc.posX, rideLoc.posY, rideLoc.posZ, rideLoc.pitch, rideLoc.yaw);
-                }
 
-                if (Config.getRemountTicks() > 0)
-                {
-                    setPassengerDelayed(ride, player, player.getDisplayName(), Config.getRemountTicks());
-                    handlingVehicle = true;
-                }
+                if ( Config.getRemount() )
+                    player.mountEntity(ride);
             }
         }
 
@@ -103,7 +96,7 @@ public class BorderCheck
 
         if (!returnLocationOnly) player.setPositionAndUpdate(newLoc.posX, newLoc.posY, newLoc.posZ);
 
-        if (!handlingVehicle) handlingPlayers.remove(player.getDisplayName().toLowerCase());
+        handlingPlayers.remove(player.getDisplayName().toLowerCase());
 
         if (returnLocationOnly) return newLoc;
 
@@ -138,21 +131,5 @@ public class BorderCheck
         if (notify) Util.chat(player, Config.getMessage());
 
         return newLoc;
-    }
-
-    // TODO: see if this is still nessecary
-    private static void setPassengerDelayed(final Entity vehicle, final EntityPlayerMP player, final String playerName, long delay)
-    {
-        WorldBorder.SCHEDULER.scheduleSyncDelayedTask(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                handlingPlayers.remove(playerName.toLowerCase());
-                if (vehicle == null || player == null) return;
-
-                player.mountEntity(vehicle);
-            }
-        }, delay);
     }
 }

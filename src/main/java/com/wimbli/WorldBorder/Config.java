@@ -46,7 +46,7 @@ public class Config
 	private static int       timerTicks        = 20;
 	private static boolean   whooshEffect      = true;
 	private static boolean   dynmapEnable      = true;
-    private static int       remountDelayTicks = 0;
+    private static boolean   remount           = true;
     private static boolean   killPlayer        = false;
     private static boolean   portalRedirection = true;
     private static boolean   denyEnderpearl    = false;
@@ -299,23 +299,20 @@ public class Config
 		return timerTicks;
 	}
 
-	public static void setRemountTicks(int ticks)
+	public static void setRemount(boolean enable)
 	{
-		remountDelayTicks = ticks;
-		if (remountDelayTicks == 0)
-			log("Remount delay set to 0. Players will be left dismounted when knocked back from the border while on a vehicle.");
+		remount = enable;
+		if (remount)
+			log("Remount is now enabled. Players will be remounted on their vehicle when knocked back");
 		else
-		{
-			log("Remount delay set to " + remountDelayTicks + " tick(s). That is roughly " + (remountDelayTicks * 50) + "ms / " + (((double)remountDelayTicks * 50.0) / 1000.0) + " seconds.");
-			if (ticks < 10)
-				logWarn("setting the remount delay to less than 10 (and greater than 0) is not recommended. This can lead to nasty client glitches.");
-		}
+            log("Remount is now disabled. Players will be left dismounted when knocked back from the border while on a vehicle.");
+
 		save(true);
 	}
 
-	public static int getRemountTicks()
+	public static boolean getRemount()
 	{
-		return remountDelayTicks;
+		return remount;
 	}
 
 	public static void setFillAutosaveFrequency(int seconds)
@@ -511,7 +508,7 @@ public class Config
         portalRedirection = cfgMain.getBoolean(MAIN_CAT, "portal-redirection", true);
         knockBack         = cfgMain.getFloat(MAIN_CAT, "knock-back-dist", 3.0F);
         timerTicks        = cfgMain.getInt(MAIN_CAT, "timer-delay-ticks", 20);
-        remountDelayTicks = cfgMain.getInt(MAIN_CAT, "remount-delay-ticks", 0);
+        remount           = cfgMain.getBoolean(MAIN_CAT, "remount-on-knockback", true);
         dynmapEnable      = cfgMain.getBoolean(MAIN_CAT, "dynmap-border-enabled", true);
         dynmapMessage     = cfgMain.getString(MAIN_CAT, "dynmap-border-message", "The border of the world.");
         killPlayer        = cfgMain.getBoolean(MAIN_CAT, "player-killed-bad-spawn", false);
@@ -608,7 +605,7 @@ public class Config
 		cfgMain.set(MAIN_CAT, "portal-redirection", portalRedirection);
 		cfgMain.set(MAIN_CAT, "knock-back-dist", knockBack);
 		cfgMain.set(MAIN_CAT, "timer-delay-ticks", timerTicks);
-		cfgMain.set(MAIN_CAT, "remount-delay-ticks", remountDelayTicks);
+		cfgMain.set(MAIN_CAT, "remount-on-knockback", remount);
 		cfgMain.set(MAIN_CAT, "dynmap-border-enabled", dynmapEnable);
 		cfgMain.set(MAIN_CAT, "dynmap-border-message", dynmapMessage);
 		cfgMain.set(MAIN_CAT, "player-killed-bad-spawn", killPlayer);
