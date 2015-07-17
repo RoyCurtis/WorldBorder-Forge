@@ -214,7 +214,7 @@ public class Config
 	{
 		return whooshEffect;
 	}
-	
+
 	public static void setPreventBlockPlace(boolean enable)
 	{
 		if (preventBlockPlace != enable)
@@ -224,7 +224,7 @@ public class Config
 		log("Prevent block place " + (enable ? "enabled" : "disabled") + ".");
 		save(true);
 	}
-	
+
 	public static void setPreventMobSpawn(boolean enable)
 	{
 		if (preventMobSpawn != enable)
@@ -568,17 +568,20 @@ public class Config
         }
 
 		// if we have an unfinished fill task stored from a previous run, load it up
-		if ( cfgMain.hasCategory("fillTask") )
+		if ( cfgMain.hasCategory(FILL_CAT) )
 		{
-            String worldName  = cfgMain.get("fillTask", "world", "").getString();
-			int fillDistance  = cfgMain.get("fillTask", "fillDistance", 176).getInt();
-			int chunksPerRun  = cfgMain.get("fillTask", "chunksPerRun", 5).getInt();
-			int tickFrequency = cfgMain.get("fillTask", "tickFrequency", 20).getInt();
-			int fillX = cfgMain.get("fillTask", "x", 0).getInt();
-			int fillZ = cfgMain.get("fillTask", "z", 0).getInt();
-			int fillLength = cfgMain.get("fillTask", "length", 0).getInt();
-			int fillTotal = cfgMain.get("fillTask", "total", 0).getInt();
-			boolean forceLoad = cfgMain.get("fillTask", "forceLoad", false).getBoolean();
+            // TODO: make these get from category object to provoke NPE
+            String  worldName = cfgMain.get(FILL_CAT, "world", "").getString();
+            boolean forceLoad = cfgMain.get(FILL_CAT, "forceLoad", false).getBoolean();
+
+            int fillDistance  = cfgMain.get(FILL_CAT, "fillDistance", 176).getInt();
+			int chunksPerRun  = cfgMain.get(FILL_CAT, "chunksPerRun", 5).getInt();
+			int tickFrequency = cfgMain.get(FILL_CAT, "tickFrequency", 20).getInt();
+			int fillX         = cfgMain.get(FILL_CAT, "x", 0).getInt();
+			int fillZ         = cfgMain.get(FILL_CAT, "z", 0).getInt();
+			int fillLength    = cfgMain.get(FILL_CAT, "length", 0).getInt();
+			int fillTotal     = cfgMain.get(FILL_CAT, "total", 0).getInt();
+
 			restoreFillTask(worldName, fillDistance, chunksPerRun, tickFrequency, fillX, fillZ, fillLength, fillTotal, forceLoad);
 			save(false);
 		}
@@ -634,15 +637,15 @@ public class Config
 
 		if (storeFillTask && fillTask != null)
 		{
-			cfgMain.set("fillTask","world", fillTask.getWorld());
-			cfgMain.set("fillTask","fillDistance", fillTask.getFillDistance());
-			cfgMain.set("fillTask","chunksPerRun", fillTask.getChunksPerRun());
-			cfgMain.set("fillTask","tickFrequency", fillTask.getTickFrequency());
-			cfgMain.set("fillTask","x", fillTask.getRefX());
-			cfgMain.set("fillTask","z", fillTask.getRefZ());
-			cfgMain.set("fillTask","length", fillTask.getRefLength());
-			cfgMain.set("fillTask","total", fillTask.getRefTotal());
-			cfgMain.set("fillTask","forceLoad", fillTask.getForceLoad());
+			cfgMain.set(FILL_CAT, "world", fillTask.getWorld());
+			cfgMain.set(FILL_CAT, "fillDistance", fillTask.getFillDistance());
+			cfgMain.set(FILL_CAT, "chunksPerRun", fillTask.getChunksPerRun());
+			cfgMain.set(FILL_CAT, "tickFrequency", fillTask.getTickFrequency());
+			cfgMain.set(FILL_CAT, "x", fillTask.getRefX());
+			cfgMain.set(FILL_CAT, "z", fillTask.getRefZ());
+			cfgMain.set(FILL_CAT, "length", fillTask.getRefLength());
+			cfgMain.set(FILL_CAT, "total", fillTask.getRefTotal());
+			cfgMain.set(FILL_CAT, "forceLoad", fillTask.getForceLoad());
 		}
 		else
 			cfgMain.removeCategory("fillTask");

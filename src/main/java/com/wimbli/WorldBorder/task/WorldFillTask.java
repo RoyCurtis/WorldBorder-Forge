@@ -121,6 +121,81 @@ public class WorldFillTask
 		return forceLoad;
 	}
 
+	public void start()
+	{
+		FMLCommonHandler.instance().bus().register(this);
+	}
+
+	// stuff for saving / restoring progress
+	public void continueFrom(int x, int z, int length, int totalDone)
+	{
+		this.x = x;
+		this.z = z;
+		this.length = length;
+		this.reportTotal = totalDone;
+		this.continueNotice = true;
+		start();
+	}
+
+	public void cancel()
+	{
+		this.stop();
+	}
+
+	// for successful completion
+	private void finish()
+	{
+		this.paused = true;
+		reportProgress();
+		Util.saveWorld(world);
+		sendMessage("task successfully completed for world \"" + getWorld() + "\"!");
+		this.stop();
+	}
+
+	// we're done, whether finished or cancelled
+	// TODO: stuff called here should be handled upon exception creating
+	private void stop()
+	{
+		readyToGo = false;
+		FMLCommonHandler.instance().bus().unregister(this);
+
+		// go ahead and unload any chunks we still have loaded
+		while(!storedChunks.isEmpty())
+		{
+			CoordXZ coord = storedChunks.remove(0);
+			if (!originalChunks.contains(coord))
+				provider.unloadChunksIfNotNearSpawn(coord.x, coord.z);
+		}
+	}
+
+	public void pause()
+	{
+		if(this.memoryPause)
+			pause(false);
+		else
+			pause(!this.paused);
+	}
+
+	public void pause(boolean pause)
+	{
+		if (this.memoryPause && !pause)
+			this.memoryPause = false;
+		else
+			this.paused = pause;
+		if (this.paused)
+		{
+			Config.storeFillTask();
+			reportProgress();
+		}
+		else
+			Config.unStoreFillTask();
+	}
+
+	public boolean isPaused()
+	{
+		return this.paused || this.memoryPause;
+	}
+
 	public WorldFillTask(ICommandSender requester, String worldName, int fillDistance, int chunksPerRun, int tickFrequency, boolean forceLoad)
 	{
 		this.requester     = requester;
@@ -353,71 +428,8 @@ public class WorldFillTask
 	 */
 	}
 
-	// for successful completion
-	private void finish()
-	{
-		this.paused = true;
-		reportProgress();
-        Util.saveWorld(world);
-		sendMessage("task successfully completed for world \"" + getWorld() + "\"!");
-		this.stop();
-	}
 
-	// for cancelling prematurely
-	public void cancel()
-	{
-		this.stop();
-	}
 
-	// we're done, whether finished or cancelled
-	// TODO: stuff called here should be handled upon exception creating
-	private void stop()
-	{
-		readyToGo = false;
-		FMLCommonHandler.instance().bus().unregister(this);
-
-		// go ahead and unload any chunks we still have loaded
-		while(!storedChunks.isEmpty())
-		{
-			CoordXZ coord = storedChunks.remove(0);
-			if (!originalChunks.contains(coord))
-				provider.unloadChunksIfNotNearSpawn(coord.x, coord.z);
-		}
-	}
-
-	public void start()
-	{
-		FMLCommonHandler.instance().bus().register(this);
-	}
-
-	// handle pausing/unpausing the task
-	public void pause()
-	{
-		if(this.memoryPause)
-			pause(false);
-		else
-			pause(!this.paused);
-	}
-
-	public void pause(boolean pause)
-	{
-		if (this.memoryPause && !pause)
-			this.memoryPause = false;
-		else
-			this.paused = pause;
-		if (this.paused)
-		{
-			Config.storeFillTask();
-			reportProgress();
-		}
-		else
-			Config.unStoreFillTask();
-	}
-
-	public boolean isPaused()
-	{
-		return this.paused || this.memoryPause;
-	}
 
 	// let the user know how things are coming along
 	private void reportProgress()
@@ -461,16 +473,5 @@ public class WorldFillTask
 			System.gc();
 		}
 	}
-
-	// stuff for saving / restoring progress
-	public void continueProgress(int x, int z, int length, int totalDone)
-	{
-		this.x = x;
-		this.z = z;
-		this.length = length;
-		this.reportTotal = totalDone;
-		this.continueNotice = true;
-		start();
-	}
-
+	
 }
