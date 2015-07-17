@@ -450,7 +450,7 @@ public class Config
 
 	public static void stopTrimTask()
 	{
-		if (trimTask != null && trimTask.valid())
+		if (trimTask != null)
 			trimTask.cancel();
 	}
 

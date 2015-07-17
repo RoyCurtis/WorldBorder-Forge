@@ -2,9 +2,8 @@ package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.CoordXZ;
-import com.wimbli.WorldBorder.WorldBorder;
-import com.wimbli.WorldBorder.task.WorldTrimTask;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.task.WorldTrimTask;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
@@ -74,7 +73,7 @@ public class CmdTrim extends WBCmd
 		String cmd = cmd(sender) + nameEmphasized() + C_CMD;
 
 		// make sure Trim isn't already running
-		if (Config.trimTask != null && Config.trimTask.valid())
+		if (Config.trimTask != null)
 		{
 			Util.chat(sender, C_ERR + "The world map trimming task is already running.");
 			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
@@ -123,15 +122,18 @@ public class CmdTrim extends WBCmd
 			else
 				ticks = 20 / trimFrequency;
 
-			Config.trimTask = new WorldTrimTask(WorldBorder.SERVER, player, trimWorld, trimPadding, repeats);
-			if (Config.trimTask.valid())
+            // TODO: make use of ticks for tick limiting
+			try
 			{
-				int task = WorldBorder.SCHEDULER.scheduleSyncRepeatingTask(Config.trimTask, ticks, ticks);
-				Config.trimTask.setTaskID(task);
-				Util.chat(sender, "WorldBorder map trimming task for world \"" + trimWorld + "\" started.");
+                Config.trimTask = new WorldTrimTask(player, trimWorld, trimPadding, repeats);
+				Config.trimTask.start();
+                Util.chat(sender, "WorldBorder map trimming task for world \"" + trimWorld + "\" started.");
 			}
-			else
-				Util.chat(sender, C_ERR + "The world map trimming task failed to start.");
+			catch (Exception e)
+			{
+                Util.chat(sender, C_ERR + "The world map trimming task failed to start.");
+				Util.chat(sender, C_ERR + e.getMessage());
+			}
 
 			trimDefaults();
 		}
@@ -170,7 +172,7 @@ public class CmdTrim extends WBCmd
 
 	private boolean makeSureTrimIsRunning(ICommandSender sender)
 	{
-		if (Config.trimTask != null && Config.trimTask.valid())
+		if (Config.trimTask != null)
 			return true;
 		sendErrorAndHelp(sender, "The world map trimming task is not currently running.");
 		return false;

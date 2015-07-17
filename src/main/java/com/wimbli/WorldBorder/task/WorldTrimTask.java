@@ -2,79 +2,77 @@ package com.wimbli.WorldBorder.task;
 
 import com.wimbli.WorldBorder.*;
 import com.wimbli.WorldBorder.forge.Util;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.world.WorldServer;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorldTrimTask implements Runnable
+/**
+ * Tick handler that performs a trim task upon request
+ */
+public class WorldTrimTask
 {
-	// general task-related reference data
-	private transient MinecraftServer server = null;
-	private transient WorldServer world = null;
-	private transient WorldFileData worldData = null;
-	private transient BorderData border = null;
-	private transient boolean readyToGo = false;
-	private transient boolean paused = false;
-	private transient int taskID = -1;
-	private transient EntityPlayerMP notifyPlayer = null;
-	private transient int chunksPerRun = 1;
-	
-	// values for what chunk in the current region we're at
-	private transient int currentRegion = -1;  // region(file) we're at in regionFiles
-	private transient int regionX = 0;  // X location value of the current region
-	private transient int regionZ = 0;  // X location value of the current region
-	private transient int currentChunk = 0;  // chunk we've reached in the current region (regionChunks)
-	private transient List<CoordXZ> regionChunks = new ArrayList<CoordXZ>(1024);
-	private transient List<CoordXZ> trimChunks = new ArrayList<CoordXZ>(1024);
-	private transient int counter = 0;
+    // Per-task shortcut references
+	private final WorldServer    world;
+	private final WorldFileData  worldData;
+	private final BorderData     border;
+    private final ICommandSender requester;
 
-	// for reporting progress back to user occasionally
-	private transient long lastReport = Util.now();
-	private transient int reportTarget = 0;
-	private transient int reportTotal = 0;
-	private transient int reportTrimmedRegions = 0;
-	private transient int reportTrimmedChunks = 0;
+    // Per-task state variables
+    private List<CoordXZ> regionChunks = new ArrayList<>(1024);
+    private List<CoordXZ> trimChunks   = new ArrayList<>(1024);
 
+    private int     chunksPerRun = 1;
+    private boolean readyToGo    = false;
+    private boolean paused       = false;
 
-	public WorldTrimTask(MinecraftServer theServer, EntityPlayerMP player, String worldName, int trimDistance, int chunksPerRun)
+	// Per-task state region progress tracking
+	private int currentRegion = -1;  // region(file) we're at in regionFiles
+    private int currentChunk  = 0;   // chunk we've reached in the current region (regionChunks)
+
+    private int regionX = 0;  // X location value of the current region
+    private int regionZ = 0;  // X location value of the current region
+	private int counter = 0;
+
+    // Per-task state for progress reporting
+	private long lastReport   = Util.now();
+	private int  reportTarget = 0;
+	private int  reportTotal  = 0;
+
+	private int reportTrimmedRegions = 0;
+	private int reportTrimmedChunks  = 0;
+
+	public WorldTrimTask(ICommandSender player, String worldName, int trimDistance, int chunksPerRun)
 	{
-		this.server = theServer;
-		this.notifyPlayer = player;
+		this.requester    = player;
 		this.chunksPerRun = chunksPerRun;
 
 		this.world = Util.getWorld(worldName);
-		if (this.world == null)
-		{
-			if (worldName.isEmpty())
-				sendMessage("You must specify a world!");
-			else
-				sendMessage("World \"" + worldName + "\" not found!");
-			this.stop();
-			return;
-		}
+        if (this.world == null)
+            throw new IllegalArgumentException("World \"" + worldName + "\" not found!");
 
-		this.border = (Config.Border(worldName) == null) ? null : Config.Border(worldName).copy();
-		if (this.border == null)
-		{
-			sendMessage("No border found for world \"" + worldName + "\"!");
-			this.stop();
-			return;
-		}
+        this.border = (Config.Border(worldName) == null)
+                ? null
+                : Config.Border(worldName).copy();
+
+        if (this.border == null)
+            throw new IllegalStateException("No border found for world \"" + worldName + "\"!");
+
+        this.worldData = WorldFileData.create(world, requester);
+        if (worldData == null)
+            throw new IllegalStateException("Could not create WorldFileData!");
 
 		this.border.setRadiusX(border.getRadiusX() + trimDistance);
 		this.border.setRadiusZ(border.getRadiusZ() + trimDistance);
-
-		worldData = WorldFileData.create(world, notifyPlayer);
-		if (worldData == null)
-		{
-			this.stop();
-			return;
-		}
 
 		// each region file covers up to 1024 chunks; with all operations we might need to do, let's figure 3X that
 		this.reportTarget = worldData.regionFileCount() * 3072;
@@ -86,15 +84,14 @@ public class WorldTrimTask implements Runnable
 		this.readyToGo = true;
 	}
 
-	public void setTaskID(int ID)
+    @SubscribeEvent
+    public void onServerTick(TickEvent.ServerTickEvent event)
 	{
-		this.taskID = ID;
-	}
+        // Only run at start of tick
+        if (event.phase == TickEvent.Phase.END)
+            return;
 
-
-	public void run()
-	{
-		if (server == null || !readyToGo || paused)
+		if (!readyToGo || paused)
 			return;
 
 		// this is set so it only does one iteration at a time, no matter how frequently the timer fires
@@ -356,20 +353,14 @@ public class WorldTrimTask implements Runnable
 	// we're done, whether finished or cancelled
 	private void stop()
 	{
-		if (server == null)
-			return;
-
-		readyToGo = false;
-		if (taskID != -1)
-			WorldBorder.SCHEDULER.cancelTask(taskID);
-		server = null;
+        readyToGo = false;
+        FMLCommonHandler.instance().bus().unregister(this);
 	}
 
-	// is this task still valid/workable?
-	public boolean valid()
-	{
-		return this.server != null;
-	}
+    public void start()
+    {
+        FMLCommonHandler.instance().bus().register(this);
+    }
 
 	// handle pausing/unpausing the task
 	public void pause()
@@ -399,7 +390,7 @@ public class WorldTrimTask implements Runnable
 	private void sendMessage(String text)
 	{
 		Config.log("[Trim] " + text);
-		if (notifyPlayer != null)
-			Util.chat(notifyPlayer, "[Trim] " + text);
+		if (requester != null)
+			Util.chat(requester, "[Trim] " + text);
 	}
 }

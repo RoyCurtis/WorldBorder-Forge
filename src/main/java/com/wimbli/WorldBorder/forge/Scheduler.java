@@ -70,20 +70,6 @@ public class Scheduler
         }
     }
 
-    public synchronized boolean isCurrentlyRunning(int id)
-    {
-        return currentTask == id;
-    }
-
-    public synchronized boolean isQueued(int id)
-    {
-        for (ScheduledTask task : tasks)
-            if (task.id == id)
-                return true;
-
-        return false;
-    }
-
     public synchronized int scheduleSyncDelayedTask(Runnable task, long delayTicks)
     {
         return scheduleSyncRepeatingTask(task, delayTicks, 0);
@@ -95,23 +81,6 @@ public class Scheduler
         tasks.add(future);
 
         return future.id;
-    }
-
-    public synchronized void cancelTask(int id)
-    {
-        ScheduledTask target = null;
-
-        for (ScheduledTask task : tasks)
-            if (task.id == id)
-            {
-                target = task;
-                break;
-            }
-
-        if (target == null)
-            throw new IllegalArgumentException(id + " is not a scheduled task ID");
-        else
-            target.cancelled = true;
     }
 
     private static class ScheduledTask

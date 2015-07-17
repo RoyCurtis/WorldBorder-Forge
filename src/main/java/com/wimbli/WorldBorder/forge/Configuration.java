@@ -8,9 +8,10 @@ import java.util.Set;
  */
 public class Configuration extends net.minecraftforge.common.config.Configuration
 {
+    /** Creates convenient config with case-sensitive categories */
     public Configuration(File file)
     {
-        super(file);
+        super(file, true);
     }
 
     /** Shortcut for getting a string from a key and category */

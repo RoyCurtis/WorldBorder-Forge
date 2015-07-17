@@ -169,7 +169,7 @@ public class WorldFillTask
 		this.readyToGo = true;
 	}
 
-	@SubscribeEvent()
+	@SubscribeEvent
 	public void onServerTick(TickEvent.ServerTickEvent event)
 	{
 		// Only run at start of tick
@@ -385,6 +385,11 @@ public class WorldFillTask
 		}
 	}
 
+	public void start()
+	{
+		FMLCommonHandler.instance().bus().register(this);
+	}
+
 	// handle pausing/unpausing the task
 	public void pause()
 	{
@@ -465,6 +470,7 @@ public class WorldFillTask
 		this.length = length;
 		this.reportTotal = totalDone;
 		this.continueNotice = true;
+		start();
 	}
 
 }

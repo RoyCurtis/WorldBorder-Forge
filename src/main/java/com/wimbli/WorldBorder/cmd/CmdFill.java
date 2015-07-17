@@ -131,6 +131,7 @@ public class CmdFill extends WBCmd
             try
             {
                 Config.fillTask = new WorldFillTask(player, fillWorld, fillPadding, repeats, ticks, fillForceLoad);
+                Config.fillTask.start();
                 Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
 
             }
@@ -156,7 +157,6 @@ public class CmdFill extends WBCmd
 			Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
 		}
 	}
-	
 
 	/* with "view-distance=10" in server.properties on a fast VM test server and "Render Distance: Far" in client,
 	 * hitting border during testing was loading 11+ chunks beyond the border in a couple of directions (10 chunks in

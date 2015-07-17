@@ -6,7 +6,6 @@ import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.MinecraftException;
 import net.minecraft.world.World;
@@ -90,25 +89,19 @@ public class Util
     }
 
     /**
-     * Sends an automatically translated, formatted & encapsulated message to a player
+     * Sends an automatically translated & encapsulated message to a player
      * @param sender Target to send message to
      * @param msg String or language key to broadcast
-     * @param parts Optional objects to add to formattable message
      */
-    public static void chat(ICommandSender sender, String msg, Object... parts)
-    {
-        sender.addChatMessage( prepareText(sender instanceof DedicatedServer, msg, parts) );
-    }
-
-    private static IChatComponent prepareText(boolean strip, String msg, Object... parts)
+    public static void chat(ICommandSender sender, String msg)
     {
         String translated = translate(msg);
-        String formatted  = String.format(translated, parts);
 
-        if (strip)
-            formatted = ChatFormatting.stripFormatting(formatted);
+        // Consoles require ANSI coloring for formatting
+        if (sender instanceof DedicatedServer)
+            translated = ChatFormatting.stripFormatting(translated);
 
-        return new ChatComponentText(formatted);
+        sender.addChatMessage( new ChatComponentText(translated) );
     }
 
     /** Shortcut for java.lang.System.currentTimeMillis */

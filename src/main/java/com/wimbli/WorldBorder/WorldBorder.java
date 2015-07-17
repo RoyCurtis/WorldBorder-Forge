@@ -102,10 +102,7 @@ public class WorldBorder
     public void serverStop(FMLServerStoppingEvent event)
     {
         DynMapFeatures.removeAllBorders();
-        DynMapFeatures.unregisterListener();
-        Config.stopBorderTimer();
         Config.storeFillTask();
-        Config.stopFillTask();
     }
 
     // for other plugins to hook into
