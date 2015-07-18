@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Configuration;
+import com.wimbli.WorldBorder.forge.Util;
 import com.wimbli.WorldBorder.task.BorderCheckTask;
 import com.wimbli.WorldBorder.task.WorldFillTask;
 import org.apache.logging.log4j.Level;
@@ -149,7 +150,7 @@ public class Config
     public static void updateMessage(String msg)
     {
         message = msg;
-        messageFmt = replaceAmpColors(msg);
+        messageFmt = Util.replaceAmpColors(msg);
     }
 
     public static String getMessage()
@@ -452,11 +453,6 @@ public class Config
     public static boolean isAvailableMemoryTooLow()
     {
         return getAvailableMemory() < fillMemoryTolerance;
-    }
-
-    public static String replaceAmpColors (String message)
-    {
-        return message.replaceAll("(?i)&([a-fk-or0-9])", "§$1");
     }
 
     public static void log(Level lvl, String text)

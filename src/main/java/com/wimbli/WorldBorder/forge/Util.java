@@ -5,7 +5,6 @@ import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.MinecraftException;
 import net.minecraft.world.World;
@@ -99,9 +98,19 @@ public class Util
 
         // Consoles require ANSI coloring for formatting
         if (sender instanceof DedicatedServer)
-            translated = EnumChatFormatting.getTextWithoutFormattingCodes(translated);
+            translated = removeFormatting(translated);
 
         sender.addChatMessage( new ChatComponentText(translated) );
+    }
+
+    public static String replaceAmpColors(String message)
+    {
+        return message.replaceAll("(?i)&([a-fk-or0-9])", "\u00a7$1");
+    }
+
+    public static String removeFormatting(String message)
+    {
+        return message.replaceAll("(?i)\u00a7[a-fk-or0-9]", "");
     }
 
     /** Shortcut for java.lang.System.currentTimeMillis */
