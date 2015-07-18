@@ -6,8 +6,8 @@ import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 
@@ -35,15 +35,14 @@ public class CmdBypasslist extends WBCmd
 
         try
         {
-            NameFetcher fetcher = new NameFetcher(uuids);
-            Map<UUID, String> names = fetcher.call();
-            String nameString = names.values().toString();
+            String[] names = NameFetcher.fetch(uuids);
+            String   list  = Arrays.toString(names);
 
-            Util.chat(sender, "Players with border bypass enabled: " + nameString.substring(1, nameString.length() - 1));
+            Util.chat(sender, "Players with border bypass enabled: " + list);
         }
         catch (Exception ex)
         {
-            sendErrorAndHelp(sender, "Failed to look up names for the UUIDs in the border bypass list. " + ex.getLocalizedMessage());
+            sendErrorAndHelp(sender, "Failed to look up names for the UUIDs in the border bypass list: " + ex.getMessage());
         }
     }
 }

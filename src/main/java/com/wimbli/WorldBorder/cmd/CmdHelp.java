@@ -5,8 +5,8 @@ import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 
 public class CmdHelp extends WBCmd
@@ -39,15 +39,14 @@ public class CmdHelp extends WBCmd
             return;
         }
 
-        Set<String> commands = WorldBorder.COMMAND.getCommandNames();
+        ArrayList<String> commands = WorldBorder.COMMAND.getCommandNames();
         for (String param : params)
-        {
             if (commands.contains(param.toLowerCase()))
             {
                 WorldBorder.COMMAND.subCommands.get(param.toLowerCase()).sendCmdHelp(sender);
                 return;
             }
-        }
+
         sendErrorAndHelp(sender, "No command recognized.");
     }
 }

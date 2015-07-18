@@ -370,16 +370,14 @@ public class Config
 
     public static UUID[] getPlayerBypassList()
     {
-        return (UUID[]) bypassPlayers.toArray();
+        return bypassPlayers.toArray( new UUID[ bypassPlayers.size() ] );
     }
 
     // for converting bypass UUID list to/from String list, for storage in config
     private static void importBypassStringList(String[] strings)
     {
         for (String string : strings)
-        {
             bypassPlayers.add(UUID.fromString(string));
-        }
     }
 
     private static String[] exportBypassStringList()

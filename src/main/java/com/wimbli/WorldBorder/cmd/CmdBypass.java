@@ -62,7 +62,7 @@ public class CmdBypass extends WBCmd
                 // only do UUID lookup using Mojang server if specified player isn't online
                 try
                 {
-                    uPlayer = UUIDFetcher.getUUIDOf(sPlayer);
+                    uPlayer = UUIDFetcher.fetch(sPlayer);
                 }
                 catch (Exception ex)
                 {

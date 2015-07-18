@@ -1,55 +1,47 @@
 package com.wimbli.WorldBorder.UUID;
 
-import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.io.Reader;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.net.URLConnection;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-
 
 /*
  * code by evilmidget38
  * from http://forums.bukkit.org/threads/player-name-uuid-fetcher.250926/
  */
-
-public class NameFetcher implements Callable<Map<UUID, String>> 
+public class NameFetcher
 {
-    private static final String PROFILE_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
-    private final JsonParser jsonParser = new JsonParser();
-    private final List<UUID> uuids;
-    public NameFetcher(UUID[] uuids)
-    {
-        this.uuids = ImmutableList.copyOf(uuids);
-    }
+    private static final String     URL    = "https://sessionserver.mojang.com/session/minecraft/profile/";
+    private static final JsonParser PARSER = new JsonParser();
 
-    @Override
-    public Map<UUID, String> call() throws Exception 
+    public static String[] fetch(UUID[] uuids) throws Exception
     {
-        Map<UUID, String> uuidStringMap = new HashMap<UUID, String>();
-        for (UUID uuid: uuids) 
+        String[] names = new String[uuids.length];
+
+        for (int i = 0; i < uuids.length; i++)
         {
-            HttpURLConnection connection = (HttpURLConnection) new URL(PROFILE_URL+uuid.toString().replace("-", "")).openConnection();
-            JsonObject response = (JsonObject) jsonParser.parse(new InputStreamReader(connection.getInputStream()));
+            // TODO: Optimize, and close connection when done
+            // TODO: Use server built-in usercache
+            String        url      = URL + uuids[i].toString().replace("-", "");
+            URLConnection conn     = new URL(url).openConnection();
+            Reader        reader   = new InputStreamReader( conn.getInputStream() );
+            JsonObject    response = (JsonObject) PARSER.parse(reader);
+
             String name = response.get("name").getAsString();
-            if (name == null) 
+
+            if ( response.has("errorMessage") )
             {
-                continue;
+                String error = response.get("errorMessage").getAsString();
+                throw new IllegalStateException(error);
             }
-            String cause = response.get("cause").getAsString();
-            String errorMessage = response.get("errorMessage").getAsString();
-            if (cause != null && cause.length() > 0) 
-            {
-                throw new IllegalStateException(errorMessage);
-            }
-            uuidStringMap.put(uuid, name);
+            else
+                names[i] = (name != null) ? name : "<unknown>";
         }
-        return uuidStringMap;
+
+        return names;
     }
 }

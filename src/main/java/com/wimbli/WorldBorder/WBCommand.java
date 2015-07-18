@@ -1,11 +1,17 @@
 package com.wimbli.WorldBorder;
 
+import com.google.common.collect.Lists;
+import com.mojang.authlib.GameProfile;
 import com.wimbli.WorldBorder.cmd.*;
 import com.wimbli.WorldBorder.forge.Util;
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.management.UserListOpsEntry;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 
@@ -15,9 +21,11 @@ public class WBCommand implements ICommand
     static final List   ALIASES = Arrays.asList("wb", "worldborder");
 
     // map of all sub-commands with the command name (string) for quick reference
-    public Map<String, WBCmd> subCommands = new LinkedHashMap<String, WBCmd>();
+    public Map<String, WBCmd> subCommands = new LinkedHashMap<>();
     // ref. list of the commands which can have a world name in front of the command itself (ex. /wb _world_ radius 100)
-    private Set<String> subCommandsWithWorldNames = new LinkedHashSet<String>();
+    private Set<String> subCommandsWithWorldNames = new LinkedHashSet<>();
+
+    private ArrayList<String> subCommandNames = null;
 
     // constructor
     public WBCommand ()
@@ -59,7 +67,6 @@ public class WBCommand implements ICommand
         addCmd(new CmdCommands());
     }
 
-
     private void addCmd(WBCmd cmd)
     {
         subCommands.put(cmd.name, cmd);
@@ -74,12 +81,11 @@ public class WBCommand implements ICommand
             ? (EntityPlayerMP) sender
             : null;
 
-        // if world name is passed inside quotation marks, handle that, and get List<String> instead of String[]
-        List<String> params = concatenateQuotedWorldName(split);
+        ArrayList<String> params = Lists.newArrayList(split);
 
         String worldName = null;
-        // is second parameter the command and first parameter a world name? definitely world name if it was in quotation marks
-        if (wasWorldQuotation || (params.size() > 1 && !subCommands.containsKey(params.get(0)) && subCommandsWithWorldNames.contains(params.get(1))))
+        // is second parameter the command and first parameter a world name?
+        if (params.size() > 1 && !subCommands.containsKey(params.get(0)) && subCommandsWithWorldNames.contains(params.get(1)))
             worldName = params.get(0);
 
         // no command specified? show command examples / help
@@ -135,74 +141,18 @@ public class WBCommand implements ICommand
         subCommand.execute(sender, player, params, worldName);
     }
 
-    private boolean wasWorldQuotation = false;
-
-    // if world name is surrounded by quotation marks, combine it down and flag wasWorldQuotation if it's first param.
-    // also return List<String> instead of input primitive String[]
-    private List<String> concatenateQuotedWorldName(String[] split)
+    public ArrayList<String> getCommandNames()
     {
-        wasWorldQuotation = false;
-        List<String> args = new ArrayList<String>(Arrays.asList(split));
+        if (subCommandNames != null)
+            return subCommandNames;
 
-        int startIndex = -1;
-        for (int i = 0; i < args.size(); i++)
-        {
-            if (args.get(i).startsWith("\""))
-            {
-                startIndex = i;
-                break;
-            }
-        }
-        if (startIndex == -1)
-            return args;
+        subCommandNames = new ArrayList<>( subCommands.keySet() );
+        // Remove "commands" as it's not normally shown or run like other commands
+        subCommandNames.remove("commands");
+        Collections.sort(subCommandNames);
 
-        if (args.get(startIndex).endsWith("\""))
-        {
-            args.set(startIndex, args.get(startIndex).substring(1, args.get(startIndex).length() - 1));
-            if (startIndex == 0)
-                wasWorldQuotation = true;
-        }
-        else
-        {
-            List<String> concat = new ArrayList<String>(args);
-            Iterator<String> concatI = concat.iterator();
-
-            // skip past any parameters in front of the one we're starting on
-            for (int i = 1; i < startIndex + 1; i++)
-            {
-                concatI.next();
-            }
-
-            StringBuilder quote = new StringBuilder(concatI.next());
-            while (concatI.hasNext())
-            {
-                String next = concatI.next();
-                concatI.remove();
-                quote.append(" ");
-                quote.append(next);
-                if (next.endsWith("\""))
-                {
-                    concat.set(startIndex, quote.substring(1, quote.length() - 1));
-                    args = concat;
-                    if (startIndex == 0)
-                        wasWorldQuotation = true;
-                    break;
-                }
-            }
-        }
-        return args;
+        return subCommandNames;
     }
-
-    public Set<String> getCommandNames()
-    {
-        // using TreeSet to sort alphabetically
-        Set<String> commands = new TreeSet<String>(subCommands.keySet());
-        // removing default "commands" command as it's not normally shown or run like other commands
-        commands.remove("commands");
-        return commands;
-    }
-
-    // Begin Forge implementation
 
     @Override
     public String getCommandName()
@@ -223,27 +173,41 @@ public class WBCommand implements ICommand
     }
 
     @Override
+    public boolean isUsernameIndex(String[] args, int idx)
+    {
+        return false;
+    }
+
+    @Override
     public boolean canCommandSenderUseCommand(ICommandSender sender)
     {
-        return true;
+        if (sender instanceof DedicatedServer)
+            return true;
+
+        EntityPlayerMP   player  = (EntityPlayerMP) sender;
+        GameProfile      profile = player.getGameProfile();
+        UserListOpsEntry opEntry = (UserListOpsEntry) WorldBorder.SERVER
+            .getConfigurationManager()
+            .func_152603_m()
+            .func_152683_b(profile);
+
+        // Level 2 (out of 4) have general access to game-changing commands
+        // TODO: Make this a configuration option
+        return opEntry != null && opEntry.func_152644_a() > 2;
     }
 
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] args)
     {
-        return args.length > 0
-            ? Collections.emptyList()
-            : new ArrayList<String>( getCommandNames() );
+        if (args.length <= 1)
+            return CommandBase.getListOfStringsFromIterableMatchingLastWord(args, getCommandNames());
+
+        String[] players = WorldBorder.SERVER.getAllUsernames();
+        return CommandBase.getListOfStringsMatchingLastWord(args, players);
     }
 
     @Override
-    public boolean isUsernameIndex(String[] sender, int idx)
-    {
-        return true;
-    }
-
-    @Override
-    public int compareTo(Object o)
+    public int compareTo(@Nonnull Object o)
     {
         ICommand command = (ICommand) o;
         return command.getCommandName().compareTo( getCommandName() );
