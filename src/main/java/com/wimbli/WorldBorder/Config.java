@@ -275,6 +275,12 @@ public class Config
     {
         knockBack = numBlocks;
         log("Knockback set to " + knockBack + " blocks inside the border.");
+
+        if (knockBack == 0.0)
+            stopBorderTimer();
+        else
+            startBorderTimer();
+
         save(true);
     }
 
@@ -395,13 +401,16 @@ public class Config
         if (borderTask == null)
             borderTask = new BorderCheckTask();
 
+        if ( borderTask.isRunning() )
+            return;
+
         borderTask.setRunning(true);
         logConfig("Border-checking timed task started.");
     }
 
     public static void stopBorderTimer()
     {
-        if (borderTask == null)
+        if ( borderTask == null || !borderTask.isRunning() )
             return;
 
         borderTask.setRunning(false);
@@ -506,8 +515,14 @@ public class Config
             + knockBack + " blocks, and timer delay of " + timerTicks + "."
         );
 
-        // TODO: move to server setup
-        startBorderTimer();
+        // TODO: Move to server setup?
+        if (knockBack == 0.0)
+        {
+            logWarn("Knockback is set to 0; the border check task will be disabled.");
+            stopBorderTimer();
+        }
+        else
+            startBorderTimer();
 
         borders.clear();
 

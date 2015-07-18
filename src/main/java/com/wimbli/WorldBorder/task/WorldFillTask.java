@@ -9,6 +9,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
@@ -309,22 +310,19 @@ public class WorldFillTask
 
             // if we've made it at least partly outside the border, skip past any such chunks
             while (!border.insideBorder(CoordXZ.chunkToBlock(x) + 8, CoordXZ.chunkToBlock(z) + 8))
-            {
                 if (!moveToNext())
                     return;
-            }
+
             inside = true;
 
+            // skip past any chunks which are confirmed as fully generated using our super-special isChunkFullyGenerated routine
             if (!forceLoad)
-            {
-                // skip past any chunks which are confirmed as fully generated using our super-special isChunkFullyGenerated routine
                 while (worldData.isChunkFullyGenerated(x, z))
                 {
                     inside = true;
                     if (!moveToNext())
                         return;
                 }
-            }
 
             // load the target chunk and generate it if necessary
             provider.loadChunk(x, z);
@@ -353,6 +351,7 @@ public class WorldFillTask
             while (storedChunks.size() > 8)
             {
                 CoordXZ coord = storedChunks.remove(0);
+
                 if (!originalChunks.contains(coord))
                     provider.unloadChunksIfNotNearSpawn(coord.x, coord.z);
             }
@@ -379,13 +378,15 @@ public class WorldFillTask
         {
             if (!isZLeg)
             {
-                lastLegX = x;
-                lastLegZ = z;
+                lastLegX     = x;
+                lastLegZ     = z;
                 lastLegTotal = reportTotal + reportNum;
-            } else {
-                refX = lastLegX;
-                refZ = lastLegZ;
-                refTotal = lastLegTotal;
+            }
+            else
+            {
+                refX      = lastLegX;
+                refZ      = lastLegZ;
+                refTotal  = lastLegTotal;
                 refLength = length - 1;
             }
         }
@@ -395,8 +396,8 @@ public class WorldFillTask
             current++;
         else
         {	// one leg/side of the spiral down...
-            current = 0;
-            isZLeg ^= true;
+            current  = 0;
+            isZLeg  ^= true;
             if (isZLeg)
             {	// every second leg (between X and Z legs, negative or positive), length increases
                 isNeg ^= true;
@@ -445,7 +446,7 @@ public class WorldFillTask
         this.paused = true;
         reportProgress();
         Util.saveWorld(world);
-        sendMessage("task successfully completed for world \"" + getWorld() + "\"!");
+        sendMessage("Task successfully completed for world \"" + getWorld() + "\"!");
         this.stop();
     }
 
@@ -475,19 +476,23 @@ public class WorldFillTask
         long availMem = Config.getAvailableMemory();
 
         Config.log("[Fill] " + text + " (free mem: " + availMem + " MB)");
-        if (requester != null)
-            Util.chat(requester, "[Fill] " + text);
+        if (requester instanceof EntityPlayerMP)
+            Util.chat(requester, "[Fill] " + text + " (free mem: " + availMem + " MB)");
 
         if (availMem < 200)
         {	// running low on memory, auto-pause
             memoryPause = true;
             Config.storeFillTask();
-            text = "Available memory is very low, task is pausing. A cleanup will be attempted now, and the task will automatically continue if/when sufficient memory is freed up.\n Alternatively, if you restart the server, this task will automatically continue once the server is back up.";
+            text = "Available memory is very low, task is pausing. A cleanup will be attempted now, " +
+                "and the task will automatically continue if/when sufficient memory is freed up.\n " +
+                "Alternatively, if you restart the server, this task will automatically continue once " +
+                "the server is back up.";
+
             Config.log("[Fill] " + text);
-            if (requester != null)
+            if (requester instanceof EntityPlayerMP)
                 Util.chat(requester, "[Fill] " + text);
-            // prod Java with a request to go ahead and do GC to clean unloaded chunks from memory; this seems to work wonders almost immediately
-            // yes, explicit calls to System.gc() are normally bad, but in this case it otherwise can take a long long long time for Java to recover memory
+
+            // Forced garbage-collection works well to immediately recover memory
             System.gc();
         }
     }
@@ -496,6 +501,7 @@ public class WorldFillTask
     protected void finalize() throws Throwable
     {
         super.finalize();
-        Config.log( "WorldFillTask cleaned up for " + getWorld() );
+        if ( Config.isDebugMode() )
+            Config.log( "WorldFillTask cleaned up for " + getWorld() );
     }
 }

@@ -41,11 +41,6 @@ public class BorderCheckTask
         if (event.phase == TickEvent.Phase.START)
             return;
 
-        // if knockback is set to 0, simply return
-        // TODO: optimize so this task is never enabled if knockback is 0
-        if (Config.getKnockBack() == 0.0)
-            return;
-
         if ( WorldBorder.SERVER.getTickCounter() % Config.getTimerTicks() != 0 )
             return;
 

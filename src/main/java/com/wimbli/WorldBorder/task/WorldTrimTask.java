@@ -6,6 +6,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 
 import java.io.File;
@@ -410,7 +411,15 @@ public class WorldTrimTask
     private void sendMessage(String text)
     {
         Config.log("[Trim] " + text);
-        if (requester != null)
+        if (requester instanceof EntityPlayerMP)
             Util.chat(requester, "[Trim] " + text);
+    }
+
+    @Override
+    protected void finalize() throws Throwable
+    {
+        super.finalize();
+        if ( Config.isDebugMode() )
+            Config.log( "WorldFillTask cleaned up for " + Util.getWorldName(world) );
     }
 }
