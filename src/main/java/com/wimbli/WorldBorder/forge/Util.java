@@ -1,11 +1,11 @@
 package com.wimbli.WorldBorder.forge;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
 import com.wimbli.WorldBorder.WorldBorder;
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.MinecraftException;
 import net.minecraft.world.World;
@@ -99,7 +99,7 @@ public class Util
 
         // Consoles require ANSI coloring for formatting
         if (sender instanceof DedicatedServer)
-            translated = ChatFormatting.stripFormatting(translated);
+            translated = EnumChatFormatting.getTextWithoutFormattingCodes(translated);
 
         sender.addChatMessage( new ChatComponentText(translated) );
     }

@@ -1,9 +1,9 @@
 package com.wimbli.WorldBorder.cmd;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.EnumChatFormatting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,12 +46,12 @@ public abstract class WBCmd
      */
 
     // color values for strings
-    public final static String C_CMD  = ChatFormatting.AQUA.toString();			// main commands
-    public final static String C_DESC = ChatFormatting.WHITE.toString();		// command descriptions
-    public final static String C_ERR  = ChatFormatting.RED.toString();			// errors / notices
-    public final static String C_HEAD = ChatFormatting.YELLOW.toString();		// command listing header
-    public final static String C_OPT  = ChatFormatting.DARK_GREEN.toString();	// optional values
-    public final static String C_REQ  = ChatFormatting.GREEN.toString();		// required values
+    public final static String C_CMD  = EnumChatFormatting.AQUA.toString();			// main commands
+    public final static String C_DESC = EnumChatFormatting.WHITE.toString();		// command descriptions
+    public final static String C_ERR  = EnumChatFormatting.RED.toString();			// errors / notices
+    public final static String C_HEAD = EnumChatFormatting.YELLOW.toString();		// command listing header
+    public final static String C_OPT  = EnumChatFormatting.DARK_GREEN.toString();	// optional values
+    public final static String C_REQ  = EnumChatFormatting.GREEN.toString();		// required values
 
     // colorized root command, for console and for player
     public final static String CMD_C = C_CMD + "wb ";
@@ -101,7 +101,7 @@ public abstract class WBCmd
     // formatted and colorized text, intended for marking command name
     public String commandEmphasized(String text)
     {
-        return C_CMD + ChatFormatting.UNDERLINE + text + ChatFormatting.RESET + " ";
+        return C_CMD + EnumChatFormatting.UNDERLINE + text + EnumChatFormatting.RESET + " ";
     }
 
     // returns green "enabled" or red "disabled" text

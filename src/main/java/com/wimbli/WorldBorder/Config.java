@@ -1,6 +1,5 @@
 package com.wimbli.WorldBorder;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
 import com.wimbli.WorldBorder.forge.Configuration;
 import com.wimbli.WorldBorder.task.BorderCheckTask;
 import com.wimbli.WorldBorder.task.WorldFillTask;
@@ -457,7 +456,7 @@ public class Config
 
     public static String replaceAmpColors (String message)
     {
-        return message.replaceAll("(?i)&([a-fk-or0-9])", ChatFormatting.PREFIX_CODE + "$1");
+        return message.replaceAll("(?i)&([a-fk-or0-9])", "§$1");
     }
 
     public static void log(Level lvl, String text)
