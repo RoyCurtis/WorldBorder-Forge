@@ -15,20 +15,32 @@ import net.minecraftforge.common.DimensionManager;
 /**
  * Static class for utility functions (syntactic sugar) to help transition from Bukkit
  * to Forge conventions
+ * TODO: Move all world stuff to its own class
  */
 public class Util
 {
-    /** Gets the internal name (e.g. DIM-1) of a given world */
+    /**
+     * Generates a name from a given world.
+     *
+     * Instead of using internal folder names, this uses the Dynmap method of using the
+     * dimension number with the 'DIM' prefix. This improves compatibility with Dynmap
+     * and makes world handling provider-agnostic.
+     */
     public static String getWorldName(World world)
     {
-        if (world.provider.dimensionId == 0)
-            return "world";
-        else
-            return world.provider.getSaveFolder();
+        // Dimension 0 will always use the name configured in server.properties
+        return (world.provider.dimensionId == 0)
+            ? world.getWorldInfo().getWorldName()
+            : "DIM" + world.provider.dimensionId;
     }
 
     /**
-     * Case-sensitive search in global DimensionManager for a world of a given name
+     * Performs a case-sensitive search for a loaded world by a given name.
+     *
+     * First, it tries to match the name with dimension 0 (overworld), then it tries to
+     * match from the world's save folder name (e.g. DIM_MYST10) and then finally the
+     * Dynmap compatible identifier (e.g. DIM10)
+     *
      * @param name Name of world to find
      * @return World if found, else null
      */
@@ -39,14 +51,15 @@ public class Util
 
         for ( WorldServer world : DimensionManager.getWorlds() )
         {
+            String dimName    = "DIM" + world.provider.dimensionId;
             String saveFolder = world.provider.getSaveFolder();
 
-            if (saveFolder == null)
+            if (world.provider.dimensionId == 0)
             {   // Special case for dimension 0 (overworld)
                 if ( WorldBorder.SERVER.getFolderName().equals(name) )
                     return world;
             }
-            else if ( saveFolder.equals(name) )
+            else if ( saveFolder.equals(name) || dimName.equals(name) )
                 return world;
         }
 
@@ -66,18 +79,6 @@ public class Util
             Log.debug(
                 "Found loaded dimension #%d `%s` by provider %s, save: %s",
                 provider.dimensionId,
-                provider.getDimensionName(),
-                provider.getClass().getSimpleName(),
-                provider.getSaveFolder()
-            );
-        }
-
-        Log.debug("## Registered worlds:");
-        for ( int dim : DimensionManager.getStaticDimensionIDs() )
-        {
-            WorldProvider provider = DimensionManager.createProviderFor(dim);
-            Log.debug(
-                "Found dimension #%d `%s` by provider %s, save: %s", dim,
                 provider.getDimensionName(),
                 provider.getClass().getSimpleName(),
                 provider.getSaveFolder()

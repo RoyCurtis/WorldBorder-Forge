@@ -9,7 +9,6 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.DimensionManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -157,12 +156,12 @@ public class WorldTrimTask
             return;
 
         // TODO: make this less crude by kicking or teleporting players in dimension
-        if (DimensionManager.getWorld(world.provider.dimensionId) != null)
-        {
-            Log.debug( "Trying to unload dimension %s", Util.getWorldName(world) );
-            DimensionManager.unloadWorld(world.provider.dimensionId);
-            return;
-        }
+//        if (DimensionManager.getWorld(world.provider.dimensionId) != null)
+//        {
+//            Log.debug( "Trying to unload dimension %s", Util.getWorldName(world) );
+//            DimensionManager.unloadWorld(world.provider.dimensionId);
+//            return;
+//        }
 
         // this is set so it only does one iteration at a time, no matter how frequently the timer fires
         readyToGo = false;

@@ -19,11 +19,12 @@ import java.util.Map.Entry;
 public class DynMapFeatures
 {
     private static DynmapCommonAPI api;
-    private static MarkerAPI markApi;
-    private static MarkerSet markSet;
-    private static int lineWeight = 3;
+    private static MarkerAPI       markApi;
+    private static MarkerSet       markSet;
+
+    private static int    lineWeight  = 3;
     private static double lineOpacity = 1.0;
-    private static int lineColor = 0xFF0000;
+    private static int    lineColor   = 0xFF0000;
 
     private static DynmapCommonAPIListener listener = new DynmapCommonAPIListener()
     {
@@ -35,14 +36,14 @@ public class DynMapFeatures
         }
     };
 
-    // Whether re-rendering functionality is available
-    public static boolean renderEnabled()
+    /** Whether re-rendering functionality is available */
+    public static boolean isRenderEnabled()
     {
         return api != null;
     }
 
-    // Whether circular border markers are available
-    public static boolean borderEnabled()
+    /** Whether circular border markers are available */
+    public static boolean isBorderEnabled()
     {
         return markApi != null;
     }
@@ -54,8 +55,7 @@ public class DynMapFeatures
 
     public static void setup()
     {
-        // RoyCurtis: Old dynmap version check removed; 0.35 is obsolete by now
-
+        // FORGE: Old dynmap version check removed; 0.35 is obsolete by now
         try
         {
             markApi = api.getMarkerAPI();
@@ -73,7 +73,6 @@ public class DynMapFeatures
         Log.info("Successfully hooked into DynMap for the ability to display borders.");
     }
 
-
     /*
      * Re-rendering methods, used for updating trimmed chunks to show them as gone
      * TODO: Check if these are now working
@@ -81,7 +80,7 @@ public class DynMapFeatures
 
     public static void renderRegion(World world, CoordXZ coord)
     {
-        if (!renderEnabled()) return;
+        if (!isRenderEnabled()) return;
 
         int y = (world != null) ? world.getHeight() : 255;
         int x = CoordXZ.regionToBlock(coord.x);
@@ -91,36 +90,33 @@ public class DynMapFeatures
 
     public static void renderChunks(World world, List<CoordXZ> coords)
     {
-        if (!renderEnabled()) return;
+        if (!isRenderEnabled()) return;
 
         int y = (world != null) ? world.getHeight() : 255;
 
         for (CoordXZ coord : coords)
-        {
             renderChunk(Util.getWorldName(world), coord, y);
-        }
     }
 
     public static void renderChunk(String worldName, CoordXZ coord, int maxY)
     {
-        if (!renderEnabled()) return;
+        if (!isRenderEnabled()) return;
 
         int x = CoordXZ.chunkToBlock(coord.x);
         int z = CoordXZ.chunkToBlock(coord.z);
         api.triggerRenderOfVolume(worldName, x, 0, z, x+15, maxY, z+15);
     }
 
-
     /*
      * Methods for displaying our borders on DynMap's world maps
      */
 
-    private static Map<String, CircleMarker> roundBorders = new HashMap<String, CircleMarker>();
-    private static Map<String, AreaMarker> squareBorders = new HashMap<String, AreaMarker>();
+    private static Map<String, CircleMarker> roundBorders = new HashMap<>();
+    private static Map<String, AreaMarker>  squareBorders = new HashMap<>();
 
     public static void showAllBorders()
     {
-        if (!borderEnabled()) return;
+        if (!isBorderEnabled()) return;
 
         // in case any borders are already shown
         removeAllBorders();
@@ -141,20 +137,19 @@ public class DynMapFeatures
         else
             markSet.setMarkerSetLabel("WorldBorder");
 
-        // TODO: Figure out why border not showing for mystcraft worlds
         Map<String, BorderData> borders = Config.getBorders();
         for(Entry<String, BorderData> stringBorderDataEntry : borders.entrySet())
         {
-            Entry wdata = stringBorderDataEntry;
-            String worldName = ((String)wdata.getKey());
-            BorderData border = (BorderData)wdata.getValue();
+            String     worldName = stringBorderDataEntry.getKey();
+            BorderData border    = stringBorderDataEntry.getValue();
+
             showBorder(worldName, border);
         }
     }
 
     public static void showBorder(String worldName, BorderData border)
     {
-        if (!borderEnabled()) return;
+        if (!isBorderEnabled()) return;
 
         if (!Config.isDynmapBorderEnabled()) return;
 
@@ -196,37 +191,31 @@ public class DynMapFeatures
         AreaMarker marker = squareBorders.get(worldName);
         if (marker == null)
         {
-            marker = markSet.createAreaMarker("worldborder_"+worldName, Config.getDynmapMessage(), false, worldName, xVals, zVals, true);
+            marker = markSet.createAreaMarker("worldborder_" + worldName, Config.getDynmapMessage(), false, worldName, xVals, zVals, true);
             marker.setLineStyle(3, 1.0, 0xFF0000);
             marker.setFillStyle(0.0, 0x000000);
             squareBorders.put(worldName, marker);
         }
         else
-        {
             marker.setCornerLocations(xVals, zVals);
-        }
     }
 
     public static void removeAllBorders()
     {
-        if (!borderEnabled()) return;
+        if ( !isBorderEnabled() ) return;
 
-        for(CircleMarker marker : roundBorders.values())
-        {
+        for ( CircleMarker marker : roundBorders.values() )
             marker.deleteMarker();
-        }
         roundBorders.clear();
 
-        for(AreaMarker marker : squareBorders.values())
-        {
+        for ( AreaMarker marker : squareBorders.values() )
             marker.deleteMarker();
-        }
         squareBorders.clear();
     }
 
     public static void removeBorder(String worldName)
     {
-        if (!borderEnabled()) return;
+        if ( !isBorderEnabled() ) return;
 
         CircleMarker marker = roundBorders.remove(worldName);
         if (marker != null)
