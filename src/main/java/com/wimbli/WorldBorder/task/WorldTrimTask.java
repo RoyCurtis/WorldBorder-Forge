@@ -9,6 +9,7 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,9 +42,10 @@ public class WorldTrimTask
     private List<CoordXZ> regionChunks = new ArrayList<>(1024);
     private List<CoordXZ> trimChunks   = new ArrayList<>(1024);
 
-    private int     chunksPerRun = 1;
-    private boolean readyToGo    = false;
-    private boolean paused       = false;
+    private int     tickFrequency = 1;
+    private int     chunksPerRun  = 1;
+    private boolean readyToGo     = false;
+    private boolean paused        = false;
 
     // Per-task state region progress tracking
     private int currentRegion = -1;  // region(file) we're at in regionFiles
@@ -102,23 +104,24 @@ public class WorldTrimTask
         return this.paused;
     }
 
-    public WorldTrimTask(ICommandSender player, String worldName, int trimDistance, int chunksPerRun)
+    public WorldTrimTask(ICommandSender player, String worldName, int trimDistance, int chunksPerRun, int tickFrequency)
     {
         if (INSTANCE != null)
             throw new IllegalStateException("There can only be one WorldFillTask");
         else
             INSTANCE = this;
 
-        this.requester    = player;
-        this.chunksPerRun = chunksPerRun;
+        this.requester     = player;
+        this.tickFrequency = tickFrequency;
+        this.chunksPerRun  = chunksPerRun;
 
         this.world = Util.getWorld(worldName);
         if (this.world == null)
             throw new IllegalArgumentException("World \"" + worldName + "\" not found!");
 
         this.border = (Config.Border(worldName) == null)
-                ? null
-                : Config.Border(worldName).copy();
+            ? null
+            : Config.Border(worldName).copy();
 
         if (this.border == null)
             throw new IllegalStateException("No border found for world \"" + worldName + "\"!");
@@ -147,8 +150,19 @@ public class WorldTrimTask
         if (event.phase == TickEvent.Phase.END)
             return;
 
+        if (WorldBorder.SERVER.getTickCounter() % tickFrequency != 0)
+            return;
+
         if (!readyToGo || paused)
             return;
+
+        // TODO: make this less crude by kicking or teleporting players in dimension
+        if (DimensionManager.getWorld(world.provider.dimensionId) != null)
+        {
+            Log.debug( "Trying to unload dimension %s", Util.getWorldName(world) );
+            DimensionManager.unloadWorld(world.provider.dimensionId);
+            return;
+        }
 
         // this is set so it only does one iteration at a time, no matter how frequently the timer fires
         readyToGo = false;
@@ -204,11 +218,12 @@ public class WorldTrimTask
                         Util.getWorldName(world)
                     );
 
-                    Files.delete(regionFile.toPath());
+                    Files.delete( regionFile.toPath() );
                 }
                 catch (Exception e)
                 {
-                    sendMessage("Error! Region file which is outside the border could not be deleted: "+regionFile.getName());
+                    // TODO: make this not spam per region file
+                    sendMessage("Error! Region file which is outside the border could not be deleted: " + regionFile.getName() );
                     sendMessage("It may be that the world spawn chunks are in this region.");
                     sendMessage("Use /setworldspawn to set the spawn chunks elsewhere, restart the server and try again");
                     sendMessage("Region delete exception: " + e.getMessage().replaceAll("\n", ""));
@@ -251,8 +266,8 @@ public class WorldTrimTask
         reportTotal = currentRegion * 3072;
         currentRegion++;
         regionX = regionZ = currentChunk = 0;
-        regionChunks = new ArrayList<CoordXZ>(1024);
-        trimChunks = new ArrayList<CoordXZ>(1024);
+        regionChunks = new ArrayList<>(1024);
+        trimChunks   = new ArrayList<>(1024);
 
         // have we already handled all region files?
         if (currentRegion >= worldData.regionFileCount())
@@ -321,9 +336,9 @@ public class WorldTrimTask
     private void unloadChunks()
     {
         for (CoordXZ unload : trimChunks)
-            if (world.theChunkProviderServer.chunkExists(unload.x, unload.z))
-                world.theChunkProviderServer.unloadChunksIfNotNearSpawn(unload.x, unload.z);
+            world.theChunkProviderServer.unloadChunksIfNotNearSpawn(unload.x, unload.z);
 
+        world.theChunkProviderServer.unloadQueuedChunks();
         counter += trimChunks.size();
     }
 
@@ -338,20 +353,19 @@ public class WorldTrimTask
 
             if (!regionFile.canWrite())
             {
-                sendMessage("Error! region file is locked and can't be trimmed: "+regionFile.getName());
+                sendMessage("Error! region file is locked and can't be trimmed: " + regionFile.getName());
                 return;
             }
         }
 
         // since our stored chunk positions are based on world, we need to offset those to positions in the region file
-        int offsetX = CoordXZ.regionToChunk(regionX);
-        int offsetZ = CoordXZ.regionToChunk(regionZ);
-        long wipePos = 0;
-        int chunkCount = 0;
+        int  offsetX    = CoordXZ.regionToChunk(regionX);
+        int  offsetZ    = CoordXZ.regionToChunk(regionZ);
+        int  chunkCount = 0;
+        long wipePos;
 
-        try
+        try ( RandomAccessFile unChunk = new RandomAccessFile(regionFile, "rwd") )
         {
-            RandomAccessFile unChunk = new RandomAccessFile(regionFile, "rwd");
             for (CoordXZ wipe : trimChunks)
             {
                 // if the chunk pointer is empty (chunk doesn't technically exist), no need to wipe the already empty pointer
@@ -365,7 +379,6 @@ public class WorldTrimTask
                 unChunk.writeInt(0);
                 chunkCount++;
             }
-            unChunk.close();
 
             // if DynMap is installed, re-render the trimmed chunks
             // TODO: check if this now works
@@ -381,6 +394,7 @@ public class WorldTrimTask
         {
             sendMessage("Error! Could not modify region file to wipe individual chunks: "+regionFile.getName());
         }
+
         counter += trimChunks.size();
     }
 

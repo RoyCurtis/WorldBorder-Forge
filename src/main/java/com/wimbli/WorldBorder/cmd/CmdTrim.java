@@ -131,7 +131,7 @@ public class CmdTrim extends WBCmd
             // TODO: make use of ticks for tick limiting
             try
             {
-                WorldTrimTask task = new WorldTrimTask(player, trimWorld, trimPadding, repeats);
+                WorldTrimTask task = new WorldTrimTask(player, trimWorld, trimPadding, repeats, ticks);
                 task.start();
                 Util.chat(sender, "WorldBorder map trimming task for world \"" + trimWorld + "\" started.");
             }
@@ -151,7 +151,7 @@ public class CmdTrim extends WBCmd
                 return;
             }
 
-            Util.chat(sender, C_HEAD + "World trimming task is ready for world \"" + trimWorld + "\", attempting to process up to " + trimFrequency + " chunks per second (default 20). The map will be trimmed past " + trimPadding + " blocks beyond the border (default " + defaultPadding + ").");
+            Util.chat(sender, C_HEAD + "World trimming task is ready for world \"" + trimWorld + "\", attempting to process up to " + trimFrequency + " chunks per second (default 5000). The map will be trimmed past " + trimPadding + " blocks beyond the border (default " + defaultPadding + ").");
             Util.chat(sender, C_HEAD + "This process can take a very long time depending on the world's overall size. Also, depending on the chunk processing rate, players may experience lag for the duration.");
             Util.chat(sender, C_DESC + "You should now use " + cmd + "confirm" + C_DESC + " to start the process.");
             Util.chat(sender, C_DESC + "You can cancel at any time with " + cmd + "cancel" + C_DESC + ", or pause/unpause with " + cmd + "pause" + C_DESC + ".");
@@ -171,9 +171,9 @@ public class CmdTrim extends WBCmd
 
     private void trimDefaults()
     {
-        trimWorld = "";
+        trimWorld     = "";
         trimFrequency = 5000;
-        trimPadding = defaultPadding;
+        trimPadding   = defaultPadding;
     }
 
     private boolean makeSureTrimIsRunning(ICommandSender sender)

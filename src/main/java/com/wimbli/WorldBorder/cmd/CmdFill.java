@@ -91,9 +91,9 @@ public class CmdFill extends WBCmd
         try
         {
             if (params.size() >= 1 && !confirm)
-                fillFrequency = Math.abs(Integer.parseInt(params.get(0)));
+                fillFrequency = Math.abs( Integer.parseInt( params.get(0) ) );
             if (params.size() >= 2 && !confirm)
-                fillPadding = Math.abs(Integer.parseInt(params.get(1)));
+                fillPadding   = Math.abs( Integer.parseInt( params.get(1) ) );
         }
         catch(NumberFormatException ex)
         {
@@ -118,7 +118,7 @@ public class CmdFill extends WBCmd
 
         if (confirm)
         {	// command confirmed, go ahead with it
-            if (fillWorld.isEmpty())
+            if ( fillWorld.isEmpty() )
             {
                 sendErrorAndHelp(sender, "You must first use this command successfully without confirming.");
                 return;
@@ -135,7 +135,6 @@ public class CmdFill extends WBCmd
 
             Log.info("world: " + fillWorld + "  padding: " + fillPadding + "  repeats: " + repeats + "  ticks: " + ticks);
 
-            // TODO: make use of ticks for tick limiting
             try
             {
                 WorldFillTask task = new WorldFillTask(player, fillWorld, fillForceLoad, fillPadding, repeats, ticks);

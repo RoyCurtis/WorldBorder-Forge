@@ -25,7 +25,6 @@ public class WorldFileData
      * Use this static method to create a new instance of this class. If null is
      * returned, there was a problem so any process relying on this should be cancelled.
      *
-     * TODO: Optimize this for Forge/Vanilla folder structure
      * TODO: Throw exceptions on failures
      */
     public static WorldFileData create(World world, ICommandSender requester)
@@ -165,32 +164,26 @@ public class WorldFileData
         {
             CoordXZ coord = regionFileCoordinates(i);
             // is this region file the one we're looking for?
-            if ( ! coord.equals(region))
+            if ( !coord.equals(region) )
                 continue;
 
-            int counter = 0;
-            try
+            try ( RandomAccessFile regionData = new RandomAccessFile(this.regionFile(i), "r") )
             {
-                RandomAccessFile regionData = new RandomAccessFile(this.regionFile(i), "r");
-
                 Log.trace( "Trying to read region file '%s'", regionFile(i) );
+
                 // first 4096 bytes of region file consists of 4-byte int pointers to chunk data in the file (32*32 chunks = 1024; 1024 chunks * 4 bytes each = 4096)
+                // if chunk pointer data is 0, chunk doesn't exist yet; otherwise, it does
                 for (int j = 0; j < 1024; j++)
-                {
-                    // if chunk pointer data is 0, chunk doesn't exist yet; otherwise, it does
                     if (regionData.readInt() != 0)
                         data.set(j, true);
-                    counter++;
-                }
-                regionData.close();
             }
             catch (FileNotFoundException ex)
             {
-                sendMessage("Error! Could not open region file to find generated chunks: "+this.regionFile(i).getName());
+                sendMessage("Error! Could not open region file to find generated chunks: " + this.regionFile(i).getName());
             }
             catch (IOException ex)
             {
-                sendMessage("Error! Could not read region file to find generated chunks: "+this.regionFile(i).getName());
+                sendMessage("Error! Could not read region file to find generated chunks: " + this.regionFile(i).getName());
             }
         }
         regionChunkExistence.put(region, data);

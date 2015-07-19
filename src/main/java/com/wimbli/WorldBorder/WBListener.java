@@ -9,6 +9,7 @@ import cpw.mods.fml.common.gameevent.PlayerEvent;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 
+// TODO: catch event for chunk generation beyond border
 public class WBListener
 {
     @SubscribeEvent(priority = EventPriority.LOWEST)

@@ -106,13 +106,13 @@ public class WorldFillTask
         return fillDistance;
     }
 
-    /** Gets configured per-tick fill frequency of this task */
+    /** Gets configured how many ticks are each run */
     public int getTickFrequency()
     {
         return tickFrequency;
     }
 
-    /** Gets configured per-tick fill frequency of this task */
+    /** Gets configured amount of chunks to fill per run */
     public int getChunksPerRun()
     {
         return chunksPerRun;
@@ -260,6 +260,9 @@ public class WorldFillTask
     {
         // Only run at start of tick
         if (event.phase == TickEvent.Phase.END)
+            return;
+
+        if (WorldBorder.SERVER.getTickCounter() % tickFrequency != 0)
             return;
 
         if (continueNotice)
