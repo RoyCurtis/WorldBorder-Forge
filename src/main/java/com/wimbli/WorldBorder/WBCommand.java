@@ -61,7 +61,6 @@ public class WBCommand implements ICommand
         //-----
         addCmd(new CmdDenypearl());		// 1
         addCmd(new CmdReload());		// 1
-        addCmd(new CmdDebug());			// 1
 
         // this is the default command, which shows command example pages; should be last just in case
         addCmd(new CmdCommands());

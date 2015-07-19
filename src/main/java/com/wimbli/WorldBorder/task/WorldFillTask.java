@@ -1,9 +1,6 @@
 package com.wimbli.WorldBorder.task;
 
-import com.wimbli.WorldBorder.BorderData;
-import com.wimbli.WorldBorder.Config;
-import com.wimbli.WorldBorder.CoordXZ;
-import com.wimbli.WorldBorder.WorldFileData;
+import com.wimbli.WorldBorder.*;
 import com.wimbli.WorldBorder.forge.Util;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -456,7 +453,7 @@ public class WorldFillTask
         lastReport = Util.now();
         double perc = ((double)(reportTotal + reportNum) / (double)reportTarget) * 100;
         if (perc > 100) perc = 100;
-        sendMessage(reportNum + " more chunks processed (" + (reportTotal + reportNum) + " total, ~" + Config.COORD_FORMAT.format(perc) + "%" + ")");
+        sendMessage(reportNum + " more chunks processed (" + (reportTotal + reportNum) + " total, ~" + Config.COORD_FORMAT.format(perc) + "%%" + ")");
         reportTotal += reportNum;
         reportNum = 0;
 
@@ -475,7 +472,7 @@ public class WorldFillTask
         // Due to chunk generation eating up memory and Java being too slow about GC, we need to track memory availability
         long availMem = Config.getAvailableMemory();
 
-        Config.log("[Fill] " + text + " (free mem: " + availMem + " MB)");
+        Log.info("[Fill] " + text + " (free mem: " + availMem + " MB)");
         if (requester instanceof EntityPlayerMP)
             Util.chat(requester, "[Fill] " + text + " (free mem: " + availMem + " MB)");
 
@@ -488,7 +485,7 @@ public class WorldFillTask
                 "Alternatively, if you restart the server, this task will automatically continue once " +
                 "the server is back up.";
 
-            Config.log("[Fill] " + text);
+            Log.info("[Fill] " + text);
             if (requester instanceof EntityPlayerMP)
                 Util.chat(requester, "[Fill] " + text);
 
@@ -501,7 +498,6 @@ public class WorldFillTask
     protected void finalize() throws Throwable
     {
         super.finalize();
-        if ( Config.isDebugMode() )
-            Config.log( "WorldFillTask cleaned up for " + getWorld() );
+        Log.debug( "WorldFillTask cleaned up for %s", getWorld() );
     }
 }

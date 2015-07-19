@@ -28,11 +28,10 @@ public class CmdSetcorners extends WBCmd
     public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
     {
         if (worldName == null)
-        {
             worldName = Util.getWorldName(player.worldObj);
-        }
         else
         {
+            // TODO: is this redundant with WBCmd/WBCommand?
             WorldServer worldTest = Util.getWorld(worldName);
             if (worldTest == null)
                 Util.chat(sender, "The world you specified (\"" + worldName + "\") could not be found on the server, but data for it will be stored anyway.");

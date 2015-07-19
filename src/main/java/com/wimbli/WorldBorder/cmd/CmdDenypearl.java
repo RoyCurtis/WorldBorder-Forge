@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -35,7 +36,7 @@ public class CmdDenypearl extends WBCmd
 
         if (player != null)
         {
-            Config.log(
+            Log.info(
                 (Config.getDenyEnderpearl() ? "Enabled" : "Disabled")
                 + " direct cancellation of ender pearls thrown past the border at the command of player \""
                 + player.getDisplayName() + "\"."

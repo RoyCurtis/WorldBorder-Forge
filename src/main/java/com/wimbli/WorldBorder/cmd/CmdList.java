@@ -26,6 +26,9 @@ public class CmdList extends WBCmd
     {
         Util.chat(sender, "Default border shape for all worlds is \"" + Config.getShapeName() + "\".");
 
+        // TODO: debug, remove when done
+        Util.getWorlds();
+
         Set<String> list = Config.BorderDescriptions();
 
         if (list.isEmpty())
@@ -35,8 +38,6 @@ public class CmdList extends WBCmd
         }
 
         for(String borderDesc : list)
-        {
             Util.chat(sender, borderDesc);
-        }
     }
 }

@@ -16,14 +16,12 @@ public class WBListener
         if ( !(event.entityLiving instanceof EntityPlayerMP) )
             return;
 
-        // if knockback is set to 0, simply return
+        // TODO: Deregister listener on knockback == 0
         if (Config.getKnockBack() == 0.0 || !Config.getDenyEnderpearl())
             return;
 
-        if (Config.isDebugMode())
-            Config.log("Teleport cause: Enderpearl");
-
         EntityPlayerMP player = (EntityPlayerMP) event.entityLiving;
+        Log.trace( "Caught pearl teleport event by %s", player.getDisplayName() );
 
         Location target = new Location(event, player);
         Location newLoc = BorderCheck.checkPlayer(player, target, true, true);
@@ -42,14 +40,11 @@ public class WBListener
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event)
     {
-        // if knockback is set to 0, simply return
         if (Config.getKnockBack() == 0.0)
             return;
 
-        if (Config.isDebugMode())
-            Config.log("Teleport cause: Respawn");
-
         EntityPlayerMP player = (EntityPlayerMP) event.player;
+        Log.trace( "Caught respawn event by %s", player.getDisplayName() );
 
         Location target = new Location(event.player);
         Location newLoc = BorderCheck.checkPlayer(player, target, true, true);
@@ -67,10 +62,8 @@ public class WBListener
         if (Config.getKnockBack() == 0.0 || !Config.doPortalRedirection())
             return;
 
-        if (Config.isDebugMode())
-            Config.log("Teleport cause: Dimension change");
-
         EntityPlayerMP player = (EntityPlayerMP) event.player;
+        Log.trace( "Caught dim change event by %s", player.getDisplayName() );
 
         Location target = new Location(event.player);
         Location newLoc = BorderCheck.checkPlayer(player, target, true, true);

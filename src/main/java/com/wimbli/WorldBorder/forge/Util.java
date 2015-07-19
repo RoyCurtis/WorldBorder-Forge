@@ -1,5 +1,6 @@
 package com.wimbli.WorldBorder.forge;
 
+import com.wimbli.WorldBorder.Log;
 import com.wimbli.WorldBorder.WorldBorder;
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
@@ -8,6 +9,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.MinecraftException;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 
@@ -50,6 +52,38 @@ public class Util
         }
 
         return null;
+    }
+
+    /**
+     * For debugging only; bad design, uses internal Forge APIs
+     * TODO: remove when done
+     */
+    public static void getWorlds()
+    {
+        Log.debug("## Loaded worlds:");
+        for ( WorldServer world : DimensionManager.getWorlds() )
+        {
+            WorldProvider provider = world.provider;
+            Log.debug(
+                "Found loaded dimension #%d `%s` by provider %s, save: %s",
+                provider.dimensionId,
+                provider.getDimensionName(),
+                provider.getClass().getSimpleName(),
+                provider.getSaveFolder()
+            );
+        }
+
+        Log.debug("## Registered worlds:");
+        for ( int dim : DimensionManager.getStaticDimensionIDs() )
+        {
+            WorldProvider provider = DimensionManager.createProviderFor(dim);
+            Log.debug(
+                "Found dimension #%d `%s` by provider %s, save: %s", dim,
+                provider.getDimensionName(),
+                provider.getClass().getSimpleName(),
+                provider.getSaveFolder()
+            );
+        }
     }
 
     /** Safely saves a given world to disk */

@@ -51,11 +51,6 @@ public class DynMapFeatures
         DynmapCommonAPIListener.register(listener);
     }
 
-    public static void unregisterListener()
-    {
-        DynmapCommonAPIListener.unregister(listener);
-    }
-
     public static void setup()
     {
         // RoyCurtis: Old dynmap version check removed; 0.35 is obsolete by now
@@ -67,14 +62,14 @@ public class DynMapFeatures
         }
         catch (NullPointerException ex)
         {
-            Config.logConfig("DynMap is present, but an NPE (type 2) was encountered while trying to integrate. Border display disabled.");
+            Log.info("DynMap is present, but an NPE (type 2) was encountered while trying to integrate. Border display disabled.");
             return;
         }
 
         // go ahead and show borders for all worlds
         showAllBorders();
 
-        Config.logConfig("Successfully hooked into DynMap for the ability to display borders.");
+        Log.info("Successfully hooked into DynMap for the ability to display borders.");
     }
 
 
@@ -145,6 +140,7 @@ public class DynMapFeatures
         else
             markSet.setMarkerSetLabel("WorldBorder");
 
+        // TODO: Figure out why border not showing for mystcraft worlds
         Map<String, BorderData> borders = Config.getBorders();
         for(Entry<String, BorderData> stringBorderDataEntry : borders.entrySet())
         {

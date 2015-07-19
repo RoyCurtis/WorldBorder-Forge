@@ -4,7 +4,6 @@ import com.wimbli.WorldBorder.forge.Configuration;
 import com.wimbli.WorldBorder.forge.Util;
 import com.wimbli.WorldBorder.task.BorderCheckTask;
 import com.wimbli.WorldBorder.task.WorldFillTask;
-import org.apache.logging.log4j.Level;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -21,7 +20,7 @@ public class Config
     private static final String MAIN_CAT = "general";
     private static final String FILL_CAT = "fillTask";
 
-    // TODO: move these elsewhere?
+    // TODO: move this elsewhere?
     public static BorderCheckTask borderTask = null;
 
     private static File          configDir;
@@ -37,7 +36,6 @@ public class Config
     private static String    messageFmt;
     private static String    dynmapMessage;
     private static Set<UUID> bypassPlayers     = Collections.synchronizedSet(new LinkedHashSet<UUID>());
-    private static boolean   debugMode         = false;
     private static boolean   shapeRound        = true;
     private static float     knockBack         = 3.0F;
     private static int       timerTicks        = 20;
@@ -58,14 +56,14 @@ public class Config
         configDir = new File(globalDir, WorldBorder.MODID);
 
         if ( !configDir.exists() && configDir.mkdirs() )
-            log("Created config directory for the first time");
+            Log.info("Created config directory for the first time");
     }
 
     public static void setBorder(String world, BorderData border, boolean logIt)
     {
         borders.put(world, border);
         if (logIt)
-            log("Border set. " + BorderDescription(world));
+            Log.info("Border set. " + BorderDescription(world));
         save(true);
         DynMapFeatures.showBorder(world, border);
     }
@@ -99,7 +97,7 @@ public class Config
     public static void removeBorder(String world)
     {
         borders.remove(world);
-        log("Removed border for world \"" + world + "\".");
+        Log.info("Removed border for world \"" + world + "\".");
         save(true);
         DynMapFeatures.removeBorder(world);
     }
@@ -107,7 +105,7 @@ public class Config
     public static void removeAllBorders()
     {
         borders.clear();
-        log("Removed all borders for all worlds.");
+        Log.info("Removed all borders for all worlds.");
         save(true);
         DynMapFeatures.removeAllBorders();
     }
@@ -166,7 +164,7 @@ public class Config
     public static void setShape(boolean round)
     {
         shapeRound = round;
-        log("Set default border shape to " + (getShapeName()) + ".");
+        Log.info("Set default border shape to " + (getShapeName()) + ".");
         save(true);
         DynMapFeatures.showAllBorders();
     }
@@ -188,22 +186,10 @@ public class Config
         return round ? "elliptic/round" : "rectangular/square";
     }
 
-    public static void setDebugMode(boolean mode)
-    {
-        debugMode = mode;
-        log("Debug mode " + (debugMode ? "enabled" : "disabled") + ".");
-        save(true);
-    }
-
-    public static boolean isDebugMode()
-    {
-        return debugMode;
-    }
-
     public static void setWhooshEffect(boolean enable)
     {
         whooshEffect = enable;
-        log("\"Whoosh\" knockback effect " + (enable ? "enabled" : "disabled") + ".");
+        Log.info("\"Whoosh\" knockback effect " + (enable ? "enabled" : "disabled") + ".");
         save(true);
     }
 
@@ -218,7 +204,7 @@ public class Config
             WorldBorder.INSTANCE.enableBlockPlaceListener(enable);
 
         preventBlockPlace = enable;
-        log("Prevent block place " + (enable ? "enabled" : "disabled") + ".");
+        Log.info("Prevent block place " + (enable ? "enabled" : "disabled") + ".");
         save(true);
     }
 
@@ -228,7 +214,7 @@ public class Config
             WorldBorder.INSTANCE.enableMobSpawnListener(enable);
 
         preventMobSpawn = enable;
-        log("Prevent mob spawn " + (enable ? "enabled" : "disabled") + ".");
+        Log.info("Prevent mob spawn " + (enable ? "enabled" : "disabled") + ".");
         save(true);
     }
 
@@ -255,14 +241,14 @@ public class Config
     public static void setDenyEnderpearl(boolean enable)
     {
         denyEnderpearl = enable;
-        log("Direct cancellation of ender pearls thrown past the border " + (enable ? "enabled" : "disabled") + ".");
+        Log.info("Direct cancellation of ender pearls thrown past the border " + (enable ? "enabled" : "disabled") + ".");
         save(true);
     }
 
     public static void setPortalRedirection(boolean enable)
     {
         portalRedirection = enable;
-        log("Portal redirection " + (enable ? "enabled" : "disabled") + ".");
+        Log.info("Portal redirection " + (enable ? "enabled" : "disabled") + ".");
         save(true);
     }
 
@@ -274,7 +260,7 @@ public class Config
     public static void setKnockBack(float numBlocks)
     {
         knockBack = numBlocks;
-        log("Knockback set to " + knockBack + " blocks inside the border.");
+        Log.info("Knockback set to " + knockBack + " blocks inside the border.");
 
         if (knockBack == 0.0)
             stopBorderTimer();
@@ -292,7 +278,7 @@ public class Config
     public static void setTimerTicks(int ticks)
     {
         timerTicks = ticks;
-        log("Timer delay set to " + timerTicks + " tick(s). That is roughly " + (timerTicks * 50) + "ms / " + (((double)timerTicks * 50.0) / 1000.0) + " seconds.");
+        Log.info("Timer delay set to " + timerTicks + " tick(s). That is roughly " + (timerTicks * 50) + "ms / " + (((double)timerTicks * 50.0) / 1000.0) + " seconds.");
         startBorderTimer();
         save(true);
     }
@@ -306,9 +292,9 @@ public class Config
     {
         remount = enable;
         if (remount)
-            log("Remount is now enabled. Players will be remounted on their vehicle when knocked back");
+            Log.info("Remount is now enabled. Players will be remounted on their vehicle when knocked back");
         else
-            log("Remount is now disabled. Players will be left dismounted when knocked back from the border while on a vehicle.");
+            Log.info("Remount is now disabled. Players will be left dismounted when knocked back from the border while on a vehicle.");
 
         save(true);
     }
@@ -322,9 +308,9 @@ public class Config
     {
         fillAutosaveFrequency = seconds;
         if (fillAutosaveFrequency == 0)
-            log("World autosave frequency during Fill process set to 0, disabling it. Note that much progress can be lost this way if there is a bug or crash in the world generation process from Bukkit or any world generation plugin you use.");
+            Log.info("World autosave frequency during Fill process set to 0, disabling it. Note that much progress can be lost this way if there is a bug or crash in the world generation process from Bukkit or any world generation plugin you use.");
         else
-            log("World autosave frequency during Fill process set to " + fillAutosaveFrequency + " seconds (rounded to a multiple of 5). New chunks generated by the Fill process will be forcibly saved to disk this often to prevent loss of progress due to bugs or crashes in the world generation process.");
+            Log.info("World autosave frequency during Fill process set to " + fillAutosaveFrequency + " seconds (rounded to a multiple of 5). New chunks generated by the Fill process will be forcibly saved to disk this often to prevent loss of progress due to bugs or crashes in the world generation process.");
         save(true);
     }
 
@@ -337,7 +323,7 @@ public class Config
     public static void setDynmapBorderEnabled(boolean enable)
     {
         dynmapEnable = enable;
-        log("DynMap border display is now " + (enable ? "enabled" : "disabled") + ".");
+        Log.info("DynMap border display is now " + (enable ? "enabled" : "disabled") + ".");
         save(true);
         DynMapFeatures.showAllBorders();
     }
@@ -350,7 +336,7 @@ public class Config
     public static void setDynmapMessage(String msg)
     {
         dynmapMessage = msg;
-        log("DynMap border label is now set to: " + msg);
+        Log.info("DynMap border label is now set to: " + msg);
         save(true);
         DynMapFeatures.showAllBorders();
     }
@@ -405,7 +391,7 @@ public class Config
             return;
 
         borderTask.setRunning(true);
-        logConfig("Border-checking timed task started.");
+        Log.info("Border-checking timed task started.");
     }
 
     public static void stopBorderTimer()
@@ -414,7 +400,7 @@ public class Config
             return;
 
         borderTask.setRunning(false);
-        logConfig("Border-checking timed task stopped.");
+        Log.info("Border-checking timed task stopped.");
     }
 
     public static void storeFillTask()
@@ -439,7 +425,7 @@ public class Config
         }
         catch (Exception e)
         {
-            logWarn("Could not resume fill task: " + e.getMessage());
+            Log.warn("Could not resume fill task: " + e.getMessage());
         }
     }
 
@@ -453,23 +439,6 @@ public class Config
     public static boolean isAvailableMemoryTooLow()
     {
         return getAvailableMemory() < fillMemoryTolerance;
-    }
-
-    public static void log(Level lvl, String text)
-    {
-        WorldBorder.LOGGER.log(lvl, text);
-    }
-    public static void log(String text)
-    {
-        log(Level.INFO, text);
-    }
-    public static void logWarn(String text)
-    {
-        log(Level.WARN, text);
-    }
-    public static void logConfig(String text)
-    {
-        log(Level.INFO, "[CONFIG] " + text);
     }
 
     private static final int currentCfgVersion = 11;
@@ -486,9 +455,10 @@ public class Config
 
         int cfgVersion = cfgMain.getInt(MAIN_CAT, "cfg-version", currentCfgVersion);
 
+        // TODO: make all these call setters
+        // WARNING: NPE because msg == null here
         String msg = cfgMain.getString(MAIN_CAT, "message", "");
         importBypassStringList(cfgMain.getStringList(MAIN_CAT, "bypass-list-uuids"));
-        debugMode         = cfgMain.getBoolean(MAIN_CAT, "debug-mode", false);
         shapeRound        = cfgMain.getBoolean(MAIN_CAT, "round-border", true);
         whooshEffect      = cfgMain.getBoolean(MAIN_CAT, "whoosh-effect", true);
         portalRedirection = cfgMain.getBoolean(MAIN_CAT, "portal-redirection", true);
@@ -505,15 +475,12 @@ public class Config
         fillAutosaveFrequency = cfgMain.getInt(MAIN_CAT, "fill-autosave-frequency", 30);
         fillMemoryTolerance   = cfgMain.getInt(MAIN_CAT, "fill-memory-tolerance", 500);
 
-        logConfig(
-            "Using " + (getShapeName()) + " border, knockback of "
-            + knockBack + " blocks, and timer delay of " + timerTicks + "."
-        );
+        Log.info("Using " + (getShapeName()) + " border, knockback of " + knockBack + " blocks, and timer delay of " + timerTicks + ".");
 
         // TODO: Move to server setup?
         if (knockBack == 0.0)
         {
-            logWarn("Knockback is set to 0; the border check task will be disabled.");
+            Log.warn("Knockback is set to 0; the border check task will be disabled.");
             stopBorderTimer();
         }
         else
@@ -524,7 +491,7 @@ public class Config
         // if empty border message, assume no config
         if (msg == null || msg.isEmpty())
         {	// store defaults
-            logConfig("Configuration not present, creating new file.");
+            Log.info("Configuration not present, creating new file.");
             msg = "&cYou have reached the edge of this world.";
             updateMessage(msg);
             save(false);
@@ -556,7 +523,7 @@ public class Config
                 overrideShape, wrap
             );
             borders.put(worldName, border);
-            logConfig(BorderDescription(worldName));
+            Log.info(BorderDescription(worldName));
         }
 
         // if we have an unfinished fill task stored from a previous run, load it up
@@ -579,7 +546,7 @@ public class Config
         }
 
         if (logIt)
-            logConfig("Configuration loaded.");
+            Log.info("Configuration loaded.");
 
         if (cfgVersion < currentCfgVersion) save(false);
     }
@@ -595,7 +562,6 @@ public class Config
         cfgMain.set(MAIN_CAT, "cfg-version", currentCfgVersion);
         cfgMain.set(MAIN_CAT, "message", message);
         cfgMain.set(MAIN_CAT, "round-border", shapeRound);
-        cfgMain.set(MAIN_CAT, "debug-mode", debugMode);
         cfgMain.set(MAIN_CAT, "whoosh-effect", whooshEffect);
         cfgMain.set(MAIN_CAT, "portal-redirection", portalRedirection);
         cfgMain.set(MAIN_CAT, "knock-back-dist", knockBack);
@@ -647,7 +613,7 @@ public class Config
         cfgBorders.save();
 
         if (logIt)
-            logConfig("Configuration saved.");
+            Log.info("Configuration saved.");
     }
 
 

@@ -1,7 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
-import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.CoordXZ;
+import com.wimbli.WorldBorder.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import com.wimbli.WorldBorder.task.WorldFillTask;
 import net.minecraft.command.ICommandSender;
@@ -125,7 +125,7 @@ public class CmdFill extends WBCmd
             }
 
             if (player != null)
-                Config.log("Filling out world to border at the command of player \"" + player.getDisplayName() + "\".");
+                Log.info("Filling out world to border at the command of player \"" + player.getDisplayName() + "\".");
 
             int ticks = 1, repeats = 1;
             if (fillFrequency > 20)
@@ -133,7 +133,7 @@ public class CmdFill extends WBCmd
             else
                 ticks = 20 / fillFrequency;
 
-            Config.log("world: " + fillWorld + "  padding: " + fillPadding + "  repeats: " + repeats + "  ticks: " + ticks);
+            Log.info("world: " + fillWorld + "  padding: " + fillPadding + "  repeats: " + repeats + "  ticks: " + ticks);
 
             // TODO: make use of ticks for tick limiting
             try

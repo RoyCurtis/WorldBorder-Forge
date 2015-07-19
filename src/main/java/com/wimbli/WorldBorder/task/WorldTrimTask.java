@@ -197,6 +197,12 @@ public class WorldTrimTask
 
                 try
                 {
+                    Log.trace(
+                        "Deleting region file '%s' for world '%s'",
+                        regionFile.getAbsolutePath(),
+                        Util.getWorldName(world)
+                    );
+
                     Files.delete(regionFile.toPath());
                 }
                 catch (Exception e)
@@ -283,24 +289,20 @@ public class WorldTrimTask
         int chunkX = 0, chunkZ;
 
         for (chunkZ = 1; chunkZ < 31; chunkZ++)
-        {
             regionChunks.add(new CoordXZ(CoordXZ.regionToChunk(regionX)+chunkX, CoordXZ.regionToChunk(regionZ)+chunkZ));
-        }
+
         chunkX = 31;
         for (chunkZ = 1; chunkZ < 31; chunkZ++)
-        {
             regionChunks.add(new CoordXZ(CoordXZ.regionToChunk(regionX)+chunkX, CoordXZ.regionToChunk(regionZ)+chunkZ));
-        }
+
         chunkZ = 0;
         for (chunkX = 1; chunkX < 31; chunkX++)
-        {
             regionChunks.add(new CoordXZ(CoordXZ.regionToChunk(regionX)+chunkX, CoordXZ.regionToChunk(regionZ)+chunkZ));
-        }
+
         chunkZ = 31;
         for (chunkX = 1; chunkX < 31; chunkX++)
-        {
             regionChunks.add(new CoordXZ(CoordXZ.regionToChunk(regionX)+chunkX, CoordXZ.regionToChunk(regionZ)+chunkZ));
-        }
+
         counter += 4;
     }
 
@@ -308,12 +310,9 @@ public class WorldTrimTask
     private void addInnerChunks()
     {
         for (int chunkX = 1; chunkX < 31; chunkX++)
-        {
-            for (int chunkZ = 1; chunkZ < 31; chunkZ++)
-            {
-                regionChunks.add(new CoordXZ(CoordXZ.regionToChunk(regionX)+chunkX, CoordXZ.regionToChunk(regionZ)+chunkZ));
-            }
-        }
+        for (int chunkZ = 1; chunkZ < 31; chunkZ++)
+            regionChunks.add(new CoordXZ(CoordXZ.regionToChunk(regionX)+chunkX, CoordXZ.regionToChunk(regionZ)+chunkZ));
+
         counter += 32;
     }
 
@@ -321,10 +320,9 @@ public class WorldTrimTask
     private void unloadChunks()
     {
         for (CoordXZ unload : trimChunks)
-        {
             if (world.theChunkProviderServer.chunkExists(unload.x, unload.z))
                 world.theChunkProviderServer.unloadChunksIfNotNearSpawn(unload.x, unload.z);
-        }
+
         counter += trimChunks.size();
     }
 
@@ -404,13 +402,13 @@ public class WorldTrimTask
     {
         lastReport = Util.now();
         double perc = ((double)(reportTotal) / (double)reportTarget) * 100;
-        sendMessage(reportTrimmedRegions + " entire region(s) and " + reportTrimmedChunks + " individual chunk(s) trimmed so far (" + Config.COORD_FORMAT.format(perc) + "% done" + ")");
+        sendMessage(reportTrimmedRegions + " entire region(s) and " + reportTrimmedChunks + " individual chunk(s) trimmed so far (" + Config.COORD_FORMAT.format(perc) + "%% done" + ")");
     }
 
     // send a message to the server console/log and possibly to an in-game player
     private void sendMessage(String text)
     {
-        Config.log("[Trim] " + text);
+        Log.info("[Trim] " + text);
         if (requester instanceof EntityPlayerMP)
             Util.chat(requester, "[Trim] " + text);
     }
@@ -419,7 +417,6 @@ public class WorldTrimTask
     protected void finalize() throws Throwable
     {
         super.finalize();
-        if ( Config.isDebugMode() )
-            Config.log( "WorldFillTask cleaned up for " + Util.getWorldName(world) );
+        Log.debug( "WorldFillTask cleaned up for %s", Util.getWorldName(world) );
     }
 }

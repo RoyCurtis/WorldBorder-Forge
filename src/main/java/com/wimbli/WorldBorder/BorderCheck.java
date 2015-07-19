@@ -64,7 +64,9 @@ public class BorderCheck
                 double vertOffset = (ride instanceof EntityLiving) ? 0 : ride.posY - loc.posY;
                 Location rideLoc = new Location(newLoc);
                 rideLoc.posY = newLoc.posY + vertOffset;
-                if (Config.isDebugMode()) Config.logWarn("Player was riding a \"" + ride.toString() + "\".");
+
+                Log.trace("Player was riding a \"" + ride.toString() + "\".");
+
                 if (ride instanceof EntityBoat)
                 {    // boats currently glitch on client when teleported, so crappy workaround is to remove it and spawn a new one
                     ride.setDead();
@@ -87,8 +89,12 @@ public class BorderCheck
             rider.mountEntity(null);
             rider.setPositionAndRotation(newLoc.posX, newLoc.posY, newLoc.posZ, newLoc.pitch, newLoc.yaw);
             Util.chat(player, "Your passenger has been ejected.");
-            if (Config.isDebugMode())
-                Config.logWarn("Player had a passenger riding on them: " + rider.getCommandSenderName());
+
+            Log.trace(
+                "%s had %s riding on them",
+                player.getDisplayName(),
+                rider.getCommandSenderName()
+            );
         }
 
         // give some particle and sound effects where the player was beyond the border, if "whoosh effect" is enabled
@@ -105,18 +111,20 @@ public class BorderCheck
 
     private static Location newLocation(EntityPlayerMP player, Location loc, BorderData border, boolean notify)
     {
-        if (Config.isDebugMode())
-        {
-            Config.logWarn((notify ? "Border crossing" : "Check was run") + " in \"" + Util.getWorldName(loc.world) + "\". Border " + border.toString());
-            Config.logWarn("Player position X: " + Config.COORD_FORMAT.format(loc.posX) + " Y: " + Config.COORD_FORMAT.format(loc.posY) + " Z: " + Config.COORD_FORMAT.format(loc.posZ));
-        }
+        Log.trace(
+            "%s @ world '%s'. Border: %s",
+            (notify ? "Border crossing" : "Check was run"),
+            Util.getWorldName(loc.world), border
+        );
+
+        Log.trace("Player @ X: %.2f Y: %.2f Z: %.2f", loc.posX, loc.posY, loc.posZ);
 
         Location newLoc = border.correctedPosition(loc, Config.getShapeRound(), player.capabilities.isFlying);
 
         // it's remotely possible (such as in the Nether) a suitable location isn't available, in which case...
         if (newLoc == null)
         {
-            if (Config.isDebugMode()) Config.logWarn("Target new location unviable, using spawn or killing player.");
+            Log.debug("Target new location unviable, using spawn or killing player.");
             if (Config.doPlayerKill())
             {
                 player.setHealth(0.0F);
@@ -125,10 +133,12 @@ public class BorderCheck
             newLoc = new Location((WorldServer) player.worldObj);
         }
 
-        if (Config.isDebugMode())
-            Config.logWarn("New position in world \"" + Util.getWorldName(newLoc.world) + "\" at X: " + Config.COORD_FORMAT.format(newLoc.posX) + " Y: " + Config.COORD_FORMAT.format(newLoc.posY) + " Z: " + Config.COORD_FORMAT.format(newLoc.posZ));
+        Log.trace(
+            "New position @ X: %.2f Y: %.2f Z: %.2f",
+            newLoc.posX, newLoc.posY, newLoc.posZ
+        );
 
-        if (notify) Util.chat(player, Config.getMessage());
+        if (notify) Util.chat( player, Config.getMessage() );
 
         return newLoc;
     }

@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -34,7 +35,7 @@ public class CmdPortal extends WBCmd
 
         if (player != null)
         {
-            Config.log((Config.doPortalRedirection() ? "Enabled" : "Disabled") + " portal redirection at the command of player \"" + player.getDisplayName() + "\".");
+            Log.info((Config.doPortalRedirection() ? "Enabled" : "Disabled") + " portal redirection at the command of player \"" + player.getDisplayName() + "\".");
             cmdStatus(sender);
         }
     }

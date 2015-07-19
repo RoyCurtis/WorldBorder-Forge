@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -30,7 +31,7 @@ public class CmdPreventSpawn extends WBCmd {
 
         if (player != null)
         {
-            Config.log((Config.preventMobSpawn() ? "Enabled" : "Disabled") + " preventmobspawn at the command of player \"" + player.getDisplayName() + "\".");
+            Log.info((Config.preventMobSpawn() ? "Enabled" : "Disabled") + " preventmobspawn at the command of player \"" + player.getDisplayName() + "\".");
             cmdStatus(sender);
         }
     }

@@ -2,6 +2,7 @@ package com.wimbli.WorldBorder.cmd;
 
 import com.mojang.authlib.GameProfile;
 import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.Log;
 import com.wimbli.WorldBorder.UUID.UUIDFetcher;
 import com.wimbli.WorldBorder.WorldBorder;
 import com.wimbli.WorldBorder.forge.Util;
@@ -86,7 +87,7 @@ public class CmdBypass extends WBCmd
         if ( target != null )
             Util.chat(target, "Border bypass is now " + enabledColored(bypassing) + ".");
 
-        Config.log(
+        Log.info(
             "Border bypass for player \"" + sPlayer + "\" is "
             + (bypassing ? "enabled" : "disabled")
             + (" at the command of player \"" + player.getDisplayName() + "\"") + "."

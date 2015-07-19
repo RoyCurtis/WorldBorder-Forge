@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
+import com.wimbli.WorldBorder.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -24,7 +25,7 @@ public class CmdReload extends WBCmd
     public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
     {
         if (player != null)
-            Config.log("Reloading config file at the command of player \"" + player.getDisplayName() + "\".");
+            Log.info("Reloading config file at the command of player \"" + player.getDisplayName() + "\".");
 
         Config.load(true);
 

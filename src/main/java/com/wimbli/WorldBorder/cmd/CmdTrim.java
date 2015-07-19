@@ -1,7 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
-import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.CoordXZ;
+import com.wimbli.WorldBorder.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import com.wimbli.WorldBorder.task.WorldTrimTask;
 import net.minecraft.command.ICommandSender;
@@ -120,7 +120,7 @@ public class CmdTrim extends WBCmd
             }
 
             if (player != null)
-                Config.log("Trimming world beyond border at the command of player \"" + player.getDisplayName() + "\".");
+                Log.info("Trimming world beyond border at the command of player \"" + player.getDisplayName() + "\".");
 
             int ticks = 1, repeats = 1;
             if (trimFrequency > 20)
