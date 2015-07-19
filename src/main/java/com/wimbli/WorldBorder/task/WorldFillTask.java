@@ -75,7 +75,6 @@ public class WorldFillTask
     private int refTotal = 0, lastLegTotal = 0;
 
     // <editor-fold desc="Getters">
-
     /** Gets X of last chunk to be processed */
     public int getRefX()
     {
@@ -129,7 +128,6 @@ public class WorldFillTask
     {
         return forceLoad;
     }
-
     // </editor-fold>
 
     /** Starts this task by registering the tick handler */

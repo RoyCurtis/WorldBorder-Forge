@@ -16,7 +16,6 @@ public class Log
     private static final Logger LOG = LogManager.getFormatterLogger(WorldBorder.MODID);
 
     // <editor-fold desc="Emitters">
-
     public static void trace(String msg, Object... parts)
     {
         LOG.trace(msg, parts);
@@ -41,6 +40,5 @@ public class Log
     {
         LOG.error(msg, parts);
     }
-
     // </editor-fold>
 }

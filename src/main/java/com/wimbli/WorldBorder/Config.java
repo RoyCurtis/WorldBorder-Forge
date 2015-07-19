@@ -514,9 +514,10 @@ public class Config
                 cfgBorders.set(worldName, "radiusZ", radius);
             }
 
-            // TODO: make overrideShape nullable again, because WB uses null to determine if
-            // override is in effect
-            boolean overrideShape = cfgBorders.get(worldName, "shape-round", false).getBoolean();
+            Boolean overrideShape = cfgBorders.hasKey(worldName, "shape-round")
+                ? cfgBorders.getBoolean(worldName, "shape-round", true)
+                : null;
+
             boolean wrap = cfgBorders.get(worldName, "wrapping", false).getBoolean();
             BorderData border = new BorderData(
                 cfgBorders.get(worldName, "x", 0.0D).getDouble(), cfgBorders.get(worldName, "z", 0.0D).getDouble(),
@@ -581,7 +582,7 @@ public class Config
         cfgBorders.clear();
         for(Entry<String, BorderData> stringBorderDataEntry : borders.entrySet())
         {
-            String name = stringBorderDataEntry.getKey().replace(".", "<");
+            String     name = stringBorderDataEntry.getKey();
             BorderData bord = stringBorderDataEntry.getValue();
 
             cfgBorders.set(name, "x", bord.getX());
@@ -590,6 +591,7 @@ public class Config
             cfgBorders.set(name, "radiusZ", bord.getRadiusZ());
             cfgBorders.set(name, "wrapping", bord.getWrapping());
 
+            // No need to remove shape-round since cfgBorders is cleared
             if (bord.getShape() != null)
                 cfgBorders.set(name, "shape-round", bord.getShape());
         }

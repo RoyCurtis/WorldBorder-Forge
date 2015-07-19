@@ -222,6 +222,7 @@ public class WorldTrimTask
                 catch (Exception e)
                 {
                     // TODO: make this not spam per region file
+                    // NOTE: this only appears to be a problem on Windows...
                     sendMessage("Error! Region file which is outside the border could not be deleted: " + regionFile.getName() );
                     sendMessage("It may be that the world spawn chunks are in this region.");
                     sendMessage("Use /setworldspawn to set the spawn chunks elsewhere, restart the server and try again");

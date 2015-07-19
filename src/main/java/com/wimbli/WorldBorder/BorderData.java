@@ -11,12 +11,13 @@ import java.util.LinkedHashSet;
 public class BorderData
 {
     // the main data interacted with
-    private double x = 0;
-    private double z = 0;
-    private int radiusX = 0;
-    private int radiusZ = 0;
+    private double x       = 0;
+    private double z       = 0;
+    private int    radiusX = 0;
+    private int    radiusZ = 0;
+
     private Boolean shapeRound = null;
-    private boolean wrapping = false;
+    private boolean wrapping   = false;
 
     // some extra data kept handy for faster border checks
     private double maxX;
@@ -29,27 +30,34 @@ public class BorderData
     private double DefiniteRectangleZ;
     private double radiusSquaredQuotient;
 
+    // <editor-fold desc="Constructors">
     public BorderData(double x, double z, int radiusX, int radiusZ, Boolean shapeRound, boolean wrap)
     {
         setData(x, z, radiusX, radiusZ, shapeRound, wrap);
     }
+
     public BorderData(double x, double z, int radiusX, int radiusZ)
     {
         setData(x, z, radiusX, radiusZ, null);
     }
+
     public BorderData(double x, double z, int radiusX, int radiusZ, Boolean shapeRound)
     {
         setData(x, z, radiusX, radiusZ, shapeRound);
     }
+
     public BorderData(double x, double z, int radius)
     {
         setData(x, z, radius, null);
     }
+
     public BorderData(double x, double z, int radius, Boolean shapeRound)
     {
         setData(x, z, radius, shapeRound);
     }
+    // </editor-fold>
 
+    // <editor-fold desc="setData overloads">
     public final void setData(double x, double z, int radiusX, int radiusZ, Boolean shapeRound, boolean wrap)
     {
         this.x = x;
@@ -59,116 +67,127 @@ public class BorderData
         this.setRadiusX(radiusX);
         this.setRadiusZ(radiusZ);
     }
+
     public final void setData(double x, double z, int radiusX, int radiusZ, Boolean shapeRound)
     {
         setData(x, z, radiusX, radiusZ, shapeRound, false);
     }
+
     public final void setData(double x, double z, int radius, Boolean shapeRound)
     {
         setData(x, z, radius, radius, shapeRound, false);
     }
+    // </editor-fold>
 
-    public BorderData copy()
-    {
-        return new BorderData(x, z, radiusX, radiusZ, shapeRound, wrapping);
-    }
-
+    //<editor-fold desc="Getters and setters">
     public double getX()
     {
         return x;
     }
+
     public void setX(double x)
     {
         this.x = x;
         this.maxX = x + radiusX;
         this.minX = x - radiusX;
     }
+
     public double getZ()
     {
         return z;
     }
+
     public void setZ(double z)
     {
         this.z = z;
         this.maxZ = z + radiusZ;
         this.minZ = z - radiusZ;
     }
+
     public int getRadiusX()
     {
         return radiusX;
     }
+
     public int getRadiusZ()
     {
         return radiusZ;
     }
+
     public void setRadiusX(int radiusX)
     {
         this.radiusX = radiusX;
-        this.maxX = x + radiusX;
-        this.minX = x - radiusX;
-        this.radiusXSquared = (double)radiusX * (double)radiusX;
+        this.maxX    = x + radiusX;
+        this.minX    = x - radiusX;
+
+        this.radiusXSquared        = (double) radiusX * (double) radiusX;
         this.radiusSquaredQuotient = this.radiusXSquared / this.radiusZSquared;
-        this.DefiniteRectangleX = Math.sqrt(.5 * this.radiusXSquared);
+        this.DefiniteRectangleX    = Math.sqrt(.5 * this.radiusXSquared);
     }
+
     public void setRadiusZ(int radiusZ)
     {
         this.radiusZ = radiusZ;
-        this.maxZ = z + radiusZ;
-        this.minZ = z - radiusZ;
-        this.radiusZSquared = (double)radiusZ * (double)radiusZ;
+        this.maxZ    = z + radiusZ;
+        this.minZ    = z - radiusZ;
+
+        this.radiusZSquared        = (double) radiusZ * (double) radiusZ;
         this.radiusSquaredQuotient = this.radiusXSquared / this.radiusZSquared;
-        this.DefiniteRectangleZ = Math.sqrt(.5 * this.radiusZSquared);
+        this.DefiniteRectangleZ    = Math.sqrt(.5 * this.radiusZSquared);
     }
 
-
-    // backwards-compatible methods from before elliptical/rectangular shapes were supported
-    /**
-     * @deprecated  Replaced by {@link #getRadiusX()} and {@link #getRadiusZ()};
-     * this method now returns an average of those two values and is thus imprecise
-     */
-    public int getRadius()
-    {
-        return (radiusX + radiusZ) / 2;  // average radius; not great, but probably best for backwards compatibility
-    }
     public void setRadius(int radius)
     {
         setRadiusX(radius);
         setRadiusZ(radius);
     }
 
-
     public Boolean getShape()
     {
         return shapeRound;
     }
+
     public void setShape(Boolean shapeRound)
     {
         this.shapeRound = shapeRound;
     }
 
-
     public boolean getWrapping()
     {
         return wrapping;
     }
+
     public void setWrapping(boolean wrap)
     {
         this.wrapping = wrap;
     }
+    //</editor-fold>
 
+    public BorderData copy()
+    {
+        return new BorderData(x, z, radiusX, radiusZ, shapeRound, wrapping);
+    }
 
     @Override
     public String toString()
     {
-        return "radius " + ((radiusX == radiusZ) ? radiusX : radiusX + "x" + radiusZ) + " at X: " + Config.COORD_FORMAT.format(x) + " Z: " + Config.COORD_FORMAT.format(z) + (shapeRound != null ? (" (shape override: " + Config.getShapeName(shapeRound.booleanValue()) + ")") : "") + (wrapping ? (" (wrapping)") : "");
+        return String.format("radius %s at X: %s Z: %s%s%s",
+            (radiusX == radiusZ) ? radiusX : radiusX + "*" + radiusZ,
+            Config.COORD_FORMAT.format(x),
+            Config.COORD_FORMAT.format(z),
+            shapeRound != null
+                ? String.format( " (shape override: %s)", Config.getShapeName(shapeRound) )
+                : "",
+            wrapping ? " (wrapping)" : ""
+        );
     }
 
-    // This algorithm of course needs to be fast, since it will be run very frequently
+    /** This algorithm of course needs to be fast, since it will be run very frequently */
     public boolean insideBorder(double xLoc, double zLoc, boolean round)
     {
         // if this border has a shape override set, use it
         if (shapeRound != null)
-            round = shapeRound.booleanValue();
+            round = shapeRound;
 
         // square border
         if (!round)
@@ -195,14 +214,17 @@ public class BorderData
     {
         return insideBorder(xLoc, zLoc, Config.getShapeRound());
     }
+
     public boolean insideBorder(Location loc)
     {
         return insideBorder(loc.posX, loc.posZ, Config.getShapeRound());
     }
+
     public boolean insideBorder(CoordXZ coord, boolean round)
     {
         return insideBorder(coord.x, coord.z, round);
     }
+
     public boolean insideBorder(CoordXZ coord)
     {
         return insideBorder(coord.x, coord.z, Config.getShapeRound());
@@ -248,20 +270,26 @@ public class BorderData
         // round border
         else
         {
-            // algorithm originally from: http://stackoverflow.com/questions/300871/best-way-to-find-a-point-on-a-circle-closest-to-a-given-point
+            // algorithm originally from: http://stackoverflow.com/q/300871/3354920
             // modified by Lang Lukas to support elliptical border shape
 
-            //Transform the ellipse to a circle with radius 1 (we need to transform the point the same way)
+            // Transform the ellipse to a circle with radius 1 (we need to transform the point the same way)
             double dX = xLoc - x;
             double dZ = zLoc - z;
-            double dU = Math.sqrt(dX *dX + dZ * dZ); //distance of the untransformed point from the center
-            double dT = Math.sqrt(dX *dX / radiusXSquared + dZ * dZ / radiusZSquared); //distance of the transformed point from the center
-            double f = (1 / dT - Config.getKnockBack() / dU); //"correction" factor for the distances
+            // Distance of the untransformed point from the center
+            double dU = Math.sqrt(dX *dX + dZ * dZ);
+            // Distance of the transformed point from the center
+            double dT = Math.sqrt(dX *dX / radiusXSquared + dZ * dZ / radiusZSquared);
+            // "Correction" factor for the distances
+            double f  = (1 / dT - Config.getKnockBack() / dU);
+
             if (wrapping)
             {
                 xLoc = x - dX * f;
                 zLoc = z - dZ * f;
-            } else {
+            }
+            else
+            {
                 xLoc = x + dX * f;
                 zLoc = z + dZ * f;
             }
@@ -273,6 +301,7 @@ public class BorderData
         int icZLoc = CoordXZ.blockToChunk(izLoc);
 
         // Make sure the chunk we're checking in is actually loaded
+        // TODO: should this be here?
         Chunk tChunk = loc.world.getChunkFromBlockCoords(ixLoc, izLoc);
         if (!tChunk.isChunkLoaded)
             loc.world.theChunkProviderServer.loadChunk(icxLoc, icZLoc);
@@ -283,23 +312,25 @@ public class BorderData
 
         return new Location(loc.world, Math.floor(xLoc) + 0.5, yLoc, Math.floor(zLoc) + 0.5, loc.yaw, loc.pitch);
     }
+
     public Location correctedPosition(Location loc, boolean round)
     {
         return correctedPosition(loc, round, false);
     }
+
     public Location correctedPosition(Location loc)
     {
         return correctedPosition(loc, Config.getShapeRound(), false);
     }
 
     //these material IDs are acceptable for places to teleport player; breathable blocks and water
-    public static final LinkedHashSet<Integer> safeOpenBlocks = new LinkedHashSet<Integer>(Arrays.asList(
-         new Integer[] {0, 6, 8, 9, 27, 28, 30, 31, 32, 37, 38, 39, 40, 50, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 83, 90, 93, 94, 96, 104, 105, 106, 115, 131, 132, 141, 142, 149, 150, 157, 171}
+    public static final LinkedHashSet<Integer> safeOpenBlocks = new LinkedHashSet<>(Arrays.asList(
+        new Integer[] {0, 6, 8, 9, 27, 28, 30, 31, 32, 37, 38, 39, 40, 50, 55, 59, 63, 64, 65, 66, 68, 69, 70, 71, 72, 75, 76, 77, 78, 83, 90, 93, 94, 96, 104, 105, 106, 115, 131, 132, 141, 142, 149, 150, 157, 171}
     ));
 
     //these material IDs are ones we don't want to drop the player onto, like cactus or lava or fire or activated Ender portal
-    public static final LinkedHashSet<Integer> painfulBlocks = new LinkedHashSet<Integer>(Arrays.asList(
-         new Integer[] {10, 11, 51, 81, 119}
+    public static final LinkedHashSet<Integer> painfulBlocks = new LinkedHashSet<>(Arrays.asList(
+        new Integer[] {10, 11, 51, 81, 119}
     ));
 
     // check if a particular spot consists of 2 breathable blocks over something relatively solid
@@ -307,14 +338,14 @@ public class BorderData
     {
         boolean safe = safeOpenBlocks.contains( Util.getBlockID(world, X, Y, Z) )		// target block open and safe
                     && safeOpenBlocks.contains( Util.getBlockID(world, X, Y + 1, Z) );	// above target block open and safe
+
         if (!safe || flying)
             return safe;
 
         int below = Util.getBlockID(world, X, Y - 1, Z);
-        return (safe
-             && (!safeOpenBlocks.contains(below) || below == 8 || below == 9)	// below target block not open/breathable (so presumably solid), or is water
-             && !painfulBlocks.contains(below)									// below target block not painful
-            );
+        return
+            (!safeOpenBlocks.contains(below) || below == 8 || below == 9) // below target block not open/breathable (so presumably solid), or is water
+            && !painfulBlocks.contains(below);                            // below target block not painful
     }
 
     private static final int limBot = 1;
@@ -325,41 +356,44 @@ public class BorderData
         final int limTop = world.getHeight() - 2;
         // Expanding Y search method adapted from Acru's code in the Nether plugin
 
-        for(int y1 = Y, y2 = Y; (y1 > limBot) || (y2 < limTop); y1--, y2++){
+        for(int y1 = Y, y2 = Y; (y1 > limBot) || (y2 < limTop); y1--, y2++)
+        {
             // Look below.
-            if(y1 > limBot)
-            {
-                if (isSafeSpot(world, X, y1, Z, flying))
-                    return (double)y1;
-            }
+            if (y1 > limBot)
+            if ( isSafeSpot(world, X, y1, Z, flying) )
+                return (double) y1;
 
             // Look above.
-            if(y2 < limTop && y2 != y1)
-            {
-                if (isSafeSpot(world, X, y2, Z, flying))
-                    return (double)y2;
-            }
+            if (y2 < limTop && y2 != y1)
+            if ( isSafeSpot(world, X, y2, Z, flying) )
+                return (double) y2;
         }
 
-        return -1.0;	// no safe Y location?!?!? Must be a rare spot in a Nether world or something
+        // no safe Y location?!?!? Must be a rare spot in a Nether world or something
+        return -1.0;
     }
-
 
     @Override
     public boolean equals(Object obj)
     {
-        if (this == obj)
+        if      (this == obj)
             return true;
-        else if (obj == null || obj.getClass() != this.getClass())
+        else if ( obj == null || obj.getClass() != this.getClass() )
             return false;
 
-        BorderData test = (BorderData)obj;
-        return test.x == this.x && test.z == this.z && test.radiusX == this.radiusX && test.radiusZ == this.radiusZ;
+        BorderData test = (BorderData) obj;
+        return test.x == this.x
+            && test.z == this.z
+            && test.radiusX == this.radiusX
+            && test.radiusZ == this.radiusZ;
     }
 
     @Override
     public int hashCode()
     {
-        return (((int)(this.x * 10) << 4) + (int)this.z + (this.radiusX << 2) + (this.radiusZ << 3));
+        return ((int) (this.x * 10) << 4)
+            + (int) this.z
+            + (this.radiusX << 2)
+            + (this.radiusZ << 3);
     }
 }
