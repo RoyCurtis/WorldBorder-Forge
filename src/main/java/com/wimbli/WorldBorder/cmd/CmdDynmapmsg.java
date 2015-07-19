@@ -7,7 +7,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.List;
 
-
 public class CmdDynmapmsg extends WBCmd
 {
     public CmdDynmapmsg()

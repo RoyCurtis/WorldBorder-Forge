@@ -11,7 +11,7 @@ indent_size  = 4
 tab_width    = 4
 
 # Formatting
-end_of_line = crlf
+end_of_line = lf
 charset     = utf-8
 
 # Whitespace

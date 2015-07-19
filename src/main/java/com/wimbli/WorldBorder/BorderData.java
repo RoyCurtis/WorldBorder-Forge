@@ -8,7 +8,6 @@ import net.minecraft.world.chunk.Chunk;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 
-
 public class BorderData
 {
     // the main data interacted with

@@ -36,7 +36,7 @@ public class UUIDFetcher
             return getUUID( response.get("id").getAsString() );
     }
 
-    private static UUID getUUID(String id) 
+    private static UUID getUUID(String id)
     {
         return UUID.fromString(
             id.substring(0, 8) + "-"

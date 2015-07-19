@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Location;
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Particles;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.entity.Entity;

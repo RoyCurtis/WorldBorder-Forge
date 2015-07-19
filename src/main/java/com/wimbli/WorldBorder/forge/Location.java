@@ -23,8 +23,6 @@ public class Location
     /**
      * Creates a Location based on the target position of a player and a fired
      * {@link EnderTeleportEvent}
-     * @param event
-     * @param player
      */
     public Location(EnderTeleportEvent event, EntityPlayerMP player)
     {
@@ -36,10 +34,7 @@ public class Location
         yaw   = player.rotationYaw;
     }
 
-    /**
-     * Creates a Location based on the latest (target) position of a player
-     * @param player
-     */
+    /** Creates a Location based on the latest (target) position of a player */
     public Location(EntityPlayer player)
     {
         world = (WorldServer) player.worldObj;
@@ -50,10 +45,7 @@ public class Location
         yaw   = player.rotationYaw;
     }
 
-    /**
-     * Clones an existing Location
-     * @param loc
-     */
+    /** Clones an existing Location */
     public Location(Location loc)
     {
         world = loc.world;
@@ -64,10 +56,7 @@ public class Location
         yaw   = loc.yaw;
     }
 
-    /**
-     * Creates a location from a world's spawn point
-     * @param world
-     */
+    /** Creates a location from a world's spawn point */
     public Location(WorldServer world)
     {
         ChunkCoordinates spawn = world.getSpawnPoint();
@@ -80,9 +69,7 @@ public class Location
         this.yaw   = 0;
     }
 
-    /**
-     * Creates a new Location with all data provided
-     */
+    /** Creates a new Location with all data provided */
     public Location(WorldServer world, double x, double y, double z, float yaw, float pitch)
     {
         this.world = world;
@@ -95,8 +82,6 @@ public class Location
 
     /**
      * TODO: Find faster algorithm than native
-     * @param loc
-     * @return
      */
     public static int locToBlock(double loc)
     {

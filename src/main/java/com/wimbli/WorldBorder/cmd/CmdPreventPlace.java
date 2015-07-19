@@ -8,7 +8,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.List;
 
-public class CmdPreventPlace extends WBCmd {
+public class CmdPreventPlace extends WBCmd
+{
 
     public CmdPreventPlace() {
         name = permission = "preventblockplace";

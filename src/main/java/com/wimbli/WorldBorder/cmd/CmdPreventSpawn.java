@@ -8,7 +8,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import java.util.List;
 
-public class CmdPreventSpawn extends WBCmd {
+public class CmdPreventSpawn extends WBCmd
+{
 
     public CmdPreventSpawn() {
         name = permission = "preventmobspawn";

@@ -12,7 +12,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import java.util.List;
 import java.util.UUID;
 
-
 public class CmdBypass extends WBCmd
 {
     public CmdBypass()

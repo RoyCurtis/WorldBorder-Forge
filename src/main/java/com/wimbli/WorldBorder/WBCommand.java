@@ -14,7 +14,6 @@ import net.minecraft.server.management.UserListOpsEntry;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-
 public class WBCommand implements ICommand
 {
     static final String NAME    = "wborder";
