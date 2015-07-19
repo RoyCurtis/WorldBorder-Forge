@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder.task;
 
 import com.wimbli.WorldBorder.*;
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;

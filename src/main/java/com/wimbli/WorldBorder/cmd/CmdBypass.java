@@ -2,7 +2,7 @@ package com.wimbli.WorldBorder.cmd;
 
 import com.mojang.authlib.GameProfile;
 import com.wimbli.WorldBorder.Config;
-import com.wimbli.WorldBorder.Log;
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.UUID.UUIDFetcher;
 import com.wimbli.WorldBorder.WorldBorder;
 import com.wimbli.WorldBorder.forge.Util;

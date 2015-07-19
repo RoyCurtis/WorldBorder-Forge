@@ -1,11 +1,16 @@
 package com.wimbli.WorldBorder;
 
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.world.World;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 // by the way, this region file handler was created based on the divulged region file format:
 // http://mojang.com/2011/02/16/minecraft-save-file-format-in-beta-1-3/
@@ -152,8 +157,6 @@ public class WorldFileData
         regionChunks.set(coordToRegionOffset(x, z), true);
     }
 
-
-
     // region is 32 * 32 chunks; chunk pointers are stored in region file at position: x + z*32 (32 * 32 chunks = 1024)
     // input x and z values can be world-based chunk coordinates or local-to-region chunk coordinates either one
     private int coordToRegionOffset(int x, int z)
@@ -212,7 +215,7 @@ public class WorldFileData
             }
         }
         regionChunkExistence.put(region, data);
-//		testImage(region, data);
+		testImage(region, data);
         return data;
     }
 
@@ -255,6 +258,35 @@ public class WorldFileData
                 && file.isDirectory()
                 && file.getName().toLowerCase().startsWith("dim")
                 );
+        }
+    }
+
+    // crude chunk map PNG image output, for debugging
+    private void testImage(CoordXZ region, List<Boolean> data) {
+        int width = 32;
+        int height = 32;
+        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = bi.createGraphics();
+        int current = 0;
+        g2.setColor(Color.BLACK);
+
+        for (int x = 0; x < 32; x++)
+        {
+            for (int z = 0; z < 32; z++)
+            {
+                if (data.get(current))
+                    g2.fillRect(x,z, x+1, z+1);
+                current++;
+            }
+        }
+
+        File f = new File("region_"+region.x+"_"+region.z+"_.png");
+        Log.debug(f.getAbsolutePath());
+        try {
+            // png is an image format (like gif or jpg)
+            ImageIO.write(bi, "png", f);
+        } catch (IOException ex) {
+            Log.debug("[SEVERE]" + ex.getLocalizedMessage());
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Configuration;
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import com.wimbli.WorldBorder.task.BorderCheckTask;
 import com.wimbli.WorldBorder.task.WorldFillTask;

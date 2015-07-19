@@ -1,5 +1,6 @@
 package com.wimbli.WorldBorder;
 
+import com.wimbli.WorldBorder.forge.Log;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;

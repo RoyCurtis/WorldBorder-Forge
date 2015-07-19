@@ -1,7 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
-import com.wimbli.WorldBorder.Log;
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;

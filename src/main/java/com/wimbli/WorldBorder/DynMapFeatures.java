@@ -1,5 +1,6 @@
 package com.wimbli.WorldBorder;
 
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.world.World;
 import org.dynmap.DynmapCommonAPI;

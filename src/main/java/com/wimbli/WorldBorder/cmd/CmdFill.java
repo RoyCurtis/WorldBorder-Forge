@@ -1,7 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.CoordXZ;
-import com.wimbli.WorldBorder.Log;
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import com.wimbli.WorldBorder.task.WorldFillTask;
 import net.minecraft.command.ICommandSender;
