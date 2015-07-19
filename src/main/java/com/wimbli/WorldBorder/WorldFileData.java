@@ -4,13 +4,10 @@ import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
-import java.util.List;
 
 // by the way, this region file handler was created based on the divulged region file format:
 // http://mojang.com/2011/02/16/minecraft-save-file-format-in-beta-1-3/
@@ -35,26 +32,21 @@ public class WorldFileData
     {
         WorldFileData newData = new WorldFileData(world, requester);
 
-        newData.regionFolder = new File(newData.world.getSaveHandler().getWorldDirectory(), "region");
+        // TODO: Move this to "getRootDir" of new Worlds class
+        File rootDir = (world.provider.dimensionId == 0)
+            ? DimensionManager.getCurrentSaveRootDirectory()
+            : new File(
+                DimensionManager.getCurrentSaveRootDirectory(),
+                newData.world.provider.getSaveFolder()
+            );
+
+        newData.regionFolder = new File(rootDir, "region");
         if (!newData.regionFolder.exists() || !newData.regionFolder.isDirectory())
         {
-            // check for region folder inside a DIM* folder (DIM-1 for nether, DIM1 for end, DIMwhatever for custom world types)
-            File worldFolder = newData.world.getSaveHandler().getWorldDirectory();
-            File[] possibleDimFolders = worldFolder.listFiles(new DimFolderFileFilter());
-            for (File possibleDimFolder : possibleDimFolders)
-            {
-                File possible = new File(worldFolder, possibleDimFolder.getName() + File.separator + "region");
-                if (possible.exists() && possible.isDirectory())
-                {
-                    newData.regionFolder = possible;
-                    break;
-                }
-            }
-            if (!newData.regionFolder.exists() || !newData.regionFolder.isDirectory())
-            {
-                newData.sendMessage("Could not validate folder for world's region files. Looked in "+worldFolder.getPath()+" for valid DIM* folder with a region folder in it.");
-                return null;
-            }
+            newData.sendMessage(
+                "Could not validate folder for world's region files. Looked in "
+                + newData.regionFolder.getPath() + " for valid region folder.");
+            return null;
         }
 
         newData.regionFiles = newData.regionFolder.listFiles(new ExtFileFilter(".MCA"));
@@ -86,18 +78,6 @@ public class WorldFileData
         return regionFiles.length;
     }
 
-    // folder where world's region files are located
-    public File regionFolder()
-    {
-        return regionFolder;
-    }
-
-    // return entire list of region files
-    public File[] regionFiles()
-    {
-        return regionFiles.clone();
-    }
-
     // return a region file by index
     public File regionFile(int index)
     {
@@ -125,13 +105,12 @@ public class WorldFileData
         }
     }
 
-
     // Find out if the chunk at the given coordinates exists.
     public boolean doesChunkExist(int x, int z)
     {
         CoordXZ region = new CoordXZ(CoordXZ.chunkToRegion(x), CoordXZ.chunkToRegion(z));
         List<Boolean> regionChunks = this.getRegionData(region);
-//		Bukkit.getLogger().info("x: "+x+"  z: "+z+"  offset: "+coordToRegionOffset(x, z));
+
         return regionChunks.get(coordToRegionOffset(x, z));
     }
 
@@ -178,11 +157,9 @@ public class WorldFileData
             return data;
 
         // data for the specified region isn't loaded yet, so init it as empty and try to find the file and load the data
-        data = new ArrayList<Boolean>(1024);
+        data = new ArrayList<>(1024);
         for (int i = 0; i < 1024; i++)
-        {
             data.add(Boolean.FALSE);
-        }
 
         for (int i = 0; i < regionFiles.length; i++)
         {
@@ -195,6 +172,8 @@ public class WorldFileData
             try
             {
                 RandomAccessFile regionData = new RandomAccessFile(this.regionFile(i), "r");
+
+                Log.trace( "Trying to read region file '%s'", regionFile(i) );
                 // first 4096 bytes of region file consists of 4-byte int pointers to chunk data in the file (32*32 chunks = 1024; 1024 chunks * 4 bytes each = 4096)
                 for (int j = 0; j < 1024; j++)
                 {
@@ -215,7 +194,6 @@ public class WorldFileData
             }
         }
         regionChunkExistence.put(region, data);
-		testImage(region, data);
         return data;
     }
 
@@ -240,14 +218,15 @@ public class WorldFileData
         public boolean accept(File file)
         {
             return (
-                   file.exists()
-                && file.isFile()
-                && file.getName().toLowerCase().endsWith(ext)
-                );
+                file.exists()
+             && file.isFile()
+             && file.getName().toLowerCase().endsWith(ext)
+            );
         }
     }
 
     // file filter used for DIM* folders (for nether, End, and custom world types)
+    // TODO: use this elsewhere for world discovery
     private static class DimFolderFileFilter implements FileFilter
     {
         @Override
@@ -258,35 +237,6 @@ public class WorldFileData
                 && file.isDirectory()
                 && file.getName().toLowerCase().startsWith("dim")
                 );
-        }
-    }
-
-    // crude chunk map PNG image output, for debugging
-    private void testImage(CoordXZ region, List<Boolean> data) {
-        int width = 32;
-        int height = 32;
-        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = bi.createGraphics();
-        int current = 0;
-        g2.setColor(Color.BLACK);
-
-        for (int x = 0; x < 32; x++)
-        {
-            for (int z = 0; z < 32; z++)
-            {
-                if (data.get(current))
-                    g2.fillRect(x,z, x+1, z+1);
-                current++;
-            }
-        }
-
-        File f = new File("region_"+region.x+"_"+region.z+"_.png");
-        Log.debug(f.getAbsolutePath());
-        try {
-            // png is an image format (like gif or jpg)
-            ImageIO.write(bi, "png", f);
-        } catch (IOException ex) {
-            Log.debug("[SEVERE]" + ex.getLocalizedMessage());
         }
     }
 }
