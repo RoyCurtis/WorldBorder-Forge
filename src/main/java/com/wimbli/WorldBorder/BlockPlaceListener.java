@@ -1,7 +1,6 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Util;
-import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.world.World;
@@ -9,17 +8,31 @@ import net.minecraftforge.event.world.BlockEvent;
 
 public class BlockPlaceListener
 {
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onBlockPlace(BlockEvent.PlaceEvent event)
     {
-        World world = event.world;
-        if (world == null) return;
-        BorderData border = Config.Border( Util.getWorldName(world) );
-        if (border == null) return;
+        if ( isInsideBorder(event.world, event.x, event.z) )
+            return;
 
-        if (!border.insideBorder(event.x, event.z, Config.getShapeRound()))
-        {
-            event.setResult(Event.Result.DENY);
-        }
+        event.setResult(BlockEvent.Result.DENY);
+        event.setCanceled(true);
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onMultiBlockPlace(BlockEvent.MultiPlaceEvent event)
+    {
+        if ( isInsideBorder(event.world, event.x, event.z) )
+            return;
+
+        event.setResult(BlockEvent.Result.DENY);
+        event.setCanceled(true);
+    }
+
+    private boolean isInsideBorder(World world, int x, int z)
+    {
+        BorderData border = Config.Border( Util.getWorldName(world) );
+
+        return border == null
+            || border.insideBorder( x, z, Config.getShapeRound() );
     }
 }

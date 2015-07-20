@@ -107,7 +107,7 @@ public class WorldBorder
     @SideOnly(Side.SERVER)
     public void enableBlockPlaceListener(boolean enable)
     {
-        if (enable)
+        if      (enable)
             MinecraftForge.EVENT_BUS.register(this.blockPlaceListener = new BlockPlaceListener());
         else if (blockPlaceListener != null)
             MinecraftForge.EVENT_BUS.unregister(this.blockPlaceListener);
@@ -116,7 +116,7 @@ public class WorldBorder
     @SideOnly(Side.SERVER)
     public void enableMobSpawnListener(boolean enable)
     {
-        if (enable)
+        if      (enable)
             MinecraftForge.EVENT_BUS.register(this.mobSpawnListener = new MobSpawnListener());
         else if (mobSpawnListener != null)
             MinecraftForge.EVENT_BUS.unregister(this.mobSpawnListener);
