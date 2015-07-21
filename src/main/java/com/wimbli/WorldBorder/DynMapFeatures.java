@@ -1,7 +1,7 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Log;
-import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import net.minecraft.world.World;
 import org.dynmap.DynmapCommonAPI;
 import org.dynmap.DynmapCommonAPIListener;
@@ -85,7 +85,7 @@ public class DynMapFeatures
         int y = (world != null) ? world.getHeight() : 255;
         int x = CoordXZ.regionToBlock(coord.x);
         int z = CoordXZ.regionToBlock(coord.z);
-        api.triggerRenderOfVolume(Util.getWorldName(world), x, 0, z, x + 511, y, z + 511);
+        api.triggerRenderOfVolume(Worlds.getWorldName(world), x, 0, z, x + 511, y, z + 511);
     }
 
     public static void renderChunks(World world, List<CoordXZ> coords)
@@ -95,7 +95,7 @@ public class DynMapFeatures
         int y = (world != null) ? world.getHeight() : 255;
 
         for (CoordXZ coord : coords)
-            renderChunk(Util.getWorldName(world), coord, y);
+            renderChunk(Worlds.getWorldName(world), coord, y);
     }
 
     public static void renderChunk(String worldName, CoordXZ coord, int maxY)
@@ -167,7 +167,7 @@ public class DynMapFeatures
         CircleMarker marker = roundBorders.get(worldName);
         if (marker == null)
         {
-            marker = markSet.createCircleMarker("worldborder_"+worldName, Config.getDynmapMessage(), false, worldName, border.getX(), 64.0, border.getZ(), border.getRadiusX(), border.getRadiusZ(), true);
+            marker = markSet.createCircleMarker("worldborder_" + worldName, Config.getDynmapMessage(), false, worldName, border.getX(), 64.0, border.getZ(), border.getRadiusX(), border.getRadiusZ(), true);
             marker.setLineStyle(lineWeight, lineOpacity, lineColor);
             marker.setFillStyle(0.0, 0x000000);
             roundBorders.put(worldName, marker);

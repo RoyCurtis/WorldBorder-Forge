@@ -2,6 +2,7 @@ package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
@@ -9,87 +10,74 @@ import net.minecraftforge.common.DimensionManager;
 import java.io.*;
 import java.util.*;
 
-// by the way, this region file handler was created based on the divulged region file format:
-// http://mojang.com/2011/02/16/minecraft-save-file-format-in-beta-1-3/
-
+/**
+ * Represents the file structure of a world.
+ *
+ * This region file handler was created based on the divulged region file format:
+ * http://mojang.com/2011/02/16/minecraft-save-file-format-in-beta-1-3/
+ */
 public class WorldFileData
 {
-    private Map<CoordXZ, List<Boolean>> regionChunkExistence = Collections.synchronizedMap(new HashMap<CoordXZ, List<Boolean>>());
+    private static final FileFilter MCA_FILTER = new ExtFileFilter(".MCA");
 
-    private World          world;
-    private File           regionFolder = null;
+    private Map<CoordXZ, List<Boolean>> regionChunkExistence = new HashMap<>();
+
     private File[]         regionFiles  = null;
     private ICommandSender requester    = null;
 
-    /**
-     * Use this static method to create a new instance of this class. If null is
-     * returned, there was a problem so any process relying on this should be cancelled.
-     *
-     * TODO: Throw exceptions on failures
-     */
-    public static WorldFileData create(World world, ICommandSender requester)
+    /** Creates a region file handler for a given world and requester */
+    public WorldFileData(World world, ICommandSender requester)
     {
-        WorldFileData newData = new WorldFileData(world, requester);
+        this.requester = requester;
 
         // TODO: Move this to "getRootDir" of new Worlds class
         File rootDir = (world.provider.dimensionId == 0)
             ? DimensionManager.getCurrentSaveRootDirectory()
             : new File(
                 DimensionManager.getCurrentSaveRootDirectory(),
-                newData.world.provider.getSaveFolder()
+                world.provider.getSaveFolder()
             );
 
-        newData.regionFolder = new File(rootDir, "region");
-        if (!newData.regionFolder.exists() || !newData.regionFolder.isDirectory())
-        {
-            newData.sendMessage(
-                "Could not validate folder for world's region files. Looked in "
-                + newData.regionFolder.getPath() + " for valid region folder.");
-            return null;
-        }
+        File regionFolder = new File(rootDir, "region");
+        if ( !regionFolder.exists() || !regionFolder.isDirectory() )
+            throw new RuntimeException(
+                "Could not validate folder for world's region files. Tried to use "
+                + regionFolder.getPath() + " as valid region folder."
+            );
 
-        newData.regionFiles = newData.regionFolder.listFiles(new ExtFileFilter(".MCA"));
-        if (newData.regionFiles == null || newData.regionFiles.length == 0)
-        {
-            newData.sendMessage("Could not find any region files. Looked in: "+newData.regionFolder.getPath());
-            return null;
-        }
+        this.regionFiles = regionFolder.listFiles(MCA_FILTER);
+        if (this.regionFiles == null || this.regionFiles.length == 0)
+            throw new RuntimeException(
+                "Could not find any region files. Looked in: " + regionFolder.getPath()
+            );
 
         Log.debug(
             "Using path '%s' for world '%s'",
-            newData.regionFolder.getAbsolutePath(),
-            Util.getWorldName(world)
+            regionFolder.getAbsolutePath(),
+            Worlds.getWorldName(world)
         );
-
-        return newData;
     }
 
-    // the constructor is private; use create() method above to create an instance of this class.
-    private WorldFileData(World world, ICommandSender requester)
-    {
-        this.world     = world;
-        this.requester = requester;
-    }
-
-    // number of region files this world has
+    /** Shortcut for number of region files this world has */
     public int regionFileCount()
     {
         return regionFiles.length;
     }
 
-    // return a region file by index
+    /** Gets a region file by index, or null if out of bounds */
     public File regionFile(int index)
     {
         if (regionFiles.length < index)
             return null;
+
         return regionFiles[index];
     }
 
-    // get the X and Z world coordinates of the region from the filename
+    /** Gets the X and Z world coordinates of the region from the filename */
     public CoordXZ regionFileCoordinates(int index)
     {
-        File regionFile = this.regionFile(index);
-        String[] coords = regionFile.getName().split("\\.");
+        File     regionFile = this.regionFile(index);
+        String[] coords     = regionFile.getName().split("\\.");
         int x, z;
         try
         {
@@ -104,17 +92,21 @@ public class WorldFileData
         }
     }
 
-    // Find out if the chunk at the given coordinates exists.
+    /** Find out if the chunk at the given coordinates exists */
     public boolean doesChunkExist(int x, int z)
     {
-        CoordXZ region = new CoordXZ(CoordXZ.chunkToRegion(x), CoordXZ.chunkToRegion(z));
-        List<Boolean> regionChunks = this.getRegionData(region);
+        CoordXZ region = new CoordXZ(
+            CoordXZ.chunkToRegion(x),
+            CoordXZ.chunkToRegion(z)
+        );
 
-        return regionChunks.get(coordToRegionOffset(x, z));
+        return this.getRegionData(region).get( coordToRegionOffset(x, z) );
     }
 
-    // Find out if the chunk at the given coordinates has been fully generated.
-    // Minecraft only fully generates a chunk when adjacent chunks are also loaded.
+    /**
+     * Checks if the chunk at the given coordinates has been fully generated.
+     * Minecraft only fully generates a chunk when adjacent chunks are also loaded.
+     */
     public boolean isChunkFullyGenerated(int x, int z)
     {	// if all adjacent chunks exist, it should be a safe enough bet that this one is fully generated
         return
@@ -127,16 +119,25 @@ public class WorldFileData
             );
     }
 
-    // Method to let us know a chunk has been generated, to update our region map.
+    /** Callback for when a chunk is generate, to update our region map */
     public void chunkExistsNow(int x, int z)
     {
-        CoordXZ region = new CoordXZ(CoordXZ.chunkToRegion(x), CoordXZ.chunkToRegion(z));
-        List<Boolean> regionChunks = this.getRegionData(region);
-        regionChunks.set(coordToRegionOffset(x, z), true);
+        CoordXZ region = new CoordXZ(
+            CoordXZ.chunkToRegion(x),
+            CoordXZ.chunkToRegion(z)
+        );
+
+        this.getRegionData(region).set(coordToRegionOffset(x, z), true);
     }
 
-    // region is 32 * 32 chunks; chunk pointers are stored in region file at position: x + z*32 (32 * 32 chunks = 1024)
-    // input x and z values can be world-based chunk coordinates or local-to-region chunk coordinates either one
+    /**
+     * Calculates region offset of the given coordinates.
+     *
+     * Region is 32 * 32 chunks; chunk pointers are stored in region file at position:
+     *     x + z * 32 (32 * 32 chunks = 1024)
+     * Input x and z values can be world-based chunk coordinates or local-to-region
+     * chunk coordinates, either one
+     */
     private int coordToRegionOffset(int x, int z)
     {
         // "%" modulus is used to convert potential world coordinates to definitely be local region coordinates
@@ -146,7 +147,7 @@ public class WorldFileData
         if (x < 0) x += 32;
         if (z < 0) z += 32;
         // return offset position for the now definitely local x and z values
-        return (x + (z * 32));
+        return x + (z * 32);
     }
 
     private List<Boolean> getRegionData(CoordXZ region)
@@ -155,7 +156,8 @@ public class WorldFileData
         if (data != null)
             return data;
 
-        // data for the specified region isn't loaded yet, so init it as empty and try to find the file and load the data
+        // data for the specified region isn't loaded yet, so init it as empty and try to
+        // find the file and load the data
         data = new ArrayList<>(1024);
         for (int i = 0; i < 1024; i++)
             data.add(Boolean.FALSE);
@@ -171,7 +173,8 @@ public class WorldFileData
             {
                 Log.trace( "Trying to read region file '%s'", regionFile(i) );
 
-                // first 4096 bytes of region file consists of 4-byte int pointers to chunk data in the file (32*32 chunks = 1024; 1024 chunks * 4 bytes each = 4096)
+                // first 4096 bytes of region file consists of 4-byte int pointers to chunk data in the file
+                // (32*32 chunks = 1024; 1024 chunks * 4 bytes each = 4096)
                 // if chunk pointer data is 0, chunk doesn't exist yet; otherwise, it does
                 for (int j = 0; j < 1024; j++)
                     if (regionData.readInt() != 0)
@@ -190,7 +193,7 @@ public class WorldFileData
         return data;
     }
 
-    // send a message to the server console/log and possibly to an in-game player
+    /** Send a message to the server console/log and possibly to an in-game player */
     private void sendMessage(String text)
     {
         Log.info("[WorldData] " + text);
@@ -198,7 +201,7 @@ public class WorldFileData
             Util.chat(requester, "[WorldData] " + text);
     }
 
-    // file filter used for region files
+    /** File filter used for region files */
     private static class ExtFileFilter implements FileFilter
     {
         String ext;
@@ -215,21 +218,6 @@ public class WorldFileData
              && file.isFile()
              && file.getName().toLowerCase().endsWith(ext)
             );
-        }
-    }
-
-    // file filter used for DIM* folders (for nether, End, and custom world types)
-    // TODO: use this elsewhere for world discovery
-    private static class DimFolderFileFilter implements FileFilter
-    {
-        @Override
-        public boolean accept(File file)
-        {
-            return (
-                   file.exists()
-                && file.isDirectory()
-                && file.getName().toLowerCase().startsWith("dim")
-                );
         }
     }
 }

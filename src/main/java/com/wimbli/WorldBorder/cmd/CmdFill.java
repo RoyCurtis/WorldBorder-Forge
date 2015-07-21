@@ -3,6 +3,7 @@ package com.wimbli.WorldBorder.cmd;
 import com.wimbli.WorldBorder.CoordXZ;
 import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import com.wimbli.WorldBorder.task.WorldFillTask;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -68,7 +69,7 @@ public class CmdFill extends WBCmd
         if (worldName == null && !confirm)
         {
             if (player != null)
-                worldName = Util.getWorldName(player.worldObj);
+                worldName = Worlds.getWorldName(player.worldObj);
             else
             {
                 sendErrorAndHelp(sender, "You must specify a world!");
@@ -151,7 +152,7 @@ public class CmdFill extends WBCmd
         }
         else
         {
-            if (fillWorld.isEmpty() || Util.getWorld(fillWorld) == null)
+            if (fillWorld.isEmpty() || Worlds.getWorld(fillWorld) == null)
             {
                 sendErrorAndHelp(sender, "You must first specify a valid world.");
                 return;

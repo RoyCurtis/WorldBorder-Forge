@@ -3,6 +3,7 @@ package com.wimbli.WorldBorder.cmd;
 import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.WorldBorder;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChunkCoordinates;
@@ -51,7 +52,7 @@ public class CmdSet extends WBCmd
                 return;
             }
 
-            world = Util.getWorld(worldName);
+            world = Worlds.getWorld(worldName);
             if (world == null)
             {
                 if (params.get(params.size() - 1).equalsIgnoreCase("spawn"))
@@ -79,7 +80,7 @@ public class CmdSet extends WBCmd
                     return;
                 }
             }
-            worldName = Util.getWorldName(player.worldObj);
+            worldName = Worlds.getWorldName(player.worldObj);
         }
 
         int radiusX, radiusZ;
@@ -104,7 +105,7 @@ public class CmdSet extends WBCmd
                     sendErrorAndHelp(sender, "The player you specified (\"" + params.get(params.size() - 1) + "\") does not appear to be online.");
                     return;
                 }
-                worldName = Util.getWorldName(playerT.worldObj);
+                worldName = Worlds.getWorldName(playerT.worldObj);
                 x = playerT.posX;
                 z = playerT.posZ;
                 radiusCount -= 2;

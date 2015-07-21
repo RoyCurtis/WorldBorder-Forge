@@ -3,6 +3,7 @@ package com.wimbli.WorldBorder.cmd;
 import com.wimbli.WorldBorder.BorderData;
 import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
@@ -28,7 +29,7 @@ public class CmdRadius extends WBCmd
     public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
     {
         if (worldName == null)
-            worldName = Util.getWorldName(player.worldObj);
+            worldName = Worlds.getWorldName(player.worldObj);
 
         BorderData border = Config.Border(worldName);
         if (border == null)

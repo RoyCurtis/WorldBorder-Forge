@@ -1,9 +1,6 @@
 package com.wimbli.WorldBorder;
 
-import com.wimbli.WorldBorder.forge.Location;
-import com.wimbli.WorldBorder.forge.Log;
-import com.wimbli.WorldBorder.forge.Particles;
-import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.item.EntityBoat;
@@ -35,7 +32,7 @@ public class BorderCheck
 
         WorldServer world = loc.world;
         if (world == null) return null;
-        BorderData border = Config.Border(Util.getWorldName(world));
+        BorderData border = Config.Border(Worlds.getWorldName(world));
         if (border == null) return null;
 
         if (border.insideBorder(loc.posX, loc.posZ, Config.getShapeRound())) return null;
@@ -115,7 +112,7 @@ public class BorderCheck
         Log.trace(
             "%s @ world '%s'. Border: %s",
             (notify ? "Border crossing" : "Check was run"),
-            Util.getWorldName(loc.world), border
+            Worlds.getWorldName(loc.world), border
         );
 
         Log.trace("Player @ X: %.2f Y: %.2f Z: %.2f", loc.posX, loc.posY, loc.posZ);

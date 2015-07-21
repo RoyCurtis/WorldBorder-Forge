@@ -1,7 +1,7 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Location;
-import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
 
@@ -336,13 +336,13 @@ public class BorderData
     // check if a particular spot consists of 2 breathable blocks over something relatively solid
     private boolean isSafeSpot(WorldServer world, int X, int Y, int Z, boolean flying)
     {
-        boolean safe = safeOpenBlocks.contains( Util.getBlockID(world, X, Y, Z) )		// target block open and safe
-                    && safeOpenBlocks.contains( Util.getBlockID(world, X, Y + 1, Z) );	// above target block open and safe
+        boolean safe = safeOpenBlocks.contains( Worlds.getBlockID(world, X, Y, Z) )		// target block open and safe
+                    && safeOpenBlocks.contains( Worlds.getBlockID(world, X, Y + 1, Z) );	// above target block open and safe
 
         if (!safe || flying)
             return safe;
 
-        int below = Util.getBlockID(world, X, Y - 1, Z);
+        int below = Worlds.getBlockID(world, X, Y - 1, Z);
         return
             (!safeOpenBlocks.contains(below) || below == 8 || below == 9) // below target block not open/breathable (so presumably solid), or is water
             && !painfulBlocks.contains(below);                            // below target block not painful

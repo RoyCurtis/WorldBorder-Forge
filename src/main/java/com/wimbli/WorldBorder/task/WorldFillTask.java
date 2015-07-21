@@ -3,6 +3,7 @@ package com.wimbli.WorldBorder.task;
 import com.wimbli.WorldBorder.*;
 import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -120,7 +121,7 @@ public class WorldFillTask
     /** Gets configured world of this task */
     public String getWorld()
     {
-        return Util.getWorldName(world);
+        return Worlds.getWorldName(world);
     }
 
     /** Gets whether this task forces loading of existing chunks */
@@ -214,7 +215,7 @@ public class WorldFillTask
         this.chunksPerRun  = chunksPerRun;
         this.forceLoad     = forceLoad;
 
-        this.world = Util.getWorld(worldName);
+        this.world = Worlds.getWorld(worldName);
 
         if (this.world == null)
             throw new IllegalArgumentException("World \"" + worldName + "\" not found!");
@@ -226,9 +227,7 @@ public class WorldFillTask
         if (this.border == null)
             throw new IllegalStateException("No border found for world \"" + worldName + "\"!");
 
-        this.worldData = WorldFileData.create(world, requester);
-        if (worldData == null)
-            throw new IllegalStateException("Could not create WorldFileData!");
+        this.worldData = new WorldFileData(world, requester);
 
         this.border.setRadiusX(border.getRadiusX() + fillDistance);
         this.border.setRadiusZ(border.getRadiusZ() + fillDistance);
@@ -444,7 +443,7 @@ public class WorldFillTask
     {
         this.paused = true;
         reportProgress();
-        Util.saveWorld(world);
+        Worlds.saveWorld(world);
         sendMessage("Task successfully completed for world \"" + getWorld() + "\"!");
         this.stop();
     }
@@ -464,7 +463,7 @@ public class WorldFillTask
         {
             lastAutosave = lastReport;
             sendMessage("Saving the world to disk, just to be on the safe side.");
-            Util.saveWorld(world);
+            Worlds.saveWorld(world);
         }
     }
 

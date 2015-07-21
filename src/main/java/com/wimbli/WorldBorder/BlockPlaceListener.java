@@ -1,6 +1,6 @@
 package com.wimbli.WorldBorder;
 
-import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.world.World;
@@ -30,7 +30,7 @@ public class BlockPlaceListener
 
     private boolean isInsideBorder(World world, int x, int z)
     {
-        BorderData border = Config.Border( Util.getWorldName(world) );
+        BorderData border = Config.Border( Worlds.getWorldName(world) );
 
         return border == null
             || border.insideBorder( x, z, Config.getShapeRound() );

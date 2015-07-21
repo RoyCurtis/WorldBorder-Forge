@@ -3,6 +3,7 @@ package com.wimbli.WorldBorder.cmd;
 import com.wimbli.WorldBorder.BorderData;
 import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
@@ -43,7 +44,7 @@ public class CmdWrap extends WBCmd
         // no world specified, just wrap on/off
         else
         {
-            worldName = Util.getWorldName(player.worldObj);
+            worldName = Worlds.getWorldName(player.worldObj);
             wrap = strAsBool(params.get(0));
         }
 

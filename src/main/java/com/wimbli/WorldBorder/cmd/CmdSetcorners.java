@@ -2,6 +2,7 @@ package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
@@ -28,11 +29,11 @@ public class CmdSetcorners extends WBCmd
     public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
     {
         if (worldName == null)
-            worldName = Util.getWorldName(player.worldObj);
+            worldName = Worlds.getWorldName(player.worldObj);
         else
         {
             // TODO: is this redundant with WBCmd/WBCommand?
-            WorldServer worldTest = Util.getWorld(worldName);
+            WorldServer worldTest = Worlds.getWorld(worldName);
             if (worldTest == null)
                 Util.chat(sender, "The world you specified (\"" + worldName + "\") could not be found on the server, but data for it will be stored anyway.");
         }

@@ -3,6 +3,7 @@ package com.wimbli.WorldBorder.task;
 import com.wimbli.WorldBorder.*;
 import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
@@ -114,7 +115,7 @@ public class WorldTrimTask
         this.tickFrequency = tickFrequency;
         this.chunksPerRun  = chunksPerRun;
 
-        this.world = Util.getWorld(worldName);
+        this.world = Worlds.getWorld(worldName);
         if (this.world == null)
             throw new IllegalArgumentException("World \"" + worldName + "\" not found!");
 
@@ -125,9 +126,7 @@ public class WorldTrimTask
         if (this.border == null)
             throw new IllegalStateException("No border found for world \"" + worldName + "\"!");
 
-        this.worldData = WorldFileData.create(world, requester);
-        if (worldData == null)
-            throw new IllegalStateException("Could not create WorldFileData!");
+        this.worldData = new WorldFileData(world, requester);
 
         this.border.setRadiusX(border.getRadiusX() + trimDistance);
         this.border.setRadiusZ(border.getRadiusZ() + trimDistance);
@@ -214,7 +213,7 @@ public class WorldTrimTask
                     Log.trace(
                         "Deleting region file '%s' for world '%s'",
                         regionFile.getAbsolutePath(),
-                        Util.getWorldName(world)
+                        Worlds.getWorldName(world)
                     );
 
                     Files.delete( regionFile.toPath() );
@@ -432,6 +431,6 @@ public class WorldTrimTask
     protected void finalize() throws Throwable
     {
         super.finalize();
-        Log.debug( "WorldFillTask cleaned up for %s", Util.getWorldName(world) );
+        Log.debug( "WorldFillTask cleaned up for %s", Worlds.getWorldName(world) );
     }
 }

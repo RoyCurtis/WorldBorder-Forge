@@ -1,6 +1,6 @@
 package com.wimbli.WorldBorder;
 
-import com.wimbli.WorldBorder.forge.Util;
+import com.wimbli.WorldBorder.forge.Worlds;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.minecraft.world.World;
@@ -31,7 +31,7 @@ public class MobSpawnListener
     private boolean isInsideBorder(LivingSpawnEvent event)
     {
         World      world  = event.entity.worldObj;
-        BorderData border = Config.Border( Util.getWorldName(world) );
+        BorderData border = Config.Border( Worlds.getWorldName(world) );
 
         return border == null
             || border.insideBorder( event.entity.posX, event.entity.posZ, Config.getShapeRound() );
