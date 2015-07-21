@@ -1,7 +1,7 @@
 package com.wimbli.WorldBorder.cmd;
 
 import com.wimbli.WorldBorder.Config;
-import com.wimbli.WorldBorder.UUID.NameFetcher;
+import com.wimbli.WorldBorder.forge.Profiles;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -34,7 +34,7 @@ public class CmdBypasslist extends WBCmd
 
         try
         {
-            String[] names = NameFetcher.fetch(uuids);
+            String[] names = Profiles.fetchNames(uuids);
             String   list  = Arrays.toString(names);
 
             Util.chat(sender, "Players with border bypass enabled: " + list);

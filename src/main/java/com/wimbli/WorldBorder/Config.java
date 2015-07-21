@@ -29,14 +29,14 @@ public class Config
     private static Configuration cfgBorders;
 
     // actual configuration values which can be changed
-    private static Map<String, BorderData> borders = Collections.synchronizedMap(new LinkedHashMap<String, BorderData>());
+    private static Map<String, BorderData> borders = new LinkedHashMap<>();
 
     /** Knockback message without formatting */
     private static String    message;
     /** Knockback message with formatting */
     private static String    messageFmt;
     private static String    dynmapMessage;
-    private static Set<UUID> bypassPlayers     = Collections.synchronizedSet(new LinkedHashSet<UUID>());
+    private static Set<UUID> bypassPlayers     = new LinkedHashSet<>();
     private static boolean   shapeRound        = true;
     private static float     knockBack         = 3.0F;
     private static int       timerTicks        = 20;
@@ -366,11 +366,11 @@ public class Config
         return bypassPlayers.toArray( new UUID[ bypassPlayers.size() ] );
     }
 
-    // for converting bypass UUID list to/from String list, for storage in config
     private static void importBypassStringList(String[] strings)
     {
+        bypassPlayers.clear();
         for (String string : strings)
-            bypassPlayers.add(UUID.fromString(string));
+            bypassPlayers.add( UUID.fromString(string) );
     }
 
     private static String[] exportBypassStringList()

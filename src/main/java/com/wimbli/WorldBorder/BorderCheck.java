@@ -7,21 +7,11 @@ import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 /**
  * Static utility class that holds logic for border and player checking
  */
 public class BorderCheck
 {
-    // track players who are being handled (moved back inside the border) already
-    // needed since Bukkit is sometimes sending teleport events with the old (now incorrect) location still indicated,
-    // which can lead to a loop when we then teleport them thinking they're outside the border, triggering event again, etc.
-    // TODO: check if unneeded
-    private static Set<String> handlingPlayers = Collections.synchronizedSet(new LinkedHashSet<String>());
-
     // set targetLoc only if not current player location
     // set returnLocationOnly to true to have new Location returned if they need to be moved to one, instead of directly handling it
     public static Location checkPlayer(EntityPlayerMP player, Location targetLoc, boolean returnLocationOnly, boolean notify)
@@ -38,11 +28,8 @@ public class BorderCheck
         if (border.insideBorder(loc.posX, loc.posZ, Config.getShapeRound())) return null;
 
         // if player is in bypass list (from bypass command), allow them beyond border; also ignore players currently being handled already
-        if (Config.isPlayerBypassing(player.getUniqueID()) || handlingPlayers.contains(player.getDisplayName().toLowerCase()))
+        if ( Config.isPlayerBypassing( player.getUniqueID() ) )
             return null;
-
-        // tag this player as being handled so we can't get stuck in a loop due to Bukkit currently sometimes repeatedly providing incorrect location through teleport event
-        handlingPlayers.add(player.getDisplayName().toLowerCase());
 
         Location newLoc = newLocation(player, loc, border, notify);
 
@@ -99,8 +86,6 @@ public class BorderCheck
         if (Config.doWhooshEffect()) Particles.showWhooshEffect(player);
 
         if (!returnLocationOnly) player.setPositionAndUpdate(newLoc.posX, newLoc.posY, newLoc.posZ);
-
-        handlingPlayers.remove(player.getDisplayName().toLowerCase());
 
         if (returnLocationOnly) return newLoc;
 

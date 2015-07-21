@@ -117,7 +117,7 @@ public class WorldBorder
     public void enableMobSpawnListener(boolean enable)
     {
         if      (enable)
-            MinecraftForge.EVENT_BUS.register(this.mobSpawnListener = new MobSpawnListener());
+            MinecraftForge.EVENT_BUS.register( this.mobSpawnListener = new MobSpawnListener() );
         else if (mobSpawnListener != null)
             MinecraftForge.EVENT_BUS.unregister(this.mobSpawnListener);
     }

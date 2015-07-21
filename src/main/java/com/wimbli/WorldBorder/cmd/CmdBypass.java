@@ -1,10 +1,9 @@
 package com.wimbli.WorldBorder.cmd;
 
-import com.mojang.authlib.GameProfile;
 import com.wimbli.WorldBorder.Config;
-import com.wimbli.WorldBorder.forge.Log;
-import com.wimbli.WorldBorder.UUID.UUIDFetcher;
 import com.wimbli.WorldBorder.WorldBorder;
+import com.wimbli.WorldBorder.forge.Log;
+import com.wimbli.WorldBorder.forge.Profiles;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -46,53 +45,44 @@ public class CmdBypass extends WBCmd
             return;
         }
 
-        assert player != null;
-        final String sPlayer = (params.isEmpty()) ? player.getDisplayName() : params.get(0);
-        UUID uPlayer = (params.isEmpty()) ? player.getUniqueID() : null;
+        UUID   uPlayer;
+        String sPlayer = params.isEmpty()
+            ? player.getDisplayName()
+            : params.get(0);
 
-        if (uPlayer == null)
+        try
         {
-            GameProfile p = WorldBorder.SERVER.func_152358_ax().func_152655_a(sPlayer);
-            if (p != null)
-            {
-                uPlayer = p.getId();
-            }
-            else
-            {
-                // only do UUID lookup using Mojang server if specified player isn't online
-                try
-                {
-                    uPlayer = UUIDFetcher.fetch(sPlayer);
-                }
-                catch (Exception ex)
-                {
-                    sendErrorAndHelp(sender, "Failed to look up UUID for the player name you specified. " + ex.getLocalizedMessage());
-                    return;
-                }
-            }
+            uPlayer = Profiles.fetchUUID(sPlayer);
         }
-        if (uPlayer == null)
+        catch (Exception ex)
         {
-            sendErrorAndHelp(sender, "Failed to look up UUID for the player name you specified; null value returned.");
+            sendErrorAndHelp(
+                sender,
+                "Failed to look up UUID for the player name you specified: " + ex.getLocalizedMessage()
+            );
             return;
         }
 
         boolean bypassing = !Config.isPlayerBypassing(uPlayer);
-        if (params.size() > 1) bypassing = strAsBool(params.get(1));
+        if (params.size() > 1)
+            bypassing = strAsBool(params.get(1));
 
         Config.setPlayerBypass(uPlayer, bypassing);
 
+        // If target is online, notify them
         EntityPlayerMP target = WorldBorder.SERVER.getConfigurationManager().func_152612_a(sPlayer);
-        if ( target != null )
-            Util.chat(target, "Border bypass is now " + enabledColored(bypassing) + ".");
+        if (target != null)
+            Util.chat(target, "Border bypass is now " + enabledColored(bypassing) + " for you.");
+
+        if (player != target)
+            Util.chat(sender, "Border bypass for player \"" + sPlayer + "\" is " + enabledColored(bypassing) + ".");
 
         Log.info(
             "Border bypass for player \"" + sPlayer + "\" is "
             + (bypassing ? "enabled" : "disabled")
-            + (" at the command of player \"" + player.getDisplayName() + "\"") + "."
+            + (player == null
+                ? "."
+                : " at the command of \"" + player.getDisplayName() + "\".")
         );
-
-        if (player != target)
-            Util.chat(sender, "Border bypass for player \"" + sPlayer + "\" is " + enabledColored(bypassing) + ".");
     }
 }
