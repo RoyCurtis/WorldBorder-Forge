@@ -24,13 +24,11 @@ public class CmdCommands extends WBCmd
         // determine which page we're viewing
         int page = (player == null) ? 0 : 1;
         if (!params.isEmpty())
-        {
             try
             {
                 page = Integer.parseInt(params.get(0));
             }
             catch(NumberFormatException ignored) {}
-        }
 
         // see whether we're showing examples to player or to console, and determine number of pages available
         List<String> examples = (player == null) ? cmdExamplesConsole : cmdExamplesPlayer;
@@ -47,12 +45,11 @@ public class CmdCommands extends WBCmd
         if (page > 0)
         {
             // send examples for this page
-            int first = ((page - 1) * pageSize);
+            int first = (page - 1) * pageSize;
             int count = Math.min(pageSize, examples.size() - first);
+
             for(int i = first; i < first + count; i++)
-            {
                 Util.chat(sender, examples.get(i));
-            }
 
             // send page footer, if relevant; manual spacing to get right side lined up near edge is crude, but sufficient
             String footer = C_HEAD + " (Page " + page + "/" + pageCount + ")              " + cmd(sender);
@@ -62,12 +59,8 @@ public class CmdCommands extends WBCmd
                 Util.chat(sender, footer + C_DESC + "- view first page of commands.");
         }
         else
-        {
             // if page "0" is specified, send all examples; done by default for console but can be specified by player
             for (String example : examples)
-            {
                 Util.chat(sender, example);
-            }
-        }
     }
 }

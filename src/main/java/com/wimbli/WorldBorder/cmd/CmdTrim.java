@@ -129,7 +129,6 @@ public class CmdTrim extends WBCmd
             else
                 ticks = 20 / trimFrequency;
 
-            // TODO: make use of ticks for tick limiting
             try
             {
                 WorldTrimTask task = new WorldTrimTask(player, trimWorld, trimPadding, repeats, ticks);

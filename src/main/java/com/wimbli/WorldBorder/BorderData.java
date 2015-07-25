@@ -1,6 +1,7 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Location;
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Worlds;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
@@ -236,9 +237,17 @@ public class BorderData
         if (shapeRound != null)
             round = shapeRound;
 
-        double xLoc = loc.posX;
-        double yLoc = loc.posY;
-        double zLoc = loc.posZ;
+        double xLoc  = loc.posX;
+        double yLoc  = loc.posY;
+        double zLoc  = loc.posZ;
+        double knock = Config.getKnockBack();
+
+        // Make sure knockback is not too big for this border
+        if (knock >= radiusX * 2 || knock >= radiusZ * 2)
+        {
+            Log.warn("Knockback %.2f is too big for border. Defaulting to 3.0.", knock);
+            knock = 3.0;
+        }
 
         // square border
         if (!round)
@@ -246,24 +255,24 @@ public class BorderData
             if (wrapping)
             {
                 if (xLoc <= minX)
-                    xLoc = maxX - Config.getKnockBack();
+                    xLoc = maxX - knock;
                 else if (xLoc >= maxX)
-                    xLoc = minX + Config.getKnockBack();
+                    xLoc = minX + knock;
                 if (zLoc <= minZ)
-                    zLoc = maxZ - Config.getKnockBack();
+                    zLoc = maxZ - knock;
                 else if (zLoc >= maxZ)
-                    zLoc = minZ + Config.getKnockBack();
+                    zLoc = minZ + knock;
             }
             else
             {
                 if (xLoc <= minX)
-                    xLoc = minX + Config.getKnockBack();
+                    xLoc = minX + knock;
                 else if (xLoc >= maxX)
-                    xLoc = maxX - Config.getKnockBack();
+                    xLoc = maxX - knock;
                 if (zLoc <= minZ)
-                    zLoc = minZ + Config.getKnockBack();
+                    zLoc = minZ + knock;
                 else if (zLoc >= maxZ)
-                    zLoc = maxZ - Config.getKnockBack();
+                    zLoc = maxZ - knock;
             }
         }
 
@@ -281,7 +290,7 @@ public class BorderData
             // Distance of the transformed point from the center
             double dT = Math.sqrt(dX *dX / radiusXSquared + dZ * dZ / radiusZSquared);
             // "Correction" factor for the distances
-            double f  = (1 / dT - Config.getKnockBack() / dU);
+            double f  = (1 / dT - knock / dU);
 
             if (wrapping)
             {

@@ -24,14 +24,16 @@ public class CmdDenypearl extends WBCmd
     @Override
     public void cmdStatus(ICommandSender sender)
     {
-        Util.chat(sender, C_HEAD + "Direct cancellation of ender pearls thrown past the border is " +
-                enabledColored(Config.getDenyEnderpearl()) + C_HEAD + ".");
+        Util.chat(sender,
+            C_HEAD + "Direct cancellation of ender pearls thrown past the border is " +
+            enabledColored( Config.getDenyEnderpearl() ) + C_HEAD + "."
+        );
     }
 
     @Override
     public void execute(ICommandSender sender, EntityPlayerMP player, List<String> params, String worldName)
     {
-        Config.setDenyEnderpearl(strAsBool(params.get(0)));
+        Config.setDenyEnderpearl( strAsBool( params.get(0) ) );
 
         if (player != null)
         {
