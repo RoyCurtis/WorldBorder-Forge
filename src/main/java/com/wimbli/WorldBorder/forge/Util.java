@@ -10,7 +10,7 @@ public class Util
 {
     /**
      * Attempts to a translate a given string/key using the local language, and then
-     * using the fallback language.
+     * using the fallback language
      * @param msg String or language key to translate
      * @return Translated or same string
      */
@@ -22,7 +22,7 @@ public class Util
     }
 
     /**
-     * Sends an automatically translated & encapsulated message to a player
+     * Sends an automatically translated & encapsulated message to a command sender
      * @param sender Target to send message to
      * @param msg String or language key to broadcast
      */
@@ -30,11 +30,11 @@ public class Util
     {
         String translated = translate(msg);
 
-        // Consoles require ANSI coloring for formatting
         if (sender instanceof DedicatedServer)
-            translated = removeFormatting(translated);
-
-        sender.addChatMessage( new ChatComponentText(translated) );
+            // Consoles require ANSI coloring for formatting
+            Log.info( removeFormatting(translated) );
+        else
+            sender.addChatMessage( new ChatComponentText(translated) );
     }
 
     /** Replaces Bukkit-convention amp format tokens with vanilla ones */
