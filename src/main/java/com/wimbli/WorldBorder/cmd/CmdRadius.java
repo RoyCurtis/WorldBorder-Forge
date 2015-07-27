@@ -44,16 +44,16 @@ public class CmdRadius extends WBCmd
         int radiusZ;
         try
         {
-            if (params.get(0).startsWith("+"))
+            if ( params.get(0).startsWith("+") )
             {
                 // Add to the current radius
-                radiusX = border.getRadiusX();
+                radiusX  = border.getRadiusX();
                 radiusX += Integer.parseInt(params.get(0).substring(1));
             }
-            else if(params.get(0).startsWith("-"))
+            else if ( params.get(0).startsWith("-") )
             {
                 // Subtract from the current radius
-                radiusX = border.getRadiusX();
+                radiusX  = border.getRadiusX();
                 radiusX -= Integer.parseInt(params.get(0).substring(1));
             }
             else
@@ -61,13 +61,13 @@ public class CmdRadius extends WBCmd
 
             if (params.size() == 2)
             {
-                if (params.get(1).startsWith("+"))
+                if ( params.get(1).startsWith("+") )
                 {
                     // Add to the current radius
                     radiusZ = border.getRadiusZ();
                     radiusZ += Integer.parseInt(params.get(1).substring(1));
                 }
-                else if(params.get(1).startsWith("-"))
+                else if ( params.get(1).startsWith("-") )
                 {
                     // Subtract from the current radius
                     radiusZ = border.getRadiusZ();
@@ -82,6 +82,14 @@ public class CmdRadius extends WBCmd
         catch(NumberFormatException ex)
         {
             sendErrorAndHelp(sender, "The radius value(s) must be integers.");
+            return;
+        }
+
+        double minimum = Config.getKnockBack();
+
+        if (radiusX < minimum || radiusZ < minimum)
+        {
+            sendErrorAndHelp(sender, "The resulting radius must be more than the knockback.");
             return;
         }
 

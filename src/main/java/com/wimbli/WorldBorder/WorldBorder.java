@@ -25,7 +25,8 @@ import net.minecraftforge.common.MinecraftForge;
 )
 public class WorldBorder
 {
-    public static final String VERSION = "1.8.4";
+    /** Frozen at 1.0.0 to prevent misleading world save error */
+    public static final String VERSION = "1.0.0";
     public static final String MODID   = "WorldBorder";
 
     /** Singleton instance of WorldBorder, created by Forge */
@@ -78,10 +79,10 @@ public class WorldBorder
         FMLCommonHandler.instance().bus().register(LISTENER);
         MinecraftForge.EVENT_BUS.register(LISTENER);
 
-        if ( Config.preventBlockPlace() )
+        if ( Config.preventBlockPlace())
             enableBlockPlaceListener(true);
 
-        if ( Config.preventMobSpawn() )
+        if ( Config.preventMobSpawn())
             enableMobSpawnListener(true);
 
         DynMapFeatures.registerListener();

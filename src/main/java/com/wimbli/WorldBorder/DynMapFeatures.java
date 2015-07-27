@@ -2,6 +2,7 @@ package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Worlds;
+import cpw.mods.fml.common.Loader;
 import net.minecraft.world.World;
 import org.dynmap.DynmapCommonAPI;
 import org.dynmap.DynmapCommonAPIListener;
@@ -46,7 +47,7 @@ public class DynMapFeatures
                 markApi = api.getMarkerAPI();
 
                 showAllBorders();
-                Log.info("Successfully hooked into DynMap for the ability to display borders");
+                Log.info("Successfully hooked into Dynmap for the ability to display borders");
             }
         };
 
@@ -64,18 +65,12 @@ public class DynMapFeatures
 
     public static void registerListener()
     {
-        try
-        {
-            Class.forName("org.dynmap.DynmapCommonAPI");
-            Log.debug("Dynmap API class is present; registering integration");
+        enabled = Loader.isModLoaded("Dynmap");
+
+        if (enabled)
             Gateway.register();
-            enabled = true;
-        }
-        catch (ClassNotFoundException e)
-        {
-            Log.debug("Dynmap API is not available; integration disabled");
-            enabled = false;
-        }
+        else
+            Log.debug("Dynmap is not available; integration disabled");
     }
 
     /*

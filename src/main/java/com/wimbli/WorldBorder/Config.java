@@ -50,7 +50,7 @@ public class Config
     private static boolean   preventMobSpawn   = false;
 
     private static int fillAutosaveFrequency = 30;
-    private static int fillMemoryTolerance   = 500;
+    private static int fillMemoryTolerance   = 200;
 
     public static void setupConfigDir(File globalDir)
     {
@@ -417,7 +417,7 @@ public class Config
     public static void restoreFillTask(String world, int fillDistance, int chunksPerRun, int tickFrequency, int x, int z, int length, int total, boolean forceLoad)
     {
         if (WorldFillTask.getInstance() != null)
-            throw new IllegalArgumentException("Tried to restore fill task when one is already running");
+            return;
 
         try
         {
@@ -473,8 +473,8 @@ public class Config
         preventBlockPlace = cfgMain.getBoolean(MAIN_CAT, "prevent-block-place", true);
         preventMobSpawn   = cfgMain.getBoolean(MAIN_CAT, "prevent-mob-spawn", true);
 
-        fillAutosaveFrequency = cfgMain.getInt(MAIN_CAT, "fill-autosave-frequency", 30);
-        fillMemoryTolerance   = cfgMain.getInt(MAIN_CAT, "fill-memory-tolerance", 500);
+        fillAutosaveFrequency = cfgMain.getInt(MAIN_CAT, "fill-autosave-frequency", fillAutosaveFrequency);
+        fillMemoryTolerance   = cfgMain.getInt(MAIN_CAT, "fill-memory-tolerance", fillMemoryTolerance);
 
         Log.info("Using " + (getShapeName()) + " border, knockback of " + knockBack + " blocks, and timer delay of " + timerTicks + ".");
 

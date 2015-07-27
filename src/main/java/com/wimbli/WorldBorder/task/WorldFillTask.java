@@ -271,11 +271,11 @@ public class WorldFillTask
 
         if (memoryPause)
         {	// if available memory gets too low, we automatically pause, so handle that
-            if (Config.isAvailableMemoryTooLow())
+            if ( Config.isAvailableMemoryTooLow() )
                 return;
 
             memoryPause = false;
-            readyToGo = true;
+            readyToGo   = true;
             sendMessage("Available memory is sufficient, automatically continuing.");
         }
 
@@ -477,7 +477,7 @@ public class WorldFillTask
         if (requester instanceof EntityPlayerMP)
             Util.chat(requester, "[Fill] " + text + " (free mem: " + availMem + " MB)");
 
-        if (availMem < 200)
+        if ( Config.isAvailableMemoryTooLow() )
         {	// running low on memory, auto-pause
             memoryPause = true;
             Config.storeFillTask();

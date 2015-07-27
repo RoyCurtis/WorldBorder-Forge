@@ -34,7 +34,7 @@ public class CmdWshape extends WBCmd
             return;
         }
 
-        String shapeName = "";
+        String shapeName;
 
         // world and shape specified
         if (params.size() == 2)

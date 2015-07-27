@@ -108,12 +108,13 @@ public class BorderCheck
         if (newLoc == null)
         {
             Log.debug("Target new location unviable, using spawn or killing player.");
-            if (Config.doPlayerKill())
+            if ( Config.doPlayerKill() )
             {
                 player.setHealth(0.0F);
                 return null;
             }
-            newLoc = new Location((WorldServer) player.worldObj);
+
+            newLoc = new Location( (WorldServer) player.worldObj );
         }
 
         Log.trace(
@@ -121,7 +122,8 @@ public class BorderCheck
             newLoc.posX, newLoc.posY, newLoc.posZ
         );
 
-        if (notify) Util.chat( player, Config.getMessage() );
+        if (notify)
+            Util.chat( player, Config.getMessage() );
 
         return newLoc;
     }
