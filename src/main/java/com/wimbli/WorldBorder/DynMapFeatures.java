@@ -15,62 +15,67 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
+/**
+ * Static class for integrating with the Dynmap API. All methods fail safely and silently
+ * if the API is not available.
+ */
 public class DynMapFeatures
 {
-    private static DynmapCommonAPI api;
-    private static MarkerAPI       markApi;
-    private static MarkerSet       markSet;
-
-    private static int    lineWeight  = 3;
-    private static double lineOpacity = 1.0;
-    private static int    lineColor   = 0xFF0000;
-
-    private static DynmapCommonAPIListener listener = new DynmapCommonAPIListener()
+    /**
+     * This Gateway inner class is used for holding variables that use Dynmap API types,
+     * so that a NoClassDefFound exception is not thrown if the API is missing.
+     *
+     * TODO: This is very hacky; is there a better way?
+     */
+    private static class Gateway
     {
-        @Override
-        public void apiEnabled(DynmapCommonAPI dynmapCommonAPI)
+        private static DynmapCommonAPI api;
+        private static MarkerAPI       markApi;
+        private static MarkerSet       markSet;
+
+        private static Map<String, CircleMarker> roundBorders  = new HashMap<>();
+        private static Map<String, AreaMarker>   squareBorders = new HashMap<>();
+
+        private static DynmapCommonAPIListener listener = new DynmapCommonAPIListener()
         {
-            DynMapFeatures.api = dynmapCommonAPI;
-            setup();
+            @Override
+            public void apiEnabled(DynmapCommonAPI dynmapCommonAPI)
+            {
+                // FORGE: Old dynmap version check removed; 0.35 is obsolete by now
+                api     = dynmapCommonAPI;
+                markApi = api.getMarkerAPI();
+
+                showAllBorders();
+                Log.info("Successfully hooked into DynMap for the ability to display borders");
+            }
+        };
+
+        public static void register()
+        {
+            DynmapCommonAPIListener.register(listener);
         }
-    };
-
-    /** Whether re-rendering functionality is available */
-    public static boolean isRenderEnabled()
-    {
-        return api != null;
     }
 
-    /** Whether circular border markers are available */
-    public static boolean isBorderEnabled()
-    {
-        return markApi != null;
-    }
+    private static final int    LINE_WEIGHT  = 3;
+    private static final double LINE_OPACITY = 1.0;
+    private static final int    LINE_COLOR   = 0xFF0000;
+
+    private static boolean enabled = false;
 
     public static void registerListener()
     {
-        DynmapCommonAPIListener.register(listener);
-    }
-
-    public static void setup()
-    {
-        // FORGE: Old dynmap version check removed; 0.35 is obsolete by now
         try
         {
-            markApi = api.getMarkerAPI();
-            if (markApi == null) return;
+            Class.forName("org.dynmap.DynmapCommonAPI");
+            Log.debug("Dynmap API class is present; registering integration");
+            Gateway.register();
+            enabled = true;
         }
-        catch (NullPointerException ex)
+        catch (ClassNotFoundException e)
         {
-            Log.info("DynMap is present, but an NPE (type 2) was encountered while trying to integrate. Border display disabled.");
-            return;
+            Log.debug("Dynmap API is not available; integration disabled");
+            enabled = false;
         }
-
-        // go ahead and show borders for all worlds
-        showAllBorders();
-
-        Log.info("Successfully hooked into DynMap for the ability to display borders.");
     }
 
     /*
@@ -80,17 +85,17 @@ public class DynMapFeatures
 
     public static void renderRegion(World world, CoordXZ coord)
     {
-        if (!isRenderEnabled()) return;
+        if (!enabled) return;
 
         int y = (world != null) ? world.getHeight() : 255;
         int x = CoordXZ.regionToBlock(coord.x);
         int z = CoordXZ.regionToBlock(coord.z);
-        api.triggerRenderOfVolume(Worlds.getWorldName(world), x, 0, z, x + 511, y, z + 511);
+        Gateway.api.triggerRenderOfVolume(Worlds.getWorldName(world), x, 0, z, x + 511, y, z + 511);
     }
 
     public static void renderChunks(World world, List<CoordXZ> coords)
     {
-        if (!isRenderEnabled()) return;
+        if (!enabled) return;
 
         int y = (world != null) ? world.getHeight() : 255;
 
@@ -100,23 +105,20 @@ public class DynMapFeatures
 
     public static void renderChunk(String worldName, CoordXZ coord, int maxY)
     {
-        if (!isRenderEnabled()) return;
+        if (!enabled) return;
 
         int x = CoordXZ.chunkToBlock(coord.x);
         int z = CoordXZ.chunkToBlock(coord.z);
-        api.triggerRenderOfVolume(worldName, x, 0, z, x+15, maxY, z+15);
+        Gateway.api.triggerRenderOfVolume(worldName, x, 0, z, x + 15, maxY, z + 15);
     }
 
     /*
      * Methods for displaying our borders on DynMap's world maps
      */
 
-    private static Map<String, CircleMarker> roundBorders = new HashMap<>();
-    private static Map<String, AreaMarker>  squareBorders = new HashMap<>();
-
     public static void showAllBorders()
     {
-        if (!isBorderEnabled()) return;
+        if (!enabled) return;
 
         // in case any borders are already shown
         removeAllBorders();
@@ -124,21 +126,21 @@ public class DynMapFeatures
         if (!Config.isDynmapBorderEnabled())
         {
             // don't want to show the marker set in DynMap if our integration is disabled
-            if (markSet != null)
-                markSet.deleteMarkerSet();
-            markSet = null;
+            if (Gateway.markSet != null)
+                Gateway.markSet.deleteMarkerSet();
+            Gateway.markSet = null;
             return;
         }
 
         // make sure the marker set is initialized
-        markSet = markApi.getMarkerSet("worldborder.markerset");
-        if(markSet == null)
-            markSet = markApi.createMarkerSet("worldborder.markerset", "WorldBorder", null, false);
+        Gateway.markSet = Gateway.markApi.getMarkerSet("worldborder.markerset");
+        if(Gateway.markSet == null)
+            Gateway.markSet = Gateway.markApi.createMarkerSet("worldborder.markerset", "WorldBorder", null, false);
         else
-            markSet.setMarkerSetLabel("WorldBorder");
+            Gateway.markSet.setMarkerSetLabel("WorldBorder");
 
         Map<String, BorderData> borders = Config.getBorders();
-        for(Entry<String, BorderData> stringBorderDataEntry : borders.entrySet())
+        for( Entry<String, BorderData> stringBorderDataEntry : borders.entrySet() )
         {
             String     worldName = stringBorderDataEntry.getKey();
             BorderData border    = stringBorderDataEntry.getValue();
@@ -149,7 +151,7 @@ public class DynMapFeatures
 
     public static void showBorder(String worldName, BorderData border)
     {
-        if (!isBorderEnabled()) return;
+        if (!enabled) return;
 
         if (!Config.isDynmapBorderEnabled()) return;
 
@@ -161,16 +163,24 @@ public class DynMapFeatures
 
     private static void showRoundBorder(String worldName, BorderData border)
     {
-        if (squareBorders.containsKey(worldName))
+        if ( Gateway.squareBorders.containsKey(worldName) )
             removeBorder(worldName);
 
-        CircleMarker marker = roundBorders.get(worldName);
+        CircleMarker marker = Gateway.roundBorders.get(worldName);
         if (marker == null)
         {
-            marker = markSet.createCircleMarker("worldborder_" + worldName, Config.getDynmapMessage(), false, worldName, border.getX(), 64.0, border.getZ(), border.getRadiusX(), border.getRadiusZ(), true);
-            marker.setLineStyle(lineWeight, lineOpacity, lineColor);
+            marker = Gateway.markSet.createCircleMarker(
+                "worldborder_" + worldName,
+                Config.getDynmapMessage(),
+                false, worldName,
+                border.getX(), 64.0, border.getZ(),
+                border.getRadiusX(), border.getRadiusZ(),
+                true
+            );
+
+            marker.setLineStyle(LINE_WEIGHT, LINE_OPACITY, LINE_COLOR);
             marker.setFillStyle(0.0, 0x000000);
-            roundBorders.put(worldName, marker);
+            Gateway.roundBorders.put(worldName, marker);
         }
         else
         {
@@ -181,20 +191,25 @@ public class DynMapFeatures
 
     private static void showSquareBorder(String worldName, BorderData border)
     {
-        if (roundBorders.containsKey(worldName))
+        if ( Gateway.roundBorders.containsKey(worldName) )
             removeBorder(worldName);
 
         // corners of the square border
         double[] xVals = {border.getX() - border.getRadiusX(), border.getX() + border.getRadiusX()};
         double[] zVals = {border.getZ() - border.getRadiusZ(), border.getZ() + border.getRadiusZ()};
 
-        AreaMarker marker = squareBorders.get(worldName);
+        AreaMarker marker = Gateway.squareBorders.get(worldName);
         if (marker == null)
         {
-            marker = markSet.createAreaMarker("worldborder_" + worldName, Config.getDynmapMessage(), false, worldName, xVals, zVals, true);
-            marker.setLineStyle(3, 1.0, 0xFF0000);
+            marker = Gateway.markSet.createAreaMarker(
+                "worldborder_" + worldName,
+                Config.getDynmapMessage(),
+                false, worldName, xVals, zVals, true
+            );
+
+            marker.setLineStyle(LINE_WEIGHT, LINE_OPACITY, LINE_COLOR);
             marker.setFillStyle(0.0, 0x000000);
-            squareBorders.put(worldName, marker);
+            Gateway.squareBorders.put(worldName, marker);
         }
         else
             marker.setCornerLocations(xVals, zVals);
@@ -202,26 +217,26 @@ public class DynMapFeatures
 
     public static void removeAllBorders()
     {
-        if ( !isBorderEnabled() ) return;
+        if (!enabled) return;
 
-        for ( CircleMarker marker : roundBorders.values() )
+        for ( CircleMarker marker : Gateway.roundBorders.values() )
             marker.deleteMarker();
-        roundBorders.clear();
+        Gateway.roundBorders.clear();
 
-        for ( AreaMarker marker : squareBorders.values() )
+        for ( AreaMarker marker : Gateway.squareBorders.values() )
             marker.deleteMarker();
-        squareBorders.clear();
+        Gateway.squareBorders.clear();
     }
 
     public static void removeBorder(String worldName)
     {
-        if ( !isBorderEnabled() ) return;
+        if (!enabled) return;
 
-        CircleMarker marker = roundBorders.remove(worldName);
+        CircleMarker marker = Gateway.roundBorders.remove(worldName);
         if (marker != null)
             marker.deleteMarker();
 
-        AreaMarker marker2 = squareBorders.remove(worldName);
+        AreaMarker marker2 = Gateway.squareBorders.remove(worldName);
         if (marker2 != null)
             marker2.deleteMarker();
     }

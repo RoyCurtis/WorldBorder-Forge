@@ -63,10 +63,10 @@ public class WorldBorder
     @SideOnly(Side.SERVER)
     public void serverStart(FMLServerStartingEvent event)
     {
-        if (INSTANCE  == null) INSTANCE = this;
-        if (SERVER    == null) SERVER   = event.getServer();
-        if (COMMAND   == null) COMMAND  = new WBCommand();
-        if (LISTENER  == null) LISTENER = new WBListener();
+        if (INSTANCE == null) INSTANCE = this;
+        if (SERVER   == null) SERVER   = event.getServer();
+        if (COMMAND  == null) COMMAND  = new WBCommand();
+        if (LISTENER == null) LISTENER = new WBListener();
 
         // Load (or create new) config files
         Config.load(false);
@@ -78,13 +78,12 @@ public class WorldBorder
         FMLCommonHandler.instance().bus().register(LISTENER);
         MinecraftForge.EVENT_BUS.register(LISTENER);
 
-        if (Config.preventBlockPlace())
+        if ( Config.preventBlockPlace() )
             enableBlockPlaceListener(true);
 
-        if (Config.preventMobSpawn())
+        if ( Config.preventMobSpawn() )
             enableMobSpawnListener(true);
 
-        // integrate with DynMap if it becomes available
         DynMapFeatures.registerListener();
     }
 
