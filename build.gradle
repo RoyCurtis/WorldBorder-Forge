@@ -24,7 +24,7 @@ buildscript
 // Applies the custom Gradle plugin Forge uses, for Forge-specific tasks
 apply plugin: 'forge'
 
-version = "1.0.0"
+version = "1.0.1"
 group   = "com.wimbli.WorldBorder"
 
 minecraft

@@ -22,19 +22,22 @@ public class Util
     }
 
     /**
-     * Sends an automatically translated & encapsulated message to a command sender
+     * Sends an automatically translated and formatted message to a command sender
      * @param sender Target to send message to
      * @param msg String or language key to broadcast
      */
-    public static void chat(ICommandSender sender, String msg)
+    public static void chat(ICommandSender sender, String msg, Object... parts)
     {
         String translated = translate(msg);
 
+        // Consoles require ANSI coloring for formatting
         if (sender instanceof DedicatedServer)
-            // Consoles require ANSI coloring for formatting
-            Log.info( removeFormatting(translated) );
+            Log.info( removeFormatting(translated), parts );
         else
+        {
+            translated = String.format(translated, parts);
             sender.addChatMessage( new ChatComponentText(translated) );
+        }
     }
 
     /** Replaces Bukkit-convention amp format tokens with vanilla ones */
