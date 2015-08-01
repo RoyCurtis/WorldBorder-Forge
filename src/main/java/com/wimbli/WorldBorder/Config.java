@@ -44,7 +44,6 @@ public class Config
     private static boolean   dynmapEnable      = true;
     private static boolean   remount           = true;
     private static boolean   killPlayer        = false;
-    private static boolean   portalRedirection = true;
     private static boolean   denyEnderpearl    = false;
     private static boolean   preventBlockPlace = false;
     private static boolean   preventMobSpawn   = false;
@@ -244,18 +243,6 @@ public class Config
         denyEnderpearl = enable;
         Log.info("Direct cancellation of ender pearls thrown past the border " + (enable ? "enabled" : "disabled") + ".");
         save();
-    }
-
-    public static void setPortalRedirection(boolean enable)
-    {
-        portalRedirection = enable;
-        Log.info("Portal redirection " + (enable ? "enabled" : "disabled") + ".");
-        save();
-    }
-
-    public static boolean doPortalRedirection()
-    {
-        return portalRedirection;
     }
 
     public static void setKnockBack(float numBlocks)
@@ -462,7 +449,6 @@ public class Config
         importBypassStringList(cfgMain.getStringList(MAIN_CAT, "bypass-list-uuids"));
         shapeRound        = cfgMain.getBoolean(MAIN_CAT, "round-border", true);
         whooshEffect      = cfgMain.getBoolean(MAIN_CAT, "whoosh-effect", true);
-        portalRedirection = cfgMain.getBoolean(MAIN_CAT, "portal-redirection", true);
         knockBack         = cfgMain.getFloat(MAIN_CAT, "knock-back-dist", 3.0F);
         timerTicks        = cfgMain.getInt(MAIN_CAT, "timer-delay-ticks", 20);
         remount           = cfgMain.getBoolean(MAIN_CAT, "remount-on-knockback", true);
@@ -565,7 +551,6 @@ public class Config
         cfgMain.set(MAIN_CAT, "message", message);
         cfgMain.set(MAIN_CAT, "round-border", shapeRound);
         cfgMain.set(MAIN_CAT, "whoosh-effect", whooshEffect);
-        cfgMain.set(MAIN_CAT, "portal-redirection", portalRedirection);
         cfgMain.set(MAIN_CAT, "knock-back-dist", knockBack);
         cfgMain.set(MAIN_CAT, "timer-delay-ticks", timerTicks);
         cfgMain.set(MAIN_CAT, "remount-on-knockback", remount);

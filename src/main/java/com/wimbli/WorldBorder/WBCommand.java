@@ -56,9 +56,8 @@ public class WBCommand implements ICommand
         addCmd(new CmdDynmapmsg());		// 1
         addCmd(new CmdRemount());		// 1
         addCmd(new CmdFillautosave());	// 1
-        addCmd(new CmdPortal());		// 1
-        //-----
         addCmd(new CmdDenypearl());		// 1
+        //-----
         addCmd(new CmdReload());		// 1
 
         // this is the default command, which shows command example pages; should be last just in case

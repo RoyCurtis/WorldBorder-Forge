@@ -54,23 +54,4 @@ public class WBListener
         if (newLoc != null)
             event.player.setPositionAndUpdate(newLoc.posX, newLoc.posY, newLoc.posZ);
     }
-
-    // FORGE: This is a very hacky attempt at emulating portal event. May not work as
-    // intended.
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPlayerPortal(PlayerEvent.PlayerChangedDimensionEvent event)
-    {
-        // if knockback is set to 0, or portal redirection is disabled, simply return
-        if (Config.getKnockBack() == 0.0 || !Config.doPortalRedirection())
-            return;
-
-        EntityPlayerMP player = (EntityPlayerMP) event.player;
-        Log.trace( "Caught dim change event by %s", player.getDisplayName() );
-
-        Location target = new Location(event.player);
-        Location newLoc = BorderCheck.checkPlayer(player, target, true, true);
-
-        if (newLoc != null)
-            event.player.setPositionAndUpdate(newLoc.posX, newLoc.posY, newLoc.posZ);
-    }
 }

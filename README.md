@@ -32,7 +32,7 @@ This fork is based off version 1.8.4 of the WorldBorder Bukkit plugin. A lot of 
 * [Unreliable handling of teleport events](https://github.com/Gamealition/WorldBorder-Forge/issues/1)
 * Unreliable handling of unloaded dimensions
 * Uses "DIM##" instead of friendly names for dimensions
-* Missing support for portal redirection
+* No support for portal redirection
 * Incomplete/untested API
 * Single-threaded design; no concurrency-safe collections or patterns are used
 * Periodic tasks (border check, fill, trim) use tick handlers instead of timers
