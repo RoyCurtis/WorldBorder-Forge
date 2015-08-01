@@ -1,5 +1,6 @@
 package com.wimbli.WorldBorder.cmd;
 
+import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.CoordXZ;
 import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
@@ -138,7 +139,7 @@ public class CmdFill extends WBCmd
 
             try
             {
-                WorldFillTask task = new WorldFillTask(player, fillWorld, fillForceLoad, fillPadding, repeats, ticks);
+                WorldFillTask task = WorldFillTask.create(player, fillWorld, fillForceLoad, fillPadding, repeats, ticks);
                 task.start();
                 Util.chat(sender, "WorldBorder map generation task for world \"" + fillWorld + "\" started.");
             }
@@ -155,6 +156,12 @@ public class CmdFill extends WBCmd
             if (fillWorld.isEmpty() || Worlds.getWorld(fillWorld) == null)
             {
                 sendErrorAndHelp(sender, "You must first specify a valid world.");
+                return;
+            }
+
+            if (Config.Border(fillWorld) == null)
+            {
+                sendErrorAndHelp(sender, "That world does not have a border.");
                 return;
             }
 

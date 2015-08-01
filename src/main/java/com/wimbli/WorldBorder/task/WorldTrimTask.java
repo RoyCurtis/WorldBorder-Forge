@@ -32,6 +32,24 @@ public class WorldTrimTask
         return INSTANCE;
     }
 
+    public static WorldTrimTask create(
+        ICommandSender player, String worldName,
+        int trimDistance, int chunksPerRun, int tickFrequency)
+    {
+        if (INSTANCE != null)
+            throw new IllegalStateException("There can only be one WorldTrimTask");
+        else try
+        {
+            INSTANCE = new WorldTrimTask(player, worldName, trimDistance, chunksPerRun, tickFrequency);
+            return INSTANCE;
+        }
+        catch (Exception e)
+        {
+            INSTANCE = null;
+            throw e;
+        }
+    }
+
     // Per-task shortcut references
     private final WorldServer    world;
     private final WorldFileData  worldData;
@@ -46,6 +64,7 @@ public class WorldTrimTask
     private int     chunksPerRun  = 1;
     private boolean readyToGo     = false;
     private boolean paused        = false;
+    private boolean deleteError   = false;
 
     // Per-task state region progress tracking
     private int currentRegion = -1;  // region(file) we're at in regionFiles
@@ -104,13 +123,8 @@ public class WorldTrimTask
         return this.paused;
     }
 
-    public WorldTrimTask(ICommandSender player, String worldName, int trimDistance, int chunksPerRun, int tickFrequency)
+    private WorldTrimTask(ICommandSender player, String worldName, int trimDistance, int chunksPerRun, int tickFrequency)
     {
-        if (INSTANCE != null)
-            throw new IllegalStateException("There can only be one WorldFillTask");
-        else
-            INSTANCE = this;
-
         this.requester     = player;
         this.tickFrequency = tickFrequency;
         this.chunksPerRun  = chunksPerRun;
@@ -210,22 +224,23 @@ public class WorldTrimTask
 
                 try
                 {
+                    Files.delete( regionFile.toPath() );
+
                     Log.trace(
-                        "Deleting region file '%s' for world '%s'",
+                        "Deleted region file '%s' for world '%s'",
                         regionFile.getAbsolutePath(),
                         Worlds.getWorldName(world)
                     );
-
-                    Files.delete( regionFile.toPath() );
                 }
                 catch (Exception e)
                 {
-                    // TODO: make this not spam per region file
-                    // NOTE: this only appears to be a problem on Windows...
-                    sendMessage("Error! Region file which is outside the border could not be deleted: " + regionFile.getName() );
-                    sendMessage("It may be that the world spawn chunks are in this region.");
-                    sendMessage("Use /setworldspawn to set the spawn chunks elsewhere, restart the server and try again");
-                    sendMessage("Region delete exception: " + e.getMessage().replaceAll("\n", ""));
+                    Log.warn(
+                        "Exception when deleting region file '%s': %s",
+                        regionFile.getName(),
+                        e.getMessage().replaceAll("\n", "")
+                    );
+
+                    deleteError = true;
                     wipeChunks();
                 }
 
@@ -407,7 +422,15 @@ public class WorldTrimTask
     {
         reportTotal = reportTarget;
         reportProgress();
-        sendMessage("task successfully completed!");
+        sendMessage("Task successfully completed for world \"" + Worlds.getWorldName(world) + "\"!");
+
+        if (deleteError)
+            sendMessage(
+                "One or more region files could not be deleted. It may be that the world " +
+                "spawn point covers those regions, or the server is running on Windows. "  +
+                "Restart the server and retry trimming without players logged in."
+            );
+
         this.stop();
     }
 
@@ -431,6 +454,6 @@ public class WorldTrimTask
     protected void finalize() throws Throwable
     {
         super.finalize();
-        Log.debug( "WorldFillTask cleaned up for %s", Worlds.getWorldName(world) );
+        Log.debug( "WorldTrimTask cleaned up for %s", Worlds.getWorldName(world) );
     }
 }

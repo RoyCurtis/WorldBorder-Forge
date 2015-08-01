@@ -31,6 +31,25 @@ public class WorldFillTask
         return INSTANCE;
     }
 
+    /** Creates a singleton instance of this task, rethrowing any errors */
+    public static WorldFillTask create(
+        ICommandSender requester, String worldName,
+        boolean forceLoad, int fillDistance, int chunksPerRun, int tickFrequency)
+    {
+        if (INSTANCE != null)
+            throw new IllegalStateException("There can only be one WorldFillTask");
+        else try
+        {
+            INSTANCE = new WorldFillTask(requester, worldName, forceLoad, fillDistance, chunksPerRun, tickFrequency);
+            return INSTANCE;
+        }
+        catch (Exception e)
+        {
+            INSTANCE = null;
+            throw e;
+        }
+    }
+
     // Per-task shortcut references
     private final WorldServer         world;
     private final WorldFileData       worldData;
@@ -202,13 +221,8 @@ public class WorldFillTask
         return this.paused || this.memoryPause;
     }
 
-    public WorldFillTask(ICommandSender requester, String worldName, boolean forceLoad, int fillDistance, int chunksPerRun, int tickFrequency)
+    private WorldFillTask(ICommandSender requester, String worldName, boolean forceLoad, int fillDistance, int chunksPerRun, int tickFrequency)
     {
-        if (INSTANCE != null)
-            throw new IllegalStateException("There can only be one WorldFillTask");
-        else
-            INSTANCE = this;
-
         this.requester     = requester;
         this.fillDistance  = fillDistance;
         this.tickFrequency = tickFrequency;

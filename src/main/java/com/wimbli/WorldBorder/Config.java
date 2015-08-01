@@ -408,7 +408,7 @@ public class Config
 
         try
         {
-            WorldFillTask task = new WorldFillTask(WorldBorder.SERVER, world, forceLoad, fillDistance, chunksPerRun, tickFrequency);
+            WorldFillTask task = WorldFillTask.create(WorldBorder.SERVER, world, forceLoad, fillDistance, chunksPerRun, tickFrequency);
             task.startFrom(x, z, length, total);
         }
         catch (Exception e)
