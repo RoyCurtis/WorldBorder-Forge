@@ -511,7 +511,7 @@ public class Config
                 overrideShape, wrap
             );
             borders.put(worldName, border);
-            Log.info(BorderDescription(worldName));
+            Log.debug(BorderDescription(worldName));
         }
 
         // if we have an unfinished fill task stored from a previous run, load it up
