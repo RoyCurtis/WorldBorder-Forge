@@ -1,5 +1,7 @@
-package com.wimbli.WorldBorder;
+package com.wimbli.WorldBorder.listener;
 
+import com.wimbli.WorldBorder.BorderData;
+import com.wimbli.WorldBorder.Config;
 import com.wimbli.WorldBorder.forge.Worlds;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -15,6 +17,7 @@ public class MobSpawnListener
         if ( isInsideBorder(event) )
             return;
 
+        // CheckSpawn uses event result instead of cancellation
         event.setResult(LivingSpawnEvent.Result.DENY);
     }
 
@@ -24,7 +27,7 @@ public class MobSpawnListener
         if ( isInsideBorder(event) )
             return;
 
-        event.setResult(LivingSpawnEvent.Result.DENY);
+        // SpecialSpawn uses event cancellation instead of result
         event.setCanceled(true);
     }
 

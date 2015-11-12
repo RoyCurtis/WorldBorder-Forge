@@ -1,7 +1,9 @@
 package com.wimbli.WorldBorder;
 
 import com.wimbli.WorldBorder.forge.Log;
-import cpw.mods.fml.common.FMLCommonHandler;
+import com.wimbli.WorldBorder.listener.BlockPlaceListener;
+import com.wimbli.WorldBorder.listener.EnderPearlListener;
+import com.wimbli.WorldBorder.listener.MobSpawnListener;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
@@ -35,11 +37,10 @@ public class WorldBorder
     public static MinecraftServer SERVER   = null;
     /** Singleton instance of WorldBorder's command handler */
     public static WBCommand       COMMAND  = null;
-    /** Singleton instance of WorldBorder's event handler */
-    public static WBListener      LISTENER = null;
 
     private BlockPlaceListener blockPlaceListener = null;
     private MobSpawnListener   mobSpawnListener   = null;
+    private EnderPearlListener enderPearlListener = null;
 
     /**
      * Given WorldBorder's dependency on dedicated server classes and is designed for
@@ -67,7 +68,6 @@ public class WorldBorder
         if (INSTANCE == null) INSTANCE = this;
         if (SERVER   == null) SERVER   = event.getServer();
         if (COMMAND  == null) COMMAND  = new WBCommand();
-        if (LISTENER == null) LISTENER = new WBListener();
 
         // Load (or create new) config files
         Config.load(false);
@@ -75,15 +75,14 @@ public class WorldBorder
         // our one real command, though it does also have aliases "wb" and "worldborder"
         event.registerServerCommand(COMMAND);
 
-        // keep an eye on teleports, to redirect them to a spot inside the border if necessary
-        FMLCommonHandler.instance().bus().register(LISTENER);
-        MinecraftForge.EVENT_BUS.register(LISTENER);
-
-        if ( Config.preventBlockPlace())
+        if ( Config.preventBlockPlace() )
             enableBlockPlaceListener(true);
 
-        if ( Config.preventMobSpawn())
+        if ( Config.preventMobSpawn() )
             enableMobSpawnListener(true);
+
+        if ( Config.getDenyEnderpearl() )
+            enableEnderPearlListener(true);
 
         DynMapFeatures.registerListener();
     }
@@ -120,5 +119,14 @@ public class WorldBorder
             MinecraftForge.EVENT_BUS.register( this.mobSpawnListener = new MobSpawnListener() );
         else if (mobSpawnListener != null)
             MinecraftForge.EVENT_BUS.unregister(this.mobSpawnListener);
+    }
+
+    @SideOnly(Side.SERVER)
+    public void enableEnderPearlListener(boolean enable)
+    {
+        if      (enable)
+            MinecraftForge.EVENT_BUS.register( this.enderPearlListener = new EnderPearlListener() );
+        else if (enderPearlListener != null)
+            MinecraftForge.EVENT_BUS.unregister(this.enderPearlListener);
     }
 }

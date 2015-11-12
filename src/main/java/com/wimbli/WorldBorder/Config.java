@@ -240,6 +240,9 @@ public class Config
 
     public static void setDenyEnderpearl(boolean enable)
     {
+        if (denyEnderpearl != enable)
+            WorldBorder.INSTANCE.enableEnderPearlListener(enable);
+
         denyEnderpearl = enable;
         Log.info("Direct cancellation of ender pearls thrown past the border " + (enable ? "enabled" : "disabled") + ".");
         save();
