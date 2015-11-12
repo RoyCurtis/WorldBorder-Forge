@@ -6,6 +6,7 @@ import com.wimbli.WorldBorder.listener.EnderPearlListener;
 import com.wimbli.WorldBorder.listener.MobSpawnListener;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.relauncher.Side;
@@ -85,6 +86,13 @@ public class WorldBorder
             enableEnderPearlListener(true);
 
         DynMapFeatures.registerListener();
+    }
+
+    @Mod.EventHandler
+    @SideOnly(Side.SERVER)
+    public void serverPostStart(FMLServerStartedEvent event)
+    {
+        WBCommand.checkRegistrations(SERVER);
     }
 
     @Mod.EventHandler

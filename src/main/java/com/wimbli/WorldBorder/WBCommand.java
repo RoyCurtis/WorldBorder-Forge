@@ -3,11 +3,13 @@ package com.wimbli.WorldBorder;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import com.wimbli.WorldBorder.cmd.*;
+import com.wimbli.WorldBorder.forge.Log;
 import com.wimbli.WorldBorder.forge.Util;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.management.UserListOpsEntry;
 
@@ -17,7 +19,7 @@ import java.util.*;
 public class WBCommand implements ICommand
 {
     static final String NAME    = "wborder";
-    static final List   ALIASES = Arrays.asList("wb", "worldborder");
+    static final List   ALIASES = Arrays.asList(NAME, "wb", "worldborder");
 
     // map of all sub-commands with the command name (string) for quick reference
     public Map<String, WBCmd> subCommands = new LinkedHashMap<>();
@@ -25,6 +27,51 @@ public class WBCommand implements ICommand
     private Set<String> subCommandsWithWorldNames = new LinkedHashSet<>();
 
     private ArrayList<String> subCommandNames = null;
+
+    /**
+     * Checks the server's registered commands in case any other commands override
+     * WorldBorder's. Will print errors to the log if conflicts found.
+     */
+    public static void checkRegistrations(MinecraftServer server)
+    {
+        List<String> valid    = new ArrayList<>( ALIASES.size() );
+        List<String> conflict = new ArrayList<>( ALIASES.size() );
+
+        Map commands = server.getCommandManager().getCommands();
+
+        for (Object o : ALIASES)
+        {
+            String name  = (String) o;
+            Object value = commands.get(name);
+
+            if (value == null)
+                Log.error("Null handler for '/%s'! Please report this", name);
+            else if (value instanceof WBCommand)
+                valid.add("/" + name);
+            else
+                conflict.add(
+                    String.format( "/%s (from %s)", name, value.getClass().getName() )
+                );
+        }
+
+        if (valid.size() == 0)
+        {
+            Log.error("All WorldBorder commands are being handled elsewhere:");
+            for (String c : conflict) Log.error("* %s", c);
+            Log.error("It may be that another mod is attempting to provide world " +
+                "border functionality. Consider removing or disabling that mod to " +
+                "allow WorldBorder-Forge to work properly.");
+        }
+        else if (conflict.size() > 0)
+        {
+            Log.warn("The following WorldBorder commands are being handled elsewhere:");
+            for (String c : conflict) Log.warn("* %s", c);
+            Log.warn("It may be that another mod is attempting to provide world " +
+                "border functionality. Consider removing or disabling that mod to " +
+                "allow WorldBorder-Forge to work. Alternatively, try these commands:");
+            for (String v : valid) Log.warn("* %s", v);
+        }
+    }
 
     // constructor
     public WBCommand ()
