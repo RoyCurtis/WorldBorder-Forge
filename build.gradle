@@ -15,6 +15,7 @@ buildscript
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
     }
+
     dependencies
     {
         classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
@@ -24,20 +25,19 @@ buildscript
 // Applies the custom Gradle plugin Forge uses, for Forge-specific tasks
 apply plugin: 'forge'
 
-version = "1.0.1"
+// Gradle project metadata
+version = "1.0.2"
 group   = "com.wimbli.WorldBorder"
 
 minecraft
 {
+    // Forge version
     version = "1.7.10-10.13.4.1448-1.7.10"
     runDir  = "debug"
 }
 
-jar
-{
-    // Sets the output directory of the mod's jar file
-    destinationDir = file 'output'
-}
+// Sets the output directory of the mod's jar file
+jar.destinationDir = file 'output'
 
 compileJava
 {
@@ -46,13 +46,14 @@ compileJava
     targetCompatibility = "1.7"
 }
 
-idea
+// Fixes issues with debugging in IntelliJ
+idea.module.inheritOutputDirs = true
+
+// Fixes issues with unicode in source files
+// From https://discuss.gradle.org/t/special-characters-in-java-string-literals-arent-interpreted-correctly/4665
+tasks.withType(JavaCompile)
 {
-    module
-    {
-        // Fixes issues with debugging in IntelliJ
-        inheritOutputDirs = true
-    }
+    options.encoding = "UTF-8"
 }
 
 repositories
