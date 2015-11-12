@@ -107,7 +107,25 @@ public class BorderCheck
         // it's remotely possible (such as in the Nether) a suitable location isn't available, in which case...
         if (newLoc == null)
         {
-            Log.debug("Target new location unviable, using spawn or killing player.");
+            Log.debug("Target new location unviable, trying again with border center.");
+
+            double safeY = border.getSafeY(
+                loc.world, (int) border.getX(), 64, (int) border.getZ(),
+                player.capabilities.isFlying
+            );
+
+            if (safeY != 1)
+            {
+                newLoc = new Location(loc);
+                newLoc.posX = Math.floor( border.getX() ) + 0.5;
+                newLoc.posY = safeY;
+                newLoc.posZ = Math.floor( border.getZ() ) + 0.5;
+            }
+        }
+
+        if (newLoc == null)
+        {
+            Log.debug("Target new location still unviable, using spawn or killing player.");
             if ( Config.doPlayerKill() )
             {
                 player.setHealth(0.0F);

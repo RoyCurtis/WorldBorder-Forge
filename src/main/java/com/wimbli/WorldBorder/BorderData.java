@@ -352,15 +352,17 @@ public class BorderData
             return safe;
 
         int below = Worlds.getBlockID(world, X, Y - 1, Z);
+
         return
-            (!safeOpenBlocks.contains(below) || below == 8 || below == 9) // below target block not open/breathable (so presumably solid), or is water
-            && !painfulBlocks.contains(below);                            // below target block not painful
+            !(below == 7 && world.provider.dimensionId == -1)                // try not to place player above bedrock in nether
+            && (!safeOpenBlocks.contains(below) || below == 8 || below == 9) // below target block not open/breathable (so presumably solid), or is water
+            && !painfulBlocks.contains(below);                               // below target block not painful
     }
 
     private static final int limBot = 1;
 
     // find closest safe Y position from the starting position
-    private double getSafeY(WorldServer world, int X, int Y, int Z, boolean flying)
+    public double getSafeY(WorldServer world, int X, int Y, int Z, boolean flying)
     {
         final int limTop = world.getHeight() - 2;
         // Expanding Y search method adapted from Acru's code in the Nether plugin
