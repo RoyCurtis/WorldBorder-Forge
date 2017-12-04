@@ -1,3 +1,7 @@
+A 1.10.2 version of this Forge mod is now available and maintained by [@abused](https://github.com/abused/) at https://github.com/abused/World-Border and https://minecraft.curseforge.com/projects/worldborder-forge
+
+----
+
 WorldBorder-Forge is an unofficial and unendorsed port of [Brett Flannigan](https://github.com/Brettflan)'s [WorldBorder](https://github.com/Brettflan/WorldBorder) Bukkit plugin to Forge 1.7.10. It is a server-only mod that allows the easy management of world sizes. Almost all the features of the Bukkit plugin are available in this version, including but not limited to:
 
 * Per-dimension border control by radius or by corner points
